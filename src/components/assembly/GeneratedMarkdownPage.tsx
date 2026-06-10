@@ -9,6 +9,9 @@ import { SchemaScript } from '@/components/layout/SchemaScript'
 import { Hero } from '@/components/blocks/Hero'
 import { HeroSplit } from '@/components/blocks/HeroSplit'
 import { PageHeader } from '@/components/blocks/PageHeader'
+import { AnswerCallout } from '@/components/blocks/AnswerCallout'
+import { RelatedLinks } from '@/components/blocks/RelatedLinks'
+import { TrustSignals } from '@/components/blocks/TrustSignals'
 import {
   extractHeroProps,
   extractHeroSplitProps,
@@ -55,9 +58,12 @@ export async function renderGeneratedPage(url: string): Promise<ReactNode | null
     <>
       <SchemaScript manifest={manifest} brand={brand} />
       <PageLayout hero={renderHeroBlock(manifest)}>
+        <AnswerCallout answer={manifest.answer_block} />
         {manifest.sections.map((section, i) => (
           <BlockRenderer key={i} section={section} manifest={manifest} />
         ))}
+        <RelatedLinks links={manifest.internal_links} />
+        <TrustSignals signals={manifest.eeat_signals} />
       </PageLayout>
     </>
   )

@@ -77,6 +77,20 @@ export default async function RootLayout({
       : undefined,
   }
 
+  // WebSite entity, linked to the Organization as publisher. No SearchAction —
+  // the template ships no on-site search endpoint, and advertising one Google
+  // can't fulfill would be misleading.
+  const websiteSchema: Record<string, unknown> = {
+    '@context': 'https://schema.org',
+    '@type': 'WebSite',
+    name: brand.firm.name,
+    url: siteConfig.siteUrl,
+    publisher: { '@type': 'Organization', name: brand.firm.name },
+  }
+
+  // Escape `<` so embedded values can never break out of the <script> element.
+  const jsonLd = (s: Record<string, unknown>) => JSON.stringify(s).replace(/</g, '\\u003c')
+
   return (
     <html
       lang="en"
@@ -95,7 +109,11 @@ export default async function RootLayout({
       >
         <script
           type="application/ld+json"
-          dangerouslySetInnerHTML={{ __html: JSON.stringify(orgSchema) }}
+          dangerouslySetInnerHTML={{ __html: jsonLd(orgSchema) }}
+        />
+        <script
+          type="application/ld+json"
+          dangerouslySetInnerHTML={{ __html: jsonLd(websiteSchema) }}
         />
         <a
           href="#main-content"

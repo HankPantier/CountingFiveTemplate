@@ -6,15 +6,18 @@ import { Card, CardContent } from '@/components/ui/card'
 import { getBrandConfig } from '@/lib/brand/get-brand-config'
 import { listPostsMeta } from '@/lib/content/get-post'
 import { resolveImageSrc } from '@/lib/assembly/resolve-image'
+import { siteConfig } from '../../../site.config'
 
 export async function generateMetadata(): Promise<Metadata> {
   const brand = await getBrandConfig()
   const title = `Resources | ${brand.firm.name}`
   const description = `Tax, advisory, and accounting resources from ${brand.firm.name}.`
+  const canonical = `${siteConfig.siteUrl.replace(/\/$/, '')}/resources`
   return {
     title,
     description,
-    openGraph: { title, description, type: 'website', images: [{ url: '/api/og', width: 1200, height: 630 }] },
+    alternates: { canonical },
+    openGraph: { title, description, url: canonical, type: 'website', images: [{ url: '/api/og', width: 1200, height: 630 }] },
     twitter: { card: 'summary_large_image', title, description, images: ['/api/og'] },
   }
 }
