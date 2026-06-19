@@ -43,9 +43,13 @@ function breadcrumbSchema(manifest: PageManifest, base: string): Record<string, 
   }
 }
 
-export function SchemaScript({ manifest, brand }: { manifest: PageManifest; brand: BrandJson }) {
-  const base = siteConfig.siteUrl.replace(/\/$/, '')
-
+// Build the JSON-LD graph for a page from its frontmatter — the single source
+// of truth. Pure + exported so it can be unit-tested without rendering.
+export function buildPageSchemas(
+  manifest: PageManifest,
+  brand: BrandJson,
+  base: string
+): Record<string, unknown>[] {
   const pageSchema: Record<string, unknown> = {
     '@context': 'https://schema.org',
     '@type': manifest.schema_markup || 'WebPage',
@@ -53,6 +57,10 @@ export function SchemaScript({ manifest, brand }: { manifest: PageManifest; bran
     url: manifest.canonical_url,
     description: manifest.meta_description,
   }
+
+  // The AIO direct answer doubles as the page's abstract so AI overviews have a
+  // concise, citable summary in structured data (it also renders on-page).
+  if (manifest.answer_block) pageSchema['abstract'] = manifest.answer_block
 
   if (manifest.schema_markup === 'LocalBusiness' && brand.contact.address) {
     pageSchema['address'] = {
@@ -82,6 +90,13 @@ export function SchemaScript({ manifest, brand }: { manifest: PageManifest; bran
 
   const crumbs = breadcrumbSchema(manifest, base)
   if (crumbs) schemas.push(crumbs)
+
+  return schemas
+}
+
+export function SchemaScript({ manifest, brand }: { manifest: PageManifest; brand: BrandJson }) {
+  const base = siteConfig.siteUrl.replace(/\/$/, '')
+  const schemas = buildPageSchemas(manifest, brand, base)
 
   return (
     <>
