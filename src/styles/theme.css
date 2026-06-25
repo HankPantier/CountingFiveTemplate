@@ -32,6 +32,12 @@
   --color-near-white: #F7F5F2;
   --color-complementary: #B8422E;
 
+  /* Footer surface — intentionally dark in BOTH light and dark mode, so the
+   * footer stays a consistent dark anchor instead of inverting under the
+   * prefers-color-scheme override below. */
+  --color-footer: #1A1C1E;
+  --color-footer-foreground: #F7F5F2;
+
   /* Spacing scale — exposed under a c5-prefixed namespace to avoid
    * colliding with Tailwind v4's --spacing-* namespace, which feeds
    * max-w-*, w-*, h-*, p-*, m-*, gap-* utilities. Naming these tokens
@@ -90,6 +96,12 @@
   --color-near-white: #F7F5F2;
   --color-complementary: #B8422E;
 
+  /* Footer surface — intentionally dark in BOTH light and dark mode, so the
+   * footer stays a consistent dark anchor instead of inverting under the
+   * prefers-color-scheme override below. */
+  --color-footer: #1A1C1E;
+  --color-footer-foreground: #F7F5F2;
+
   /* Spacing scale (c5-prefixed to avoid Tailwind --spacing-* collision) */
   --c5-space-xs: 4px;
   --c5-space-sm: 8px;
@@ -109,4 +121,22 @@
   /* Font family */
   --font-heading: var(--font-heading-loaded, system-ui, sans-serif);
   --font-body: var(--font-body-loaded, system-ui, sans-serif);
+}
+
+/* System-preference dark mode. Flips only the neutral surfaces + text; brand
+ * colour tokens and the footer are intentionally left untouched so colored
+ * heros, buttons, and CTAs render identically and stay on-brand. */
+@media (prefers-color-scheme: dark) {
+  :root {
+    --color-background: hsl(210 9% 9%);
+    --color-foreground: hsl(40 22% 92%);
+    --color-card: hsl(216 7% 13%);
+    --color-card-foreground: hsl(40 22% 92%);
+    --color-popover: hsl(216 7% 13%);
+    --color-popover-foreground: hsl(40 22% 92%);
+    --color-muted: hsl(210 7% 17%);
+    --color-muted-foreground: hsl(36 24% 60%);
+    --color-border: hsl(213 7% 24%);
+    --color-input: hsl(213 7% 24%);
+  }
 }

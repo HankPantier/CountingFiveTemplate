@@ -15,7 +15,7 @@ export function FooterCookiePrefsLink() {
           'analytics-consent=; path=/; expires=Thu, 01 Jan 1970 00:00:00 GMT'
         window.location.reload()
       }}
-      className="hover:text-background"
+      className="hover:text-footer-foreground"
     >
       Cookie preferences
     </button>
