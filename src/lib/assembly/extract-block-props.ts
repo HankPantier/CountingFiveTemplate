@@ -50,10 +50,20 @@ export function extractHeroProps(manifest: PageManifest): HeroProps {
     variant: (manifest.hero_variant as HeroProps['variant']) ?? 'image',
     image: manifest.hero_image,
     image_alt: manifest.hero_image_alt,
-    headline: manifest.title.split(' | ')[0].trim(),
+    headline: heroHeadline(manifest),
     subheadline: manifest.hero_subhead ?? manifest.meta_description,
     cta_primary: undefined,
   }
+}
+
+/**
+ * Resolve the hero H1. Prefer the marketing headline the deliverable promotes
+ * (hero_headline); fall back to the page title minus the firm suffix. The
+ * fallback alone renders weak generic H1s on nav-titled pages ("Home",
+ * "Contact"), so hero_headline is the intended source.
+ */
+export function heroHeadline(manifest: PageManifest): string {
+  return manifest.hero_headline?.trim() || manifest.title.split(' | ')[0].trim()
 }
 
 // ---------------------------------------------------------------------------
@@ -486,7 +496,7 @@ export type HeroSplitProps = {
  * and PageHeader. M4.D wires it into PageLayout via manifest.hero_block.
  */
 export function extractHeroSplitProps(manifest: PageManifest): HeroSplitProps {
-  const headline = manifest.title.split(' | ')[0].trim()
+  const headline = heroHeadline(manifest)
   return {
     variant: (manifest.hero_variant as HeroSplitProps['variant']) ?? 'image-right',
     headline,

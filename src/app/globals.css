@@ -67,3 +67,18 @@
 .prose strong {
   font-weight: 600;
 }
+
+/* Respect the OS "reduce motion" setting. The template's animations are all
+ * decorative (carousel autoplay, scroll-triggered nav border, hover/scale
+ * transitions), so collapse them to near-instant for users who opt out of
+ * motion rather than maintaining a per-component allowlist. */
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+    scroll-behavior: auto !important;
+  }
+}

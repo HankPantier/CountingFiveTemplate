@@ -22,11 +22,11 @@ export function IntroText({ variant, heading, body, cta }: IntroTextProps) {
             : 'max-w-3xl text-left'
         )}
       >
-        <h2
-          className="font-heading text-3xl md:text-4xl font-semibold text-foreground"
-        >
-          {heading}
-        </h2>
+        {heading && (
+          <h2 className="font-heading text-3xl md:text-4xl font-semibold text-foreground">
+            {heading}
+          </h2>
+        )}
         <div className="prose prose-neutral mt-4 max-w-none text-foreground/80 leading-relaxed">
           <ReactMarkdown remarkPlugins={[remarkGfm]} components={MD_LINK_COMPONENTS}>{body}</ReactMarkdown>
         </div>

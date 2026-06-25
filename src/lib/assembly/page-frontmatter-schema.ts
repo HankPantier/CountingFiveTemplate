@@ -50,6 +50,7 @@ export const PageFrontmatterSchema = z
     hero_image: optStr,
     hero_image_alt: optStr,
     hero_subhead: optStr,
+    hero_headline: optStr,
 
     answer_block: optStr,
     eeat_signals: z.array(z.string()).optional(),

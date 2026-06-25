@@ -42,6 +42,7 @@ export type PageManifest = {
   hero_image?: string
   hero_image_alt?: string
   hero_subhead?: string     // Benefit-led hero copy; falls back to meta_description in consumers
+  hero_headline?: string    // Marketing H1; falls back to the page title in consumers
   // Optional structured data (passed through)
   answer_block?: string
   eeat_signals?: string[]
@@ -68,6 +69,33 @@ function trimMetadataTrailer(body: string): string {
   return m && m.index !== undefined ? body.slice(0, m.index) : body
 }
 
+/**
+ * Defensive unwrap for malformed deliverables whose page body is the raw
+ * content-generation envelope — a JSON object `{ "content": "...markdown...",
+ * "metadata": {...} }` — instead of the assembleable block markdown. This
+ * happens when a generation step stored the model's JSON response verbatim as
+ * `content_markdown` upstream (observed in older Phase I zips). Left as-is, the
+ * body carries no `<!-- block: -->` annotations, so the page renders with an
+ * empty content area. Detect that envelope and substitute its `.content`
+ * string so the real blocks render. No-op for well-formed bodies.
+ */
+function unwrapJsonEnvelope(body: string): string {
+  const trimmed = body.trim()
+  // Tolerate an optional ```json … ``` code fence around the envelope.
+  const fenced = trimmed.match(/^```(?:json)?\s*\n([\s\S]*?)\n```$/)
+  const candidate = fenced ? fenced[1].trim() : trimmed
+  if (!candidate.startsWith('{')) return body
+  try {
+    const obj = JSON.parse(candidate)
+    if (obj && typeof obj.content === 'string' && obj.content.includes('<!-- block:')) {
+      return obj.content
+    }
+  } catch {
+    // Not valid JSON — leave the body untouched for normal parsing.
+  }
+  return body
+}
+
 export function parsePageMd(markdown: string): PageManifest {
   const parsed = matter(markdown)
   // Validate the frontmatter shape via Zod. Throws on type mismatches (e.g.
@@ -75,7 +103,7 @@ export function parsePageMd(markdown: string): PageManifest {
   // script can fail CI before a malformed deliverable ships. Missing fields
   // fall back to safe defaults — old deliverables keep building.
   const fm = PageFrontmatterSchema.parse(parsed.data)
-  const body = trimMetadataTrailer(parsed.content)
+  const body = unwrapJsonEnvelope(trimMetadataTrailer(parsed.content))
 
   /**
    * Splits on the canonical annotation pattern:
@@ -136,6 +164,21 @@ export function parsePageMd(markdown: string): PageManifest {
       )
     : sections
 
+  /**
+   * De-duplicate the hero headline against the lead section. When the hero
+   * promotes the page's first content heading into its H1 (hero_headline
+   * derived from the lead block upstream), rendering that same heading again
+   * on the first section reads as a stutter. Blank the lead heading so its body
+   * still renders — block components render the <h2> only when heading is set.
+   */
+  const heroHeadline = fm.hero_headline?.trim()
+  if (heroHeadline && filteredSections.length > 0) {
+    const lead = filteredSections[0]
+    if (lead.heading.trim().toLowerCase() === heroHeadline.toLowerCase()) {
+      filteredSections[0] = { ...lead, heading: '' }
+    }
+  }
+
   return {
     title: fm.title,
     url: fm.url,
@@ -149,6 +192,7 @@ export function parsePageMd(markdown: string): PageManifest {
     hero_image: fm.hero_image,
     hero_image_alt: fm.hero_image_alt,
     hero_subhead: fm.hero_subhead?.trim() || undefined,
+    hero_headline: fm.hero_headline?.trim() || undefined,
     answer_block: fm.answer_block,
     eeat_signals: fm.eeat_signals,
     internal_links: fm.internal_links,
