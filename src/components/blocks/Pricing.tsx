@@ -38,13 +38,8 @@ export function Pricing({ variant, heading, intro, tiers, disclaimer }: PricingP
               'h-full flex flex-col p-6 gap-4',
               tier.highlighted
                 ? 'border-primary ring-2 ring-primary shadow-lg scale-[1.03] bg-primary text-primary-foreground'
-                : 'border-border'
+                : 'border-border shadow-card'
             )}
-            style={
-              tier.highlighted
-                ? undefined
-                : { boxShadow: 'var(--shadow-card, 0 2px 8px rgba(0,59,113,0.08))' }
-            }
           >
             {/* Tier name */}
             <h3

@@ -49,14 +49,7 @@ export function Hero({ image, image_alt, headline, subheadline, cta_primary, cta
         {(cta_primary || cta_secondary) && (
           <div className="mt-8 flex flex-wrap gap-3 justify-center">
             {cta_primary && (
-              <Button
-                asChild
-                size="lg"
-                style={{
-                  backgroundColor: 'var(--color-action)',
-                  color: 'var(--color-action-foreground)',
-                }}
-              >
+              <Button asChild size="lg" variant="cta">
                 <Link href={cta_primary.url}>{cta_primary.label}</Link>
               </Button>
             )}

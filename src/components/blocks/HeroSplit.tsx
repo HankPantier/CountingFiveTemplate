@@ -32,14 +32,7 @@ export function HeroSplit({
       {(cta_primary || cta_secondary) && (
         <div className="flex flex-wrap gap-3 pt-2">
           {cta_primary && (
-            <Button
-              asChild
-              size="lg"
-              style={{
-                backgroundColor: 'var(--color-action)',
-                color: 'var(--color-action-foreground)',
-              }}
-            >
+            <Button asChild size="lg" variant="cta">
               <Link href={cta_primary.url}>{cta_primary.label}</Link>
             </Button>
           )}

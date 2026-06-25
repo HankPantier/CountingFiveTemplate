@@ -33,10 +33,9 @@ export function IndustryCards({ variant, heading, intro, industries }: IndustryC
           const cardContent = (
             <Card
               className={cn(
-                'h-full p-6 flex flex-col items-start gap-3 transition-shadow',
-                industry.url && 'hover:shadow-md cursor-pointer'
+                'h-full p-6 flex flex-col items-start gap-3 shadow-card transition-shadow',
+                industry.url && 'hover:shadow-card-hover cursor-pointer'
               )}
-              style={{ boxShadow: 'var(--shadow-card, 0 2px 8px rgba(0,59,113,0.08))' }}
             >
               <div
                 className="flex items-center justify-center w-12 h-12 rounded-lg"

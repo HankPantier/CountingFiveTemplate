@@ -41,8 +41,7 @@ export function ContentCards({ variant, heading, intro, cards, cta }: ContentCar
         {cards.map((card, i) => (
           <article key={i} className="h-full">
             <Card
-              className="h-full flex flex-col overflow-hidden"
-              style={{ boxShadow: 'var(--shadow-card, 0 2px 8px rgba(0,59,113,0.08))' }}
+              className="h-full flex flex-col overflow-hidden shadow-card"
             >
               {/* Image */}
               {card.image && (

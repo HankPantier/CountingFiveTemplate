@@ -55,14 +55,7 @@ export function CtaBanner({
         )}
         {cta_primary && (
           <div className="mt-8">
-            <Button
-              asChild
-              size="lg"
-              style={{
-                backgroundColor: 'var(--color-action)',
-                color: 'var(--color-action-foreground)',
-              }}
-            >
+            <Button asChild size="lg" variant="cta">
               <Link href={cta_primary.url}>{cta_primary.label}</Link>
             </Button>
           </div>

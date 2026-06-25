@@ -415,11 +415,8 @@ export function FormFields({
                 />
                 <Button
                   type="submit"
+                  variant="cta"
                   disabled={submitting}
-                  style={{
-                    backgroundColor: 'var(--color-action)',
-                    color: 'var(--color-action-foreground)',
-                  }}
                 >
                   {submitting ? 'Subscribing…' : 'Subscribe'}
                 </Button>
@@ -626,11 +623,8 @@ export function FormFields({
                   <Button
                     type="submit"
                     size="lg"
+                    variant="cta"
                     disabled={submitting}
-                    style={{
-                      backgroundColor: 'var(--color-action)',
-                      color: 'var(--color-action-foreground)',
-                    }}
                   >
                     {submitting
                       ? 'Sending…'
