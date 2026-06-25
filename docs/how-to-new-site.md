@@ -129,6 +129,13 @@ npm run dev          # http://localhost:3000
 
 Check:
 - Homepage shows the firm name, logo, brand colors, and generated content.
+- **Dark mode:** the site auto-adapts to the visitor's OS appearance setting
+  (`prefers-color-scheme`, no toggle). Toggle your OS to dark and reload — only
+  the neutral surfaces/text flip; the brand-colored hero, buttons, CTAs, and the
+  footer stay on-brand. The dark palette is generated into `theme.css` from the
+  brand near-black/near-white, so it follows each client's palette automatically.
+  Per-client tweaks go in `content/design-overrides.css` under a
+  `@media (prefers-color-scheme: dark)` block.
 - Sub-pages confirmed in the sitemap resolve (e.g. `/services/virtual-cfo`).
 - `/robots.txt`, `/sitemap.xml`, `/llms.txt`, `/llms-full.txt` serve.
 - Any configured redirect 301s (dev console logs `Loaded N redirect(s)` at startup).

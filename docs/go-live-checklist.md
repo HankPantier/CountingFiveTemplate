@@ -27,6 +27,8 @@ condensed pass/fail list to run on the production deploy, in order.
 - [ ] Pick 3 entries from `content/redirects.csv` → each old URL 308s to the right new page
 - [ ] Share a page URL in a social-card debugger (e.g. opengraph.xyz) → `/api/og` card renders
 - [ ] 404 a bogus path → branded not-found page
+- [ ] Dark mode: switch your OS to dark appearance, reload home + a content page —
+      neutrals flip, brand hero/buttons/footer stay on-brand, text stays readable
 - [ ] No CSP **violation** errors in the browser console on home, a service page, and contact
 
 ## Hardening (after the above are green)
