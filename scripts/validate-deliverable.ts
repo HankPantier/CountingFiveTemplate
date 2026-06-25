@@ -90,6 +90,24 @@ async function main() {
         }
       }
 
+      // Frontmatter: hero_video + hero_images (video/slider variants). Same
+      // local-asset existence check, skipping remote URLs.
+      const heroMedia: string[] = [
+        ...(typeof data.hero_video === 'string' && data.hero_video ? [data.hero_video] : []),
+        ...(Array.isArray(data.hero_images) ? data.hero_images.filter((s): s is string => typeof s === 'string' && !!s) : []),
+      ]
+      for (const ref of heroMedia) {
+        if (ref.startsWith('http://') || ref.startsWith('https://')) continue
+        referencedImages.add(ref)
+        if (!(await exists(path.join(assetsDir, ref)))) {
+          findings.push({
+            severity: 'warning',
+            file: `pages/${file}`,
+            message: `hero media "${ref}" missing in public/content-assets/`,
+          })
+        }
+      }
+
       // Inline block annotations: <!-- block: <id> | variant: <v> | image: <filename> -->
       const blockImgPattern =
         /<!-- block: [a-z-]+(?:\s*\|\s*variant: [a-z0-9-]+)?(?:\s*\|\s*image: ([^\s>|]+))?\s*-->/g

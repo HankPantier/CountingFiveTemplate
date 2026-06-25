@@ -84,6 +84,17 @@ describe('parsePageMd — hero headline', () => {
     expect(extractHeroProps(parsePageMd(md)).headline).toBe('T')
   })
 
+  it('passes hero_video + hero_images through to the manifest and hero props', () => {
+    const md = fm('hero: hero\nhero_variant: slider\nhero_video: promo.mp4\nhero_images: [a.jpg, b.jpg]\n') +
+      '\n<!-- block: content-prose -->\n## Body\nText.\n'
+    const out = parsePageMd(md)
+    expect(out.hero_video).toBe('promo.mp4')
+    expect(out.hero_images).toEqual(['a.jpg', 'b.jpg'])
+    const hero = extractHeroProps(out)
+    expect(hero.video).toBe('promo.mp4')
+    expect(hero.images).toEqual(['a.jpg', 'b.jpg'])
+  })
+
   it('de-dupes the hero headline from the lead section heading', () => {
     const md = fm('hero: hero\nhero_headline: "Lead Heading"\n') +
       '\n<!-- block: intro-text -->\n## Lead Heading\nIntro body stays.\n\n<!-- block: cta-banner -->\n## CTA\nGo.\n'

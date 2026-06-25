@@ -35,6 +35,8 @@ export type HeroProps = {
   variant: 'image' | 'video' | 'slider' | 'image-right' | 'image-left'
   image?: string
   image_alt?: string
+  video?: string
+  images?: string[]
   headline: string
   subheadline: string
   cta_primary?: { label: string; url: string }
@@ -50,6 +52,8 @@ export function extractHeroProps(manifest: PageManifest): HeroProps {
     variant: (manifest.hero_variant as HeroProps['variant']) ?? 'image',
     image: manifest.hero_image,
     image_alt: manifest.hero_image_alt,
+    video: manifest.hero_video,
+    images: manifest.hero_images,
     headline: heroHeadline(manifest),
     subheadline: manifest.hero_subhead ?? manifest.meta_description,
     cta_primary: undefined,
