@@ -2,6 +2,7 @@ import { describe, expect, it } from 'vitest'
 import {
   findActivePrimary,
   isUrlActive,
+  nodeContainsUrl,
   primaryHasTertiary,
   resolveSideNav,
 } from './nav-tree'
@@ -48,6 +49,29 @@ describe('findActivePrimary', () => {
     expect(findActivePrimary(nav, '/services/outsourced-accounting/payroll')?.label).toBe('Services')
     expect(findActivePrimary(nav, '/about/our-team')?.label).toBe('About')
     expect(findActivePrimary(nav, '/nowhere')).toBeNull()
+  })
+
+  it('matches by subtree membership even when child URLs are not nested under the primary URL', () => {
+    // Mirrors the bblcpa shape: a "/services" primary whose child pages live at "/what-we-do/*".
+    const flat: NavJson = {
+      primary: [
+        {
+          label: 'Services',
+          url: '/services',
+          children: [
+            {
+              label: 'Outsourced Accounting',
+              url: '/what-we-do/outsourced-accounting',
+              children: [{ label: 'Payroll', url: '/what-we-do/payroll' }],
+            },
+          ],
+        },
+      ],
+    }
+    expect(findActivePrimary(flat, '/what-we-do/payroll')?.label).toBe('Services')
+    expect(nodeContainsUrl(flat.primary[0].children![0], '/what-we-do/payroll')).toBe(true)
+    expect(resolveSideNav(flat, '/what-we-do/payroll')?.label).toBe('Services')
+    expect(resolveSideNav(flat, '/services')).toBeNull() // primary landing
   })
 })
 

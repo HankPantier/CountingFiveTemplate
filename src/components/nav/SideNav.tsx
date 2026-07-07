@@ -1,6 +1,6 @@
 import Link from 'next/link'
 import { cn } from '@/lib/utils'
-import { isUrlActive } from '@/lib/nav/nav-tree'
+import { nodeContainsUrl } from '@/lib/nav/nav-tree'
 import type { NavItem } from '@/lib/nav/types'
 import { SideNavCollapse } from './SideNavCollapse'
 
@@ -23,7 +23,7 @@ export function SideNav({
   const tree = (
     <ul className="space-y-3">
       {secondaries.map((secondary) => {
-        const sectionActive = isUrlActive(currentUrl, secondary.url)
+        const sectionActive = nodeContainsUrl(secondary, currentUrl)
         const isCurrent = currentUrl === secondary.url
         const tertiaries = secondary.children ?? []
         return (
