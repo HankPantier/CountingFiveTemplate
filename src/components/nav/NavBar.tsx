@@ -16,14 +16,9 @@ import {
 } from '@/components/ui/navigation-menu'
 import { MobileNav } from './MobileNav'
 import { resolveImageSrc } from '@/lib/assembly/resolve-image'
+import { isUrlActive } from '@/lib/nav/nav-tree'
 import type { BrandJson } from '@/lib/brand/types'
 import type { NavJson } from '@/lib/nav/types'
-
-/** True when `pathname` is exactly `target` or sits beneath it (e.g. /about + /about/our-team). */
-function isUrlActive(pathname: string, target: string): boolean {
-  if (target === '/') return pathname === '/'
-  return pathname === target || pathname.startsWith(target + '/')
-}
 
 export function NavBar({ brand, nav }: { brand: BrandJson; nav: NavJson }) {
   const pathname = usePathname() ?? '/'

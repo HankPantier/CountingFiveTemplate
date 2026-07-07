@@ -3,6 +3,9 @@ import type { ReactNode } from 'react'
 import { getPageMarkdown } from '@/lib/content/get-page'
 import { parsePageMd } from '@/lib/assembly/parse-page-md'
 import { getBrandConfig } from '@/lib/brand/get-brand-config'
+import { getNavConfig } from '@/lib/nav/get-nav-config'
+import { resolveSideNav } from '@/lib/nav/nav-tree'
+import { SideNav } from '@/components/nav/SideNav'
 import { PageLayout } from '@/components/layout/PageLayout'
 import { BlockRenderer } from '@/components/assembly/BlockRenderer'
 import { SchemaScript } from '@/components/layout/SchemaScript'
@@ -52,12 +55,19 @@ export async function renderGeneratedPage(url: string): Promise<ReactNode | null
     console.error('[page] Failed to parse:', err)
     return null
   }
-  const brand = await getBrandConfig()
+  const [brand, nav] = await Promise.all([getBrandConfig(), getNavConfig()])
+
+  // Show the section side-nav only on secondary/tertiary pages of a primary
+  // that has tertiary items (see resolveSideNav). Otherwise render full-width.
+  const sidePrimary = resolveSideNav(nav, url)
 
   return (
     <>
       <SchemaScript manifest={manifest} brand={brand} />
-      <PageLayout hero={renderHeroBlock(manifest)}>
+      <PageLayout
+        hero={renderHeroBlock(manifest)}
+        sideNav={sidePrimary ? <SideNav primary={sidePrimary} currentUrl={url} /> : undefined}
+      >
         <AnswerCallout answer={manifest.answer_block} />
         {manifest.sections.map((section, i) => (
           <BlockRenderer key={i} section={section} manifest={manifest} />

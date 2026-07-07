@@ -7,13 +7,9 @@ import { Menu } from 'lucide-react'
 import Link from 'next/link'
 import { usePathname } from 'next/navigation'
 import { cn } from '@/lib/utils'
+import { isUrlActive } from '@/lib/nav/nav-tree'
 import type { NavJson, NavItem } from '@/lib/nav/types'
 import { useState } from 'react'
-
-function isUrlActive(pathname: string, target: string): boolean {
-  if (target === '/') return pathname === '/'
-  return pathname === target || pathname.startsWith(target + '/')
-}
 
 export function MobileNav({ nav }: { nav: NavJson }) {
   const pathname = usePathname() ?? '/'
