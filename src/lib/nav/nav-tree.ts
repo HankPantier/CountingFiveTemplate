@@ -25,6 +25,24 @@ export function findActivePrimary(nav: NavJson, url: string): NavItem | null {
   return null
 }
 
+/**
+ * Label of the nav node whose `url` exactly matches `url`, searching the full
+ * tree (any depth), or null. Used to give breadcrumb crumbs friendly menu
+ * labels instead of titleized slugs. Nav urls are already root-relative here
+ * (getNavConfig normalizes them), so an exact string match is sufficient.
+ */
+export function findNavLabel(nav: NavJson, url: string): string | null {
+  const search = (items: NavItem[]): string | null => {
+    for (const item of items) {
+      if (item.url === url) return item.label
+      const nested = search(item.children ?? [])
+      if (nested) return nested
+    }
+    return null
+  }
+  return search(nav.primary)
+}
+
 /** True when a primary has any tertiary items (a secondary that itself has children). */
 export function primaryHasTertiary(item: NavItem): boolean {
   return (item.children ?? []).some((child) => (child.children?.length ?? 0) > 0)

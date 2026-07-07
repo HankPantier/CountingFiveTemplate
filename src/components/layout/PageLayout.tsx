@@ -4,10 +4,12 @@ export function PageLayout({
   hero,
   children,
   sideNav,
+  breadcrumb,
 }: {
   hero?: ReactNode
   children: ReactNode
   sideNav?: ReactNode
+  breadcrumb?: ReactNode
 }) {
   // With a section side-nav, the full-bleed hero stays edge-to-edge and the
   // body content sits in a two-column grid beside the rail. Body blocks manage
@@ -16,6 +18,7 @@ export function PageLayout({
     return (
       <main id="main-content" className="flex-1">
         {hero}
+        {breadcrumb}
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8 md:py-12 grid gap-8 lg:gap-12 md:grid-cols-[minmax(0,240px)_minmax(0,1fr)]">
           <aside>{sideNav}</aside>
           <div className="min-w-0">{children}</div>
@@ -27,6 +30,7 @@ export function PageLayout({
   return (
     <main id="main-content" className="flex-1">
       {hero}
+      {breadcrumb}
       {children}
     </main>
   )
