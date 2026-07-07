@@ -5,7 +5,9 @@ import { parsePageMd } from '@/lib/assembly/parse-page-md'
 import { getBrandConfig } from '@/lib/brand/get-brand-config'
 import { getNavConfig } from '@/lib/nav/get-nav-config'
 import { resolveSideNav } from '@/lib/nav/nav-tree'
+import { buildBreadcrumbTrail } from '@/lib/nav/breadcrumbs'
 import { SideNav } from '@/components/nav/SideNav'
+import { Breadcrumb } from '@/components/blocks/Breadcrumb'
 import { PageLayout } from '@/components/layout/PageLayout'
 import { BlockRenderer } from '@/components/assembly/BlockRenderer'
 import { SchemaScript } from '@/components/layout/SchemaScript'
@@ -61,11 +63,15 @@ export async function renderGeneratedPage(url: string): Promise<ReactNode | null
   // that has tertiary items (see resolveSideNav). Otherwise render full-width.
   const sidePrimary = resolveSideNav(nav, url)
 
+  const rootLabel = brand.firm.shortName?.trim() || brand.firm.name
+  const crumbs = buildBreadcrumbTrail(url, nav, rootLabel)
+
   return (
     <>
       <SchemaScript manifest={manifest} brand={brand} />
       <PageLayout
         hero={renderHeroBlock(manifest)}
+        breadcrumb={<Breadcrumb crumbs={crumbs} />}
         sideNav={sidePrimary ? <SideNav primary={sidePrimary} currentUrl={url} /> : undefined}
       >
         <AnswerCallout answer={manifest.answer_block} />

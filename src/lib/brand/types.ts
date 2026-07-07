@@ -20,6 +20,8 @@ export type Certification = {
 export type BrandJson = {
   firm: {
     name: string
+    /** Compact display name (e.g. breadcrumb root). Falls back to `name` when unset. */
+    shortName?: string
     tagline?: string
     foundingYear?: string
   }
