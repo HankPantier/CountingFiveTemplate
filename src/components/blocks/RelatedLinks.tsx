@@ -4,6 +4,16 @@ import { Section } from './Section'
 import type { InternalLink } from '@/lib/assembly/parse-page-md'
 
 /**
+ * Normalize anchor casing: ensure the label starts with a capital, without
+ * downcasing the rest — so "tax planning" → "Tax planning" while proper names
+ * like "Business Foundation Services" are preserved as-is.
+ */
+function capitalizeFirst(text: string): string {
+  const t = text.trimStart()
+  return t.charAt(0).toUpperCase() + t.slice(1)
+}
+
+/**
  * Renders the generated `internal_links` as an end-of-page "Related" section.
  * These contextual internal links are a real ranking signal that was
  * previously generated, written to the metadata trailer, then dropped before
@@ -36,7 +46,7 @@ export function RelatedLinks({ links }: { links?: InternalLink[] }) {
                 className="group flex h-full items-center justify-between gap-4 rounded-lg border border-border bg-card px-5 py-4 shadow-card transition-all duration-200 hover:-translate-y-0.5 hover:border-primary hover:shadow-card-hover focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 ring-offset-background"
               >
                 <span className="font-medium text-foreground transition-colors group-hover:text-primary">
-                  {l.anchor_text}
+                  {capitalizeFirst(l.anchor_text)}
                 </span>
                 <ArrowUpRight
                   aria-hidden="true"
