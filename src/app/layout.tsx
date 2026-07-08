@@ -5,6 +5,7 @@ import './globals.css'
 import { NavBar } from '@/components/nav/NavBar'
 import { Footer } from '@/components/footer/Footer'
 import { Analytics } from '@/components/analytics/Analytics'
+import { ThemeProvider } from '@/components/theme/ThemeProvider'
 import { getBrandConfig } from '@/lib/brand/get-brand-config'
 import { getNavConfig } from '@/lib/nav/get-nav-config'
 import { siteConfig } from '../../site.config'
@@ -96,6 +97,9 @@ export default async function RootLayout({
       lang="en"
       className={publicSans.variable}
       style={{ '--font-body-loaded': 'var(--font-heading-loaded)' } as CSSProperties}
+      // next-themes sets the theme class on <html> before hydration, so the
+      // server/client class attributes intentionally differ on first paint.
+      suppressHydrationWarning
     >
       <body
         className="min-h-screen flex flex-col antialiased bg-background text-foreground"
@@ -115,22 +119,24 @@ export default async function RootLayout({
           type="application/ld+json"
           dangerouslySetInnerHTML={{ __html: jsonLd(websiteSchema) }}
         />
-        <a
-          href="#main-content"
-          className="sr-only focus:not-sr-only focus:fixed focus:top-3 focus:left-3 focus:z-50 focus:bg-background focus:text-foreground focus:rounded-md focus:px-4 focus:py-2 focus:shadow-lg focus:outline focus:outline-2 focus:outline-cyan-500"
-        >
-          Skip to main content
-        </a>
-        <NavBar brand={brand} nav={nav} />
-        {children}
-        <Footer />
-        {/* <Analytics> is a client component that reads consent from
-            document.cookie — deliberately NOT a server cookies() island.
-            Keeping the layout free of request APIs makes every page fully
-            prerenderable AND avoids vercel/next.js#86251 (cookies() in the
-            root layout turns unknown-URL 404s into 500s under
-            cacheComponents). See Analytics.tsx for the full rationale. */}
-        <Analytics />
+        <ThemeProvider>
+          <a
+            href="#main-content"
+            className="sr-only focus:not-sr-only focus:fixed focus:top-3 focus:left-3 focus:z-50 focus:bg-background focus:text-foreground focus:rounded-md focus:px-4 focus:py-2 focus:shadow-lg focus:outline focus:outline-2 focus:outline-cyan-500"
+          >
+            Skip to main content
+          </a>
+          <NavBar brand={brand} nav={nav} />
+          {children}
+          <Footer />
+          {/* <Analytics> is a client component that reads consent from
+              document.cookie — deliberately NOT a server cookies() island.
+              Keeping the layout free of request APIs makes every page fully
+              prerenderable AND avoids vercel/next.js#86251 (cookies() in the
+              root layout turns unknown-URL 404s into 500s under
+              cacheComponents). See Analytics.tsx for the full rationale. */}
+          <Analytics />
+        </ThemeProvider>
       </body>
     </html>
   )

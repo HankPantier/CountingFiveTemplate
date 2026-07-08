@@ -225,7 +225,7 @@ async function main() {
 
   /* Footer surface — intentionally dark in BOTH light and dark mode, so the
    * footer stays a consistent dark anchor instead of inverting under the
-   * prefers-color-scheme override below. */
+   * .dark override below. */
   --color-footer: ${palette.nearBlack};
   --color-footer-foreground: ${palette.nearWhite};
 
@@ -298,7 +298,7 @@ async function main() {
 
   /* Footer surface — intentionally dark in BOTH light and dark mode, so the
    * footer stays a consistent dark anchor instead of inverting under the
-   * prefers-color-scheme override below. */
+   * .dark override below. */
   --color-footer: ${palette.nearBlack};
   --color-footer-foreground: ${palette.nearWhite};
 
@@ -323,22 +323,24 @@ async function main() {
   --font-body: var(--font-body-loaded, system-ui, sans-serif);
 }
 
-/* System-preference dark mode. Flips only the neutral surfaces + text; brand
- * colour tokens and the footer are intentionally left untouched so colored
- * heros, buttons, and CTAs render identically and stay on-brand. */
-@media (prefers-color-scheme: dark) {
-  :root {
-    --color-background: hsl(${toHslTokens(darkBackground)});
-    --color-foreground: hsl(${toHslTokens(darkForeground)});
-    --color-card: hsl(${toHslTokens(darkCard)});
-    --color-card-foreground: hsl(${toHslTokens(darkForeground)});
-    --color-popover: hsl(${toHslTokens(darkCard)});
-    --color-popover-foreground: hsl(${toHslTokens(darkForeground)});
-    --color-muted: hsl(${toHslTokens(darkMuted)});
-    --color-muted-foreground: hsl(${toHslTokens(darkMutedForeground)});
-    --color-border: hsl(${toHslTokens(darkBorder)});
-    --color-input: hsl(${toHslTokens(darkBorder)});
-  }
+/* Dark mode. Applied when the <html> element carries the .dark class, which
+ * next-themes sets — for an explicit "dark" choice AND for "system" when the
+ * visitor's OS prefers dark (defaultTheme="system"). A class selector (rather
+ * than @media prefers-color-scheme) is what lets a visitor pin "light" even on
+ * a dark-OS device. Flips only the neutral surfaces + text; brand colour tokens
+ * and the footer are intentionally left untouched so colored heros, buttons,
+ * and CTAs render identically and stay on-brand. */
+.dark {
+  --color-background: hsl(${toHslTokens(darkBackground)});
+  --color-foreground: hsl(${toHslTokens(darkForeground)});
+  --color-card: hsl(${toHslTokens(darkCard)});
+  --color-card-foreground: hsl(${toHslTokens(darkForeground)});
+  --color-popover: hsl(${toHslTokens(darkCard)});
+  --color-popover-foreground: hsl(${toHslTokens(darkForeground)});
+  --color-muted: hsl(${toHslTokens(darkMuted)});
+  --color-muted-foreground: hsl(${toHslTokens(darkMutedForeground)});
+  --color-border: hsl(${toHslTokens(darkBorder)});
+  --color-input: hsl(${toHslTokens(darkBorder)});
 }
 `
 

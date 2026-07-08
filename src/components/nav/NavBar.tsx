@@ -15,6 +15,7 @@ import {
   NavigationMenuTrigger,
 } from '@/components/ui/navigation-menu'
 import { MobileNav } from './MobileNav'
+import { ThemeToggle } from '@/components/theme/ThemeToggle'
 import { resolveImageSrc } from '@/lib/assembly/resolve-image'
 import { isUrlActive } from '@/lib/nav/nav-tree'
 import type { BrandJson } from '@/lib/brand/types'
@@ -145,6 +146,7 @@ export function NavBar({ brand, nav }: { brand: BrandJson; nav: NavJson }) {
               <Link href={nav.cta.url}>{nav.cta.label}</Link>
             </Button>
           )}
+          <ThemeToggle />
           <MobileNav nav={nav} />
         </div>
       </div>
