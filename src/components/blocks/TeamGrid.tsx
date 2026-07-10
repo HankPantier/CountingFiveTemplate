@@ -1,7 +1,7 @@
 import { Section } from './Section'
 import { InlineProse } from './InlineProse'
 import { Card, CardContent } from '@/components/ui/card'
-import Image from 'next/image'
+import { Image } from '@/components/ui/skeleton-image'
 import ReactMarkdown from 'react-markdown'
 import remarkGfm from 'remark-gfm'
 import { MD_LINK_COMPONENTS } from '@/lib/markdown-components'

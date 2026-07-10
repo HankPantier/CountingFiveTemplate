@@ -5,7 +5,7 @@ import { Card, CardHeader, CardContent, CardFooter } from '@/components/ui/card'
 import { Button } from '@/components/ui/button'
 import Link from 'next/link'
 import { cn } from '@/lib/utils'
-import Image from 'next/image'
+import { Image } from '@/components/ui/skeleton-image'
 import { resolveImageSrc } from '@/lib/assembly/resolve-image'
 import type { ServiceCardsProps } from '@/lib/assembly/extract-block-props'
 

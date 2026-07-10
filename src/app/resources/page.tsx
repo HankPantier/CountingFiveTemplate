@@ -1,6 +1,6 @@
 import type { Metadata } from 'next'
 import Link from 'next/link'
-import Image from 'next/image'
+import { Image } from '@/components/ui/skeleton-image'
 import { Section } from '@/components/blocks/Section'
 import { Card, CardContent } from '@/components/ui/card'
 import { getBrandConfig } from '@/lib/brand/get-brand-config'

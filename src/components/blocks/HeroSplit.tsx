@@ -1,7 +1,7 @@
 import { Section } from './Section'
 import { Button } from '@/components/ui/button'
 import Link from 'next/link'
-import Image from 'next/image'
+import { Image } from '@/components/ui/skeleton-image'
 import type { HeroSplitProps } from '@/lib/assembly/extract-block-props'
 import { resolveImageSrc } from '@/lib/assembly/resolve-image'
 

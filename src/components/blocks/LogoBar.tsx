@@ -1,5 +1,5 @@
 import { Section } from './Section'
-import Image from 'next/image'
+import { Image } from '@/components/ui/skeleton-image'
 import Link from 'next/link'
 import { resolveImageSrc } from '@/lib/assembly/resolve-image'
 import type { LogoBarProps } from '@/lib/assembly/extract-block-props'
