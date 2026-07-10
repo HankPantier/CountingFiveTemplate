@@ -1,9 +1,24 @@
 'use client'
 
-import { useEffect, useState } from 'react'
+import { useSyncExternalStore } from 'react'
 import { useTheme } from 'next-themes'
 import { Moon, Sun } from 'lucide-react'
 import { cn } from '@/lib/utils'
+
+const subscribe = () => () => {}
+
+/**
+ * Returns false during SSR and hydration, then true once mounted on the client.
+ * Uses useSyncExternalStore rather than a setState-in-effect flag so the
+ * hydration guard doesn't trigger a cascading render.
+ */
+function useMounted() {
+  return useSyncExternalStore(
+    subscribe,
+    () => true,
+    () => false
+  )
+}
 
 /**
  * Sun/moon button that flips light↔dark. Reads `resolvedTheme` so it reflects
@@ -12,9 +27,8 @@ import { cn } from '@/lib/utils'
  * since the server can't know which theme will resolve on the client.
  */
 export function ThemeToggle({ className }: { className?: string }) {
-  const [mounted, setMounted] = useState(false)
+  const mounted = useMounted()
   const { resolvedTheme, setTheme } = useTheme()
-  useEffect(() => setMounted(true), [])
 
   const isDark = resolvedTheme === 'dark'
   const label = isDark ? 'Switch to light mode' : 'Switch to dark mode'
