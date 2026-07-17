@@ -95,4 +95,46 @@ describe('buildPageSchemas', () => {
     const schemas = buildPageSchemas(manifest({ url: '/services' }), brand(), BASE)
     expect(byType(schemas, 'BreadcrumbList')).toBeTruthy()
   })
+
+  it('prefers emitted json_ld over the frontmatter builder', () => {
+    const schemas = buildPageSchemas(
+      manifest({
+        json_ld: [
+          { '@type': 'AccountingService', name: 'Example — Bel Air', areaServed: 'Harford County' },
+          { '@type': 'FAQPage', mainEntity: [] },
+        ],
+      }),
+      brand(),
+      BASE
+    )
+    expect(byType(schemas, 'AccountingService')?.areaServed).toBe('Harford County')
+    // The frontmatter WebPage node must NOT also be emitted when json_ld wins.
+    expect(byType(schemas, 'WebPage')).toBeUndefined()
+  })
+
+  it('drops site-wide Organization/WebSite from emitted json_ld (layout owns them)', () => {
+    const schemas = buildPageSchemas(
+      manifest({
+        json_ld: [
+          { '@type': 'Organization', name: 'Example Firm' },
+          { '@type': 'WebSite', name: 'Example Firm' },
+          { '@type': 'AccountingService', name: 'Example' },
+        ],
+      }),
+      brand(),
+      BASE
+    )
+    expect(byType(schemas, 'Organization')).toBeUndefined()
+    expect(byType(schemas, 'WebSite')).toBeUndefined()
+    expect(byType(schemas, 'AccountingService')).toBeTruthy()
+  })
+
+  it('falls back to the frontmatter builder when emitted json_ld is only site-wide nodes', () => {
+    const schemas = buildPageSchemas(
+      manifest({ json_ld: [{ '@type': 'Organization', name: 'Example Firm' }] }),
+      brand(),
+      BASE
+    )
+    expect(byType(schemas, 'WebPage')).toBeTruthy()
+  })
 })

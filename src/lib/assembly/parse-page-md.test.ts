@@ -41,6 +41,73 @@ Keep me.
   })
 })
 
+describe('parsePageMd — emitted JSON-LD extraction', () => {
+  const structuredTrailer = `
+---
+## Structured Data — paste into \`<head>\`
+
+\`\`\`html
+<script type="application/ld+json">
+{
+  "@context": "https://schema.org",
+  "@type": "AccountingService",
+  "name": "Firm — Bel Air",
+  "areaServed": "Harford County"
+}
+</script>
+<script type="application/ld+json">
+{
+  "@context": "https://schema.org",
+  "@type": "FAQPage",
+  "mainEntity": []
+}
+</script>
+\`\`\`
+`
+
+  it('extracts every ld+json block from the Structured Data trailer', () => {
+    const md = fm() + `
+<!-- block: content-prose -->
+## Real
+Keep me.
+` + structuredTrailer
+    const out = parsePageMd(md)
+    expect(out.json_ld).toHaveLength(2)
+    expect(out.json_ld?.[0]['@type']).toBe('AccountingService')
+    expect(out.json_ld?.[0]['areaServed']).toBe('Harford County')
+    expect(out.json_ld?.[1]['@type']).toBe('FAQPage')
+    // Trailer must still be trimmed from the rendered body.
+    expect(out.sections).toHaveLength(1)
+  })
+
+  it('is undefined when no Structured Data trailer is present', () => {
+    const out = parsePageMd(fm() + '\n<!-- block: content-prose -->\n## X\nBody.\n')
+    expect(out.json_ld).toBeUndefined()
+  })
+
+  it('skips a malformed block but keeps the valid ones', () => {
+    const md = fm() + structuredTrailer.replace('"mainEntity": []', '"mainEntity": [,,,]')
+    const out = parsePageMd(md)
+    expect(out.json_ld).toHaveLength(1)
+    expect(out.json_ld?.[0]['@type']).toBe('AccountingService')
+  })
+
+  it('restores content that escaped </script> in the emitted JSON', () => {
+    const md = fm() + `
+---
+## Structured Data — paste into \`<head>\`
+
+\`\`\`html
+<script type="application/ld+json">
+{ "@type": "WebPage", "name": "A <\\/script> B" }
+</script>
+\`\`\`
+`
+    const out = parsePageMd(md)
+    expect(out.json_ld?.[0]['name']).toBe('A </script> B')
+  })
+})
+
 describe('parsePageMd — defensive JSON-envelope unwrap', () => {
   it('unwraps a fenced { content, metadata } envelope so blocks still render', () => {
     const envelope = JSON.stringify({

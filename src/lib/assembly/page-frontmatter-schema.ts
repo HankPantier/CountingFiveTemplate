@@ -38,6 +38,7 @@ export const PageFrontmatterSchema = z
     meta_title: str(''),
     meta_description: str(''),
     target_keyword: str(''),
+    secondary_keywords: z.array(z.string()).optional(),
     canonical_url: str(''),
     schema_markup: str('WebPage'),
 

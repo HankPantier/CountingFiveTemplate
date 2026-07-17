@@ -94,9 +94,20 @@ export async function generatedPageMetadata(
   try {
     const manifest = parsePageMd(md)
     const ogUrl = `/api/og/${ogSlugPath}`
+    // Next emits `keywords` as <meta name="keywords">. Primary keyword first,
+    // then secondaries; de-duped and blank-filtered so an empty target or
+    // absent secondaries can't produce an empty/garbage tag.
+    const keywords = Array.from(
+      new Set(
+        [manifest.target_keyword, ...(manifest.secondary_keywords ?? [])]
+          .map(k => k.trim())
+          .filter(Boolean)
+      )
+    )
     return {
       title: manifest.meta_title || manifest.title,
       description: manifest.meta_description,
+      keywords: keywords.length ? keywords : undefined,
       alternates: { canonical: manifest.canonical_url || undefined },
       // OG + Twitter images come from /api/og/[[...slug]] — branded per page,
       // generated from frontmatter, no per-page PNG required.

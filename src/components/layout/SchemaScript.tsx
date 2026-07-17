@@ -45,11 +45,25 @@ function breadcrumbSchema(manifest: PageManifest, base: string): Record<string, 
 
 // Build the JSON-LD graph for a page from its frontmatter — the single source
 // of truth. Pure + exported so it can be unit-tested without rendering.
+// Identity nodes that layout.tsx already emits site-wide on every page. When we
+// render Phase I's richer per-page graph we drop these to avoid duplicating them.
+const SITE_WIDE_TYPES = new Set(['Organization', 'WebSite'])
+
 export function buildPageSchemas(
   manifest: PageManifest,
   brand: BrandJson,
   base: string
 ): Record<string, unknown>[] {
+  // Prefer the JSON-LD Phase I emitted (multi-location AccountingService,
+  // sitemap-accurate breadcrumbs). Fall back to the frontmatter builder below
+  // for deliverables that predate the emitted trailer.
+  if (manifest.json_ld?.length) {
+    const emitted = manifest.json_ld.filter(
+      node => !SITE_WIDE_TYPES.has(String(node['@type']))
+    )
+    if (emitted.length) return emitted
+  }
+
   const pageSchema: Record<string, unknown> = {
     '@context': 'https://schema.org',
     '@type': manifest.schema_markup || 'WebPage',

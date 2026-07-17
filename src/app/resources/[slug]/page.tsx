@@ -43,9 +43,17 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
     const url = post.frontmatter.canonical_url || `${siteConfig.siteUrl.replace(/\/$/, '')}/resources/${post.slug}`
     const ogUrl = `/api/og/resources/${post.slug}`
     const description = post.frontmatter.meta_description || post.frontmatter.excerpt
+    const keywords = Array.from(
+      new Set(
+        [post.frontmatter.target_keyword, ...(post.frontmatter.secondary_keywords ?? [])]
+          .map(k => (k ?? '').trim())
+          .filter(Boolean)
+      )
+    )
     return {
       title: post.frontmatter.meta_title || post.frontmatter.title,
       description,
+      keywords: keywords.length ? keywords : undefined,
       alternates: { canonical: url },
       openGraph: {
         title: post.frontmatter.title,

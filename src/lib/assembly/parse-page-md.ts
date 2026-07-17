@@ -35,6 +35,7 @@ export type PageManifest = {
   meta_title: string
   meta_description: string
   target_keyword: string
+  secondary_keywords?: string[]
   canonical_url: string
   schema_markup: string
   hero_block: string        // 'hero' | 'hero-split' | 'page-header'
@@ -51,6 +52,12 @@ export type PageManifest = {
   internal_links?: InternalLink[]
   faq_block?: FaqItem[]
   llm_citation_note?: string
+  /**
+   * JSON-LD graph extracted from the Phase I "## Structured Data" trailer, when
+   * present. Richer than the frontmatter-derived schema; SchemaScript renders it
+   * in place of its own builder. Undefined for deliverables that predate it.
+   */
+  json_ld?: Record<string, unknown>[]
   // Body
   sections: PageSection[]
 }
@@ -69,6 +76,40 @@ const ASSEMBLY_END_MARKER = /\n---\n##\s+SEO\s*&(?:amp;)?\s*AIO Metadata\b/i
 function trimMetadataTrailer(body: string): string {
   const m = body.match(ASSEMBLY_END_MARKER)
   return m && m.index !== undefined ? body.slice(0, m.index) : body
+}
+
+/**
+ * Extract the JSON-LD graph Phase I emits in the "## Structured Data" trailer
+ * (a fenced ```html block of <script type="application/ld+json"> elements).
+ * That builder produces richer schema than this repo can from frontmatter alone
+ * (multi-location AccountingService, sitemap-accurate breadcrumbs), so we render
+ * it verbatim when present and fall back to the frontmatter builder otherwise.
+ *
+ * Security: we never inject the raw HTML from the deliverable. Each block is
+ * JSON.parsed to a plain object here, then re-serialized through the same
+ * `<`-escaping path SchemaScript uses for frontmatter-built schema. A block that
+ * fails to parse is skipped, not rendered. `\/` in the emitted text is valid
+ * JSON (the builder escapes `</script` as `<\/script`), so JSON.parse restores
+ * the original object directly.
+ */
+const LD_JSON_SCRIPT = /<script\b[^>]*type=["']application\/ld\+json["'][^>]*>([\s\S]*?)<\/script>/gi
+
+function extractEmittedJsonLd(rawContent: string): Record<string, unknown>[] | undefined {
+  const out: Record<string, unknown>[] = []
+  let m: RegExpExecArray | null
+  LD_JSON_SCRIPT.lastIndex = 0
+  while ((m = LD_JSON_SCRIPT.exec(rawContent)) !== null) {
+    try {
+      const obj = JSON.parse(m[1].trim())
+      if (obj && typeof obj === 'object' && !Array.isArray(obj)) {
+        out.push(obj as Record<string, unknown>)
+      }
+    } catch {
+      // Unparseable block — skip; renderer falls back to frontmatter schema if
+      // nothing here parses.
+    }
+  }
+  return out.length ? out : undefined
 }
 
 /**
@@ -106,6 +147,9 @@ export function parsePageMd(markdown: string): PageManifest {
   // fall back to safe defaults — old deliverables keep building.
   const fm = PageFrontmatterSchema.parse(parsed.data)
   const body = unwrapJsonEnvelope(trimMetadataTrailer(parsed.content))
+  // Extract from the full content — the JSON-LD lives in the trailer that
+  // trimMetadataTrailer strips off `body`.
+  const json_ld = extractEmittedJsonLd(parsed.content)
 
   /**
    * Splits on the canonical annotation pattern:
@@ -187,6 +231,7 @@ export function parsePageMd(markdown: string): PageManifest {
     meta_title: fm.meta_title,
     meta_description: fm.meta_description,
     target_keyword: fm.target_keyword,
+    secondary_keywords: fm.secondary_keywords,
     canonical_url: fm.canonical_url,
     schema_markup: fm.schema_markup,
     hero_block: fm.hero ?? fm.hero_block ?? 'page-header',
@@ -202,6 +247,7 @@ export function parsePageMd(markdown: string): PageManifest {
     internal_links: fm.internal_links,
     faq_block: fm.faq_block,
     llm_citation_note: fm.llm_citation_note,
+    json_ld,
     sections: filteredSections,
   }
 }
