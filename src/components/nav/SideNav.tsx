@@ -40,7 +40,7 @@ export function SideNav({
             >
               {secondary.label}
             </Link>
-            {tertiaries.length > 0 && (
+            {sectionActive && tertiaries.length > 0 && (
               <ul className="mt-1 space-y-0.5">
                 {tertiaries.map((tertiary) => {
                   const tertiaryCurrent = currentUrl === tertiary.url
