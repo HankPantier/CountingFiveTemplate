@@ -45,7 +45,7 @@ const config: PricingCalculatorConfig = {
 const base: PricingSelection = {
   services: { bk: true, tax: true },
   serviceOptions: {},
-  sizeTierId: 'small',
+  sizePos: 1, // last tier → multiplier 1.5
   complexityId: 'complex',
   addOns: { flat1: 1, emp: 3 },
 }
@@ -73,11 +73,23 @@ describe('computeEstimate', () => {
     expect(est.monthly).toBe(0)
   })
 
-  it('initialSelection defaults services, first select-option, and empty multi', () => {
+  it('interpolates the size multiplier between tiers at the midpoint', () => {
+    // one service (bk 200, no options) × interpolated size × basic (1) + no add-ons.
+    const est = computeEstimate(config, {
+      services: { bk: true, tax: false },
+      serviceOptions: {},
+      sizePos: 0.5, // halfway between multiplier 1 and 1.5 → 1.25
+      complexityId: 'basic',
+      addOns: {},
+    })
+    expect(est.monthly).toBe(250) // 200 × 1.25
+  })
+
+  it('initialSelection defaults services, first select-option, size at 0, empty multi', () => {
     const sel = initialSelection(config)
     expect(sel.services).toEqual({ bk: true, tax: false })
     expect(sel.serviceOptions.bk).toEqual({ freq: ['monthly'], inc: [] })
-    expect(sel.sizeTierId).toBe('solo')
+    expect(sel.sizePos).toBe(0)
     expect(sel.complexityId).toBe('basic')
   })
 })

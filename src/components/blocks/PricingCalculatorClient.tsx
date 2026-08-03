@@ -4,6 +4,7 @@ import { useMemo, useState } from 'react'
 import {
   computeEstimate,
   initialSelection,
+  nearestSizeTierIndex,
   type PricingCalculatorConfig,
   type PricingSelection,
   type ServiceOptionGroup,
@@ -162,7 +163,7 @@ export function PricingCalculatorClient({ config }: { config: PricingCalculatorC
   const setAddOn = (id: string, value: number) => setSelection(s => ({ ...s, addOns: { ...s.addOns, [id]: value } }))
 
   const sizeTiers = config.sizeTiers
-  const sizeIdx = Math.max(0, sizeTiers.findIndex(t => t.id === selection.sizeTierId))
+  const sizeIdx = nearestSizeTierIndex(sizeTiers, selection.sizePos)
 
   let step = 0
   const estimateLabel = anyService ? `${fmt.format(estimate.low)}–${fmt.format(estimate.high)}` : null
@@ -235,10 +236,10 @@ export function PricingCalculatorClient({ config }: { config: PricingCalculatorC
               <input
                 type="range"
                 min={0}
-                max={sizeTiers.length - 1}
-                step={1}
-                value={sizeIdx}
-                onChange={e => { const t = sizeTiers[Number(e.target.value)]; if (t) setSelection(s => ({ ...s, sizeTierId: t.id })) }}
+                max={1}
+                step={0.01}
+                value={selection.sizePos}
+                onChange={e => { const v = Number(e.target.value); setSelection(s => ({ ...s, sizePos: v })) }}
                 aria-label="Business size"
                 aria-valuetext={sizeTiers[sizeIdx]?.label}
                 className="h-2 w-full cursor-pointer appearance-none rounded-full bg-foreground/10 accent-[var(--color-primary)] [&::-webkit-slider-thumb]:h-5 [&::-webkit-slider-thumb]:w-5 [&::-webkit-slider-thumb]:appearance-none [&::-webkit-slider-thumb]:rounded-full [&::-webkit-slider-thumb]:bg-primary [&::-webkit-slider-thumb]:shadow-[var(--shadow-card)] [&::-moz-range-thumb]:h-5 [&::-moz-range-thumb]:w-5 [&::-moz-range-thumb]:rounded-full [&::-moz-range-thumb]:border-0 [&::-moz-range-thumb]:bg-primary"

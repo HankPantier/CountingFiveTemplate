@@ -62,10 +62,34 @@ export interface PricingSelection {
   services: Record<string, boolean>
   // serviceId → (groupId → selected choice ids). Single-choice groups hold ≤1.
   serviceOptions: Record<string, Record<string, string[]>>
-  sizeTierId: string | null
+  // Continuous business-size position in [0, 1]. 0 = first tier, 1 = last tier;
+  // the multiplier interpolates between adjacent tiers so the slider glides.
+  sizePos: number
   complexityId: string | null
   // Flat add-ons: 0/1. Per-unit add-ons: the quantity.
   addOns: Record<string, number>
+}
+
+// Linear-interpolate the size multiplier across the configured tiers (the tiers
+// act as anchors). A continuous `pos` in [0, 1] maps across tier[0]..tier[N-1].
+export function interpolateSizeMultiplier(
+  tiers: PricingMultiplierOption[],
+  pos: number
+): number {
+  if (tiers.length === 0) return 1
+  if (tiers.length === 1) return tiers[0].multiplier
+  const clamped = Math.max(0, Math.min(1, pos))
+  const scaled = clamped * (tiers.length - 1)
+  const lo = Math.floor(scaled)
+  const hi = Math.ceil(scaled)
+  const frac = scaled - lo
+  return tiers[lo].multiplier + (tiers[hi].multiplier - tiers[lo].multiplier) * frac
+}
+
+// Nearest tier index for `pos` — used to label the current band.
+export function nearestSizeTierIndex(tiers: PricingMultiplierOption[], pos: number): number {
+  if (tiers.length <= 1) return 0
+  return Math.round(Math.max(0, Math.min(1, pos)) * (tiers.length - 1))
 }
 
 export interface PricingEstimate {
@@ -94,7 +118,7 @@ export function computeEstimate(
     return sum + lineTotal
   }, 0)
 
-  const sizeMult = config.sizeTiers.find(t => t.id === selection.sizeTierId)?.multiplier ?? 1
+  const sizeMult = interpolateSizeMultiplier(config.sizeTiers, selection.sizePos)
   const compMult = config.complexityLevels.find(c => c.id === selection.complexityId)?.multiplier ?? 1
   const scaled = base * sizeMult * compMult
 
@@ -132,7 +156,7 @@ export function initialSelection(config: PricingCalculatorConfig): PricingSelect
   return {
     services,
     serviceOptions,
-    sizeTierId: config.sizeTiers[0]?.id ?? null,
+    sizePos: 0,
     complexityId: config.complexityLevels[0]?.id ?? null,
     addOns,
   }
