@@ -60,9 +60,10 @@ describe('BLOCK_REGISTRY', () => {
   it('covers every block id wired into the assembly pipeline', () => {
     // Sanity guard: the count should match what we ship. Update when adding
     // a new block — forces a deliberate registry update, not silent drift.
-    expect(KNOWN_BLOCK_IDS.length).toBe(22)
+    expect(KNOWN_BLOCK_IDS.length).toBe(23)
     expect(KNOWN_BLOCK_IDS).toContain('booking')
     expect(KNOWN_BLOCK_IDS).toContain('resource-list')
+    expect(KNOWN_BLOCK_IDS).toContain('pricing-calculator')
     expect(KNOWN_BLOCK_IDS).toContain('faq-accordion')
   })
 

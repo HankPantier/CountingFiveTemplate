@@ -614,6 +614,27 @@ export function extractBookingProps(section: PageSection): BookingProps {
 }
 
 // ---------------------------------------------------------------------------
+// PricingCalculator
+// ---------------------------------------------------------------------------
+
+export type PricingCalculatorProps = {
+  heading?: string
+  intro?: string
+}
+
+/**
+ * PricingCalculator pulls its config from content/pricing-calculator.json, not
+ * the page markdown. The section only carries an optional heading + intro to
+ * render above the estimator; the body of the section (if any) is ignored.
+ */
+export function extractPricingCalculatorProps(section: PageSection): PricingCalculatorProps {
+  return {
+    heading: section.heading.trim() || undefined,
+    intro: section.content.trim() || undefined,
+  }
+}
+
+// ---------------------------------------------------------------------------
 // ResourceList (lead magnet)
 // ---------------------------------------------------------------------------
 

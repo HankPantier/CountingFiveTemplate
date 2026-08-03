@@ -1,6 +1,7 @@
 {
   "primary": [
     { "label": "Services", "url": "/services" },
+    { "label": "Pricing Calculator", "url": "/pricing-calculator" },
     { "label": "About", "url": "/about" },
     { "label": "Resources", "url": "/resources" },
     { "label": "Contact", "url": "/contact" }
