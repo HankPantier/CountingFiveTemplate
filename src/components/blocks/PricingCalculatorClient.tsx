@@ -6,13 +6,13 @@ import {
   initialSelection,
   type PricingCalculatorConfig,
   type PricingSelection,
+  type ServiceOptionGroup,
 } from '@/lib/content/pricing-calculator-types'
 
 // All styling uses theme tokens (bg-primary, bg-card, text-foreground,
-// var(--color-action), the brand-tinted --shadow-* set, rounded-*) so the
-// calculator auto-matches each client's generated brand. No hardcoded colors
-// (the white toggle/slider knob is an intentional neutral, like Section's
-// text-white on action backgrounds).
+// var(--color-action), accent-color:var(--color-primary), the brand-tinted
+// --shadow-* set, rounded-*) so the calculator auto-matches each client's
+// generated brand. The white toggle knob is an intentional neutral.
 
 function useCurrency(currency: string) {
   return useMemo(() => {
@@ -43,8 +43,6 @@ function StepHeading({ n, children }: { n: number; children: React.ReactNode }) 
   )
 }
 
-// Non-interactive toggle visual — the parent card/row owns the click, so this
-// is a <span> (never a nested button) that just reflects state.
 function ToggleVisual({ on }: { on: boolean }) {
   return (
     <span
@@ -60,97 +58,6 @@ function ToggleVisual({ on }: { on: boolean }) {
         ].join(' ')}
       />
     </span>
-  )
-}
-
-// A range slider that snaps across discrete tiers; the native input drives
-// keyboard + drag while the custom track/thumb render the brand look.
-function TierSlider({
-  tiers,
-  valueId,
-  onChange,
-}: {
-  tiers: { id: string; label: string }[]
-  valueId: string | null
-  onChange: (id: string) => void
-}) {
-  const idx = Math.max(0, tiers.findIndex(t => t.id === valueId))
-  const n = tiers.length
-  const pct = n > 1 ? (idx / (n - 1)) * 100 : 0
-  const current = tiers[idx]
-
-  return (
-    <div>
-      <div className="mb-4">
-        <span className="inline-flex items-center rounded-full bg-primary/10 px-3.5 py-1.5 font-heading text-sm font-semibold text-primary">
-          {current?.label}
-        </span>
-      </div>
-      <div className="relative flex h-6 items-center">
-        <div className="absolute inset-x-0 h-2 rounded-full bg-foreground/10" />
-        <div className="absolute h-2 rounded-full bg-primary transition-[width] duration-150" style={{ width: `${pct}%` }} />
-        {tiers.map((t, i) => (
-          <span
-            key={t.id}
-            aria-hidden
-            className="absolute h-2.5 w-2.5 -translate-x-1/2 rounded-full border-2 border-card bg-foreground/25"
-            style={{ left: `${n > 1 ? (i / (n - 1)) * 100 : 0}%` }}
-          />
-        ))}
-        <div
-          aria-hidden
-          className="absolute h-6 w-6 -translate-x-1/2 rounded-full border-[3px] border-primary bg-white shadow-[var(--shadow-card)] transition-[left] duration-150"
-          style={{ left: `${pct}%` }}
-        />
-        <input
-          type="range"
-          min={0}
-          max={Math.max(0, n - 1)}
-          step={1}
-          value={idx}
-          onChange={e => { const t = tiers[Number(e.target.value)]; if (t) onChange(t.id) }}
-          aria-label="Business size"
-          aria-valuetext={current?.label}
-          className="absolute inset-0 w-full cursor-pointer opacity-0"
-        />
-      </div>
-      <div className="mt-2.5 flex justify-between text-xs font-medium text-foreground/50">
-        <span>Smaller</span>
-        <span>Larger</span>
-      </div>
-    </div>
-  )
-}
-
-function SegmentedControl({
-  options,
-  valueId,
-  onChange,
-}: {
-  options: { id: string; label: string }[]
-  valueId: string | null
-  onChange: (id: string) => void
-}) {
-  return (
-    <div className="inline-flex flex-wrap gap-1 rounded-full bg-muted p-1">
-      {options.map(o => {
-        const on = valueId === o.id
-        return (
-          <button
-            key={o.id}
-            type="button"
-            aria-pressed={on}
-            onClick={() => onChange(o.id)}
-            className={[
-              'rounded-full px-5 py-2 text-sm font-body font-semibold transition-all duration-150 cursor-pointer',
-              on ? 'bg-primary text-primary-foreground shadow-[var(--shadow-card)]' : 'text-foreground/70 hover:text-foreground',
-            ].join(' ')}
-          >
-            {o.label}
-          </button>
-        )
-      })}
-    </div>
   )
 }
 
@@ -173,6 +80,70 @@ function Stepper({ value, onChange, label }: { value: number; onChange: (v: numb
   )
 }
 
+// Per-service option groups revealed when a service is expanded.
+function ServiceOptions({
+  serviceId,
+  groups,
+  selected,
+  onChange,
+  fmt,
+  period,
+}: {
+  serviceId: string
+  groups: ServiceOptionGroup[]
+  selected: Record<string, string[]>
+  onChange: (groupId: string, choiceIds: string[]) => void
+  fmt: Intl.NumberFormat
+  period: string
+}) {
+  return (
+    <div className="mt-4 space-y-4 border-t border-border pt-4">
+      {groups.map(group => {
+        const chosen = selected[group.id] ?? []
+        return (
+          <div key={group.id}>
+            <p className="mb-2 text-xs font-heading font-semibold uppercase tracking-wide text-foreground/50">{group.label}</p>
+            <div className="flex flex-wrap gap-2">
+              {group.choices.map(choice => {
+                const on = chosen.includes(choice.id)
+                const toggle = () => {
+                  if (group.kind === 'select') onChange(group.id, [choice.id])
+                  else onChange(group.id, on ? chosen.filter(c => c !== choice.id) : [...chosen, choice.id])
+                }
+                return (
+                  <button
+                    key={choice.id}
+                    type="button"
+                    aria-pressed={on}
+                    onClick={toggle}
+                    className={[
+                      'inline-flex items-center gap-2 rounded-full border px-3.5 py-2 text-sm transition-colors cursor-pointer',
+                      on ? 'border-primary bg-primary/[0.07] text-foreground' : 'border-border bg-card text-foreground/80 hover:border-primary/50',
+                    ].join(' ')}
+                  >
+                    <span
+                      aria-hidden
+                      className={[
+                        'flex h-4 w-4 items-center justify-center border-2 transition-colors',
+                        group.kind === 'select' ? 'rounded-full' : 'rounded',
+                        on ? 'border-primary bg-primary text-primary-foreground' : 'border-border text-transparent',
+                      ].join(' ')}
+                    >
+                      <CheckIcon className="h-2.5 w-2.5" />
+                    </span>
+                    <span className="font-medium">{choice.label}</span>
+                    <span className="text-xs text-foreground/45">{choice.addMonthly > 0 ? `+${fmt.format(choice.addMonthly)}/${period}` : 'included'}</span>
+                  </button>
+                )
+              })}
+            </div>
+          </div>
+        )
+      })}
+    </div>
+  )
+}
+
 export function PricingCalculatorClient({ config }: { config: PricingCalculatorConfig }) {
   const [selection, setSelection] = useState<PricingSelection>(() => initialSelection(config))
   const fmt = useCurrency(config.currency)
@@ -183,7 +154,15 @@ export function PricingCalculatorClient({ config }: { config: PricingCalculatorC
   const periodLong = config.billingPeriod === 'year' ? 'per year' : 'per month'
 
   const toggleService = (id: string) => setSelection(s => ({ ...s, services: { ...s.services, [id]: !s.services[id] } }))
+  const setServiceOption = (serviceId: string, groupId: string, choiceIds: string[]) =>
+    setSelection(s => ({
+      ...s,
+      serviceOptions: { ...s.serviceOptions, [serviceId]: { ...s.serviceOptions[serviceId], [groupId]: choiceIds } },
+    }))
   const setAddOn = (id: string, value: number) => setSelection(s => ({ ...s, addOns: { ...s.addOns, [id]: value } }))
+
+  const sizeTiers = config.sizeTiers
+  const sizeIdx = Math.max(0, sizeTiers.findIndex(t => t.id === selection.sizeTierId))
 
   let step = 0
   const estimateLabel = anyService ? `${fmt.format(estimate.low)}–${fmt.format(estimate.high)}` : null
@@ -196,60 +175,104 @@ export function PricingCalculatorClient({ config }: { config: PricingCalculatorC
       {/* Inputs */}
       <div className="rounded-2xl border border-border bg-card p-6 shadow-[var(--shadow-card)] sm:p-8">
         <div className="space-y-10">
-          {/* Services */}
+          {/* Services — accordion */}
           <fieldset>
             <StepHeading n={(step += 1)}>Which services do you need?</StepHeading>
-            <div className="grid gap-3 sm:grid-cols-2">
+            <div className="divide-y divide-border overflow-hidden rounded-xl border border-border">
               {config.serviceLines.map(line => {
                 const on = !!selection.services[line.id]
+                const hasOptions = (line.options?.length ?? 0) > 0
                 return (
-                  <button
-                    key={line.id}
-                    type="button"
-                    aria-pressed={on}
-                    onClick={() => toggleService(line.id)}
-                    className={[
-                      'group relative flex flex-col rounded-xl border p-5 text-left transition-all duration-200 cursor-pointer',
-                      on
-                        ? 'border-primary bg-primary/[0.06] shadow-[var(--shadow-card)]'
-                        : 'border-border bg-card hover:border-primary/50 hover:shadow-[var(--shadow-card-hover)]',
-                    ].join(' ')}
-                  >
-                    <div className="flex items-start justify-between gap-3">
-                      <span className="font-heading font-semibold leading-tight text-foreground">{line.label}</span>
+                  <div key={line.id} className={on ? 'bg-primary/[0.03]' : 'bg-card'}>
+                    <button
+                      type="button"
+                      aria-pressed={on}
+                      aria-expanded={on && hasOptions}
+                      onClick={() => toggleService(line.id)}
+                      className="flex w-full items-center gap-4 px-5 py-4 text-left transition-colors cursor-pointer"
+                    >
+                      <span className="min-w-0 flex-1">
+                        <span className="flex flex-wrap items-baseline gap-x-2">
+                          <span className="font-heading text-base font-semibold text-foreground">{line.label}</span>
+                          <span className="text-sm text-foreground/50">from {fmt.format(line.baseRate)}/{period}</span>
+                        </span>
+                        {line.description && <span className="mt-0.5 block text-sm leading-snug text-foreground/55">{line.description}</span>}
+                      </span>
                       <ToggleVisual on={on} />
-                    </div>
-                    {line.description && <p className="mt-2 text-sm leading-snug text-foreground/60">{line.description}</p>}
-                    <span className="mt-3 inline-flex w-fit items-center rounded-full bg-foreground/[0.05] px-2.5 py-1 text-xs font-semibold text-foreground/80">
-                      from {fmt.format(line.baseRate)}/{period}
-                    </span>
-                  </button>
+                    </button>
+                    {/* Expanding options panel (grid-rows trick animates height) */}
+                    {hasOptions && (
+                      <div className={['grid transition-all duration-300 ease-out', on ? 'grid-rows-[1fr] opacity-100' : 'grid-rows-[0fr] opacity-0'].join(' ')}>
+                        <div className="overflow-hidden">
+                          <div className="px-5 pb-5">
+                            <ServiceOptions
+                              serviceId={line.id}
+                              groups={line.options ?? []}
+                              selected={selection.serviceOptions[line.id] ?? {}}
+                              onChange={(groupId, ids) => setServiceOption(line.id, groupId, ids)}
+                              fmt={fmt}
+                              period={period}
+                            />
+                          </div>
+                        </div>
+                      </div>
+                    )}
+                  </div>
                 )
               })}
             </div>
           </fieldset>
 
-          {/* Size (slider) */}
-          {config.sizeTiers.length > 0 && (
+          {/* Size — native range slider (accent-color makes it brand + fully draggable) */}
+          {sizeTiers.length > 0 && (
             <fieldset>
               <StepHeading n={(step += 1)}>How big is your business?</StepHeading>
-              <TierSlider
-                tiers={config.sizeTiers}
-                valueId={selection.sizeTierId}
-                onChange={id => setSelection(s => ({ ...s, sizeTierId: id }))}
+              <div className="mb-4">
+                <span className="inline-flex items-center rounded-full bg-primary/10 px-3.5 py-1.5 font-heading text-sm font-semibold text-primary">
+                  {sizeTiers[sizeIdx]?.label}
+                </span>
+              </div>
+              <input
+                type="range"
+                min={0}
+                max={sizeTiers.length - 1}
+                step={1}
+                value={sizeIdx}
+                onChange={e => { const t = sizeTiers[Number(e.target.value)]; if (t) setSelection(s => ({ ...s, sizeTierId: t.id })) }}
+                aria-label="Business size"
+                aria-valuetext={sizeTiers[sizeIdx]?.label}
+                className="h-2 w-full cursor-pointer appearance-none rounded-full bg-foreground/10 accent-[var(--color-primary)] [&::-webkit-slider-thumb]:h-5 [&::-webkit-slider-thumb]:w-5 [&::-webkit-slider-thumb]:appearance-none [&::-webkit-slider-thumb]:rounded-full [&::-webkit-slider-thumb]:bg-primary [&::-webkit-slider-thumb]:shadow-[var(--shadow-card)] [&::-moz-range-thumb]:h-5 [&::-moz-range-thumb]:w-5 [&::-moz-range-thumb]:rounded-full [&::-moz-range-thumb]:border-0 [&::-moz-range-thumb]:bg-primary"
               />
+              <div className="mt-2.5 flex justify-between text-xs font-medium text-foreground/50">
+                <span>Smaller</span>
+                <span>Larger</span>
+              </div>
             </fieldset>
           )}
 
-          {/* Complexity (segmented) */}
+          {/* Complexity — segmented control */}
           {config.complexityLevels.length > 0 && (
             <fieldset>
               <StepHeading n={(step += 1)}>How complex are your needs?</StepHeading>
-              <SegmentedControl
-                options={config.complexityLevels}
-                valueId={selection.complexityId}
-                onChange={id => setSelection(s => ({ ...s, complexityId: id }))}
-              />
+              <div className="inline-flex flex-wrap gap-1 rounded-full bg-muted p-1">
+                {config.complexityLevels.map(level => {
+                  const on = selection.complexityId === level.id
+                  return (
+                    <button
+                      key={level.id}
+                      type="button"
+                      aria-pressed={on}
+                      onClick={() => setSelection(s => ({ ...s, complexityId: level.id }))}
+                      className={[
+                        'rounded-full px-5 py-2 text-sm font-body font-semibold transition-all duration-150 cursor-pointer',
+                        on ? 'bg-primary text-primary-foreground shadow-[var(--shadow-card)]' : 'text-foreground/70 hover:text-foreground',
+                      ].join(' ')}
+                    >
+                      {level.label}
+                    </button>
+                  )
+                })}
+              </div>
             </fieldset>
           )}
 

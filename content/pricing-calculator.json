@@ -5,10 +5,23 @@
   "intro": "Estimate your monthly investment. Adjust the options below for a ballpark figure — your final quote depends on the specifics of your engagement.",
   "implementationFee": { "amount": 2499, "label": "One-time setup & onboarding", "weeks": "4-6" },
   "serviceLines": [
-    { "id": "bookkeeping", "label": "Bookkeeping & Accounting", "baseRate": 199, "enabledByDefault": false, "description": "Monthly reconciliation, financial statements, and clean books." },
-    { "id": "tax", "label": "Tax Planning & Preparation", "baseRate": 250, "enabledByDefault": false, "description": "Proactive planning plus business and owner return prep." },
-    { "id": "payroll", "label": "Payroll", "baseRate": 99, "enabledByDefault": false, "description": "Run payroll, filings, and year-end forms." },
-    { "id": "advisory", "label": "Advisory / Fractional CFO", "baseRate": 500, "enabledByDefault": false, "description": "Cash-flow strategy, forecasting, and decision support." }
+    { "id": "bookkeeping", "label": "Bookkeeping & Accounting", "baseRate": 199, "enabledByDefault": true, "description": "Monthly reconciliation, financial statements, and clean books.",
+      "options": [
+        { "id": "frequency", "label": "Frequency", "kind": "select", "choices": [ { "id": "monthly", "label": "Monthly", "addMonthly": 0 }, { "id": "weekly", "label": "Weekly", "addMonthly": 80 } ] },
+        { "id": "basis", "label": "Accounting basis", "kind": "select", "choices": [ { "id": "cash", "label": "Cash", "addMonthly": 0 }, { "id": "accrual", "label": "Accrual", "addMonthly": 30 } ] }
+      ] },
+    { "id": "tax", "label": "Tax Planning & Preparation", "baseRate": 250, "enabledByDefault": false, "description": "Proactive planning plus business and owner return prep.",
+      "options": [
+        { "id": "included", "label": "Include", "kind": "multi", "choices": [ { "id": "sales-1099", "label": "Sales tax & 1099s", "addMonthly": 50 }, { "id": "owner-personal", "label": "Personal return for owners", "addMonthly": 90 } ] }
+      ] },
+    { "id": "payroll", "label": "Payroll", "baseRate": 99, "enabledByDefault": false, "description": "Run payroll, filings, and year-end forms.",
+      "options": [
+        { "id": "schedule", "label": "Pay schedule", "kind": "select", "choices": [ { "id": "monthly", "label": "Monthly", "addMonthly": 0 }, { "id": "biweekly", "label": "Biweekly", "addMonthly": 40 }, { "id": "weekly", "label": "Weekly", "addMonthly": 90 } ] }
+      ] },
+    { "id": "advisory", "label": "Advisory / Fractional CFO", "baseRate": 500, "enabledByDefault": false, "description": "Cash-flow strategy, forecasting, and decision support.",
+      "options": [
+        { "id": "cadence", "label": "Cadence", "kind": "select", "choices": [ { "id": "quarterly", "label": "Quarterly", "addMonthly": 0 }, { "id": "monthly", "label": "Monthly", "addMonthly": 200 } ] }
+      ] }
   ],
   "sizeTiers": [
     { "id": "solo", "label": "Solo / under $250k revenue", "multiplier": 1.0 },
