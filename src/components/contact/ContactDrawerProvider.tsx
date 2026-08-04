@@ -5,7 +5,7 @@ import type { ReactNode } from 'react'
 import { ContactDrawer, type ContactDrawerConfig } from './ContactDrawer'
 import { ContactFab } from './ContactFab'
 
-type DrawerView = 'choose' | 'message' | 'call'
+type DrawerView = 'call' | 'message'
 
 type ContactDrawerContextValue = {
   open: boolean
@@ -43,9 +43,10 @@ export function ContactDrawerProvider({
   children: ReactNode
 }) {
   const [open, setOpen] = useState(false)
-  const [view, setView] = useState<DrawerView>('choose')
+  // Default to the message tab (the low-friction option).
+  const [view, setView] = useState<DrawerView>('message')
 
-  const openDrawer = useCallback((next: DrawerView = 'choose') => {
+  const openDrawer = useCallback((next: DrawerView = 'message') => {
     setView(next)
     setOpen(true)
   }, [])
@@ -68,7 +69,7 @@ export function ContactDrawerProvider({
       const href = anchor.getAttribute('href')
       if (!href || !hrefMatchesContact(href, contactPath)) return
       e.preventDefault()
-      openDrawer('choose')
+      openDrawer('message')
     }
     document.addEventListener('click', onClick, true)
     return () => document.removeEventListener('click', onClick, true)
@@ -79,7 +80,7 @@ export function ContactDrawerProvider({
   return (
     <ContactDrawerContext.Provider value={value}>
       {children}
-      <ContactFab onOpen={() => openDrawer('choose')} />
+      <ContactFab onOpen={() => openDrawer('message')} />
       <ContactDrawer open={open} view={view} onViewChange={setView} onOpenChange={setOpen} config={config} />
     </ContactDrawerContext.Provider>
   )

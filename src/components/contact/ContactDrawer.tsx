@@ -1,15 +1,9 @@
 'use client'
 
 import { useEffect, useRef, useState } from 'react'
-import type { FormEvent, ReactNode } from 'react'
-import { CalendarClock, MessageSquare, Phone, ArrowLeft } from 'lucide-react'
-import {
-  Sheet,
-  SheetContent,
-  SheetHeader,
-  SheetTitle,
-  SheetDescription,
-} from '@/components/ui/sheet'
+import type { FormEvent } from 'react'
+import { CalendarClock, Mail, Phone } from 'lucide-react'
+import { Sheet, SheetContent, SheetTitle } from '@/components/ui/sheet'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Textarea } from '@/components/ui/textarea'
@@ -25,7 +19,7 @@ export type ContactDrawerConfig = {
   booking: { provider: 'calendly' | 'iframe' | 'none'; url: string }
 }
 
-type DrawerView = 'choose' | 'message' | 'call'
+type DrawerView = 'call' | 'message'
 
 function telHref(phone: string): string {
   return `tel:${phone.replace(/[^0-9+]/g, '')}`
@@ -45,125 +39,84 @@ export function ContactDrawer({
   config: ContactDrawerConfig
 }) {
   const hasBooking = config.booking.provider !== 'none' && !!config.booking.url
-  const wide = view === 'call' && hasBooking
 
   return (
     <Sheet open={open} onOpenChange={onOpenChange}>
       <SheetContent
         side="right"
-        className={cn(
-          'flex flex-col gap-0 overflow-y-auto p-0 w-full',
-          wide ? 'sm:max-w-xl' : 'sm:max-w-md'
-        )}
+        className="flex w-full flex-col gap-0 overflow-y-auto p-0 sm:max-w-lg"
       >
-        <SheetHeader className="space-y-1 border-b border-border px-6 pb-4 pt-6 text-left">
-          {view !== 'choose' && (
-            <button
-              type="button"
-              onClick={() => onViewChange('choose')}
-              className="mb-1 inline-flex w-fit items-center gap-1 text-sm font-medium text-muted-foreground transition-colors hover:text-foreground"
-            >
-              <ArrowLeft className="h-4 w-4" /> Back
-            </button>
-          )}
-          <SheetTitle className="font-heading text-xl">
-            {view === 'message' ? 'Send us a message' : view === 'call' ? 'Book a call' : `Contact ${config.firmName}`}
-          </SheetTitle>
-          <SheetDescription>
-            {view === 'message'
-              ? "Tell us what you need and we'll get back to you."
-              : view === 'call'
-              ? 'Pick a time that works for you.'
-              : "We'd love to hear from you. How would you like to connect?"}
-          </SheetDescription>
-        </SheetHeader>
+        <SheetTitle className="sr-only">Contact {config.firmName}</SheetTitle>
 
-        <div className="flex-1 px-6 py-6">
-          {view === 'choose' && (
-            <ChooseView config={config} hasBooking={hasBooking} onSelect={onViewChange} />
+        {/* Header: phone (click-to-call) on the left; Sheet's close X sits top-right */}
+        <div className="flex items-center gap-2 border-b border-border px-6 py-4 pr-14">
+          {config.phone ? (
+            <a
+              href={telHref(config.phone)}
+              className="flex items-center gap-2 font-heading text-lg font-bold text-primary transition-opacity hover:opacity-80"
+            >
+              <Phone className="h-5 w-5" />
+              {config.phone}
+            </a>
+          ) : (
+            <span className="font-heading text-lg font-bold text-foreground">{config.firmName}</span>
           )}
-          {view === 'message' && <DrawerContactForm firmName={config.firmName} />}
-          {view === 'call' && <CallView config={config} hasBooking={hasBooking} />}
+        </div>
+
+        {/* Tabs */}
+        <div role="tablist" aria-label="Contact options" className="grid grid-cols-2 border-b border-border">
+          <Tab active={view === 'call'} onClick={() => onViewChange('call')} icon={<CalendarClock className="h-4 w-4" />}>
+            Book a Call
+          </Tab>
+          <Tab active={view === 'message'} onClick={() => onViewChange('message')} icon={<Mail className="h-4 w-4" />}>
+            Send a Message
+          </Tab>
+        </div>
+
+        <div className="flex-1 px-6 py-7">
+          <header className="mb-6 text-center">
+            <h2 className="font-heading text-2xl font-bold text-foreground md:text-3xl">
+              {view === 'call' ? 'Reserve a time to chat' : 'Send us a message'}
+            </h2>
+            <p className="mx-auto mt-3 max-w-sm text-sm leading-relaxed text-muted-foreground">
+              {view === 'call'
+                ? 'Schedule a complimentary consultation with our team at a time that works for you.'
+                : "Tell us what you need and we'll get back to you by email."}
+            </p>
+          </header>
+
+          {view === 'call' ? <CallView config={config} hasBooking={hasBooking} /> : <DrawerContactForm firmName={config.firmName} />}
         </div>
       </SheetContent>
     </Sheet>
   )
 }
 
-function OptionCard({
-  icon,
-  title,
-  subtitle,
+function Tab({
+  active,
   onClick,
-  href,
+  icon,
+  children,
 }: {
-  icon: ReactNode
-  title: string
-  subtitle: string
-  onClick?: () => void
-  href?: string
+  active: boolean
+  onClick: () => void
+  icon: React.ReactNode
+  children: React.ReactNode
 }) {
-  const inner = (
-    <>
-      <span className="flex h-11 w-11 shrink-0 items-center justify-center rounded-full bg-primary/10 text-primary">
-        {icon}
-      </span>
-      <span className="min-w-0">
-        <span className="block font-heading font-semibold text-foreground">{title}</span>
-        <span className="block text-sm text-muted-foreground">{subtitle}</span>
-      </span>
-    </>
-  )
-  const cls =
-    'group flex w-full items-center gap-4 rounded-xl border border-border bg-card p-5 text-left transition-all hover:border-primary/50 hover:shadow-[var(--shadow-card-hover)]'
-  if (href) {
-    return (
-      <a href={href} className={cls}>
-        {inner}
-      </a>
-    )
-  }
   return (
-    <button type="button" onClick={onClick} className={cls}>
-      {inner}
+    <button
+      type="button"
+      role="tab"
+      aria-selected={active}
+      onClick={onClick}
+      className={cn(
+        'flex items-center justify-center gap-2 border-b-2 px-4 py-4 font-heading text-sm font-semibold transition-colors',
+        active ? 'border-primary text-primary' : 'border-transparent text-muted-foreground hover:text-foreground'
+      )}
+    >
+      {icon}
+      {children}
     </button>
-  )
-}
-
-function ChooseView({
-  config,
-  hasBooking,
-  onSelect,
-}: {
-  config: ContactDrawerConfig
-  hasBooking: boolean
-  onSelect: (v: DrawerView) => void
-}) {
-  // With a booking URL → open the embed view. Without one → click-to-call.
-  return (
-    <div className="space-y-3">
-      {hasBooking ? (
-        <OptionCard
-          icon={<CalendarClock className="h-5 w-5" />}
-          title="Book a call"
-          subtitle="Schedule a time on our calendar"
-          onClick={() => onSelect('call')}
-        />
-      ) : config.phone ? (
-        <OptionCard
-          icon={<Phone className="h-5 w-5" />}
-          title="Book a call"
-          subtitle={config.phone}
-          href={telHref(config.phone)}
-        />
-      ) : null}
-      <OptionCard
-        icon={<MessageSquare className="h-5 w-5" />}
-        title="Send a message"
-        subtitle="We'll reply by email"
-        onClick={() => onSelect('message')}
-      />
-    </div>
   )
 }
 
@@ -171,7 +124,7 @@ function CallView({ config, hasBooking }: { config: ContactDrawerConfig; hasBook
   if (hasBooking) {
     return (
       <div className="-mx-2">
-        <BookingEmbed provider={config.booking.provider} url={config.booking.url} height={640} />
+        <BookingEmbed provider={config.booking.provider} url={config.booking.url} height={620} />
       </div>
     )
   }
@@ -188,7 +141,7 @@ function CallView({ config, hasBooking }: { config: ContactDrawerConfig; hasBook
       </div>
     )
   }
-  return <p className="text-sm text-muted-foreground">No scheduling option is configured yet.</p>
+  return <p className="text-center text-sm text-muted-foreground">No scheduling option is configured yet.</p>
 }
 
 const DEFAULT_SUCCESS = "Thank you! We'll be in touch shortly."
