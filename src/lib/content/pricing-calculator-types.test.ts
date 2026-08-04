@@ -1,5 +1,6 @@
 import { describe, expect, it } from 'vitest'
 import {
+  buildContactContext,
   computeEstimate,
   initialSelection,
   type PricingCalculatorConfig,
@@ -91,5 +92,40 @@ describe('computeEstimate', () => {
     expect(sel.serviceOptions.bk).toEqual({ freq: ['monthly'], inc: [] })
     expect(sel.sizePos).toBe(0)
     expect(sel.complexityId).toBe('basic')
+  })
+})
+
+const money = (n: number) => `$${n}`
+
+describe('buildContactContext', () => {
+  it('returns null when no service is selected', () => {
+    const ctx = buildContactContext(
+      config,
+      { ...base, services: { bk: false, tax: false } },
+      computeEstimate(config, { ...base, services: { bk: false, tax: false } }),
+      money
+    )
+    expect(ctx).toBeNull()
+  })
+
+  it('builds a full breakdown: services (+priced options), size, complexity, add-ons, estimate, setup', () => {
+    const selection: PricingSelection = {
+      services: { bk: true, tax: true },
+      serviceOptions: { bk: { freq: ['weekly'], inc: ['a', 'b'] } },
+      sizePos: 1,
+      complexityId: 'complex',
+      addOns: { flat1: 1, emp: 3 },
+    }
+    const est = computeEstimate(config, selection)
+    const ctx = buildContactContext(config, selection, est, money)!
+    expect(ctx.title).toBe('Your estimate')
+    const byLabel = Object.fromEntries(ctx.lines.map(l => [l.label, l.value]))
+    // Only priced options (addMonthly > 0) are named; both a(+25) and b(+40) qualify, weekly(+80) too.
+    expect(byLabel['Services']).toBe('Bookkeeping (Weekly, A, B); Tax')
+    expect(byLabel['Business size']).toBe('Small')
+    expect(byLabel['Complexity']).toBe('Complex')
+    expect(byLabel['Add-ons']).toBe('Flat, Employees ×3')
+    expect(byLabel['Estimated cost']).toBe(`~${money(est.low)}–${money(est.high)}/mo`)
+    expect(byLabel['One-time setup']).toBe(money(2000))
   })
 })

@@ -15,7 +15,31 @@ import {
   scoreContent,
 } from '@/lib/forms/spam'
 import { buildEmailSubject, buildEmailBody } from '@/lib/forms/email-template'
-import type { FormSubmitResponse, FormSubmitPayload, FieldDef, FormVariant } from '@/lib/forms/types'
+import type { FormSubmitResponse, FormSubmitPayload, FieldDef, FormVariant, ContactContext } from '@/lib/forms/types'
+
+// `context` is attacker-controllable (client sends it) and only ever lands in
+// the plain-text email body. Bound it hard and strip control chars so it can
+// never bloat the email or inject structure. Returns undefined when nothing
+// usable remains.
+const MAX_CONTEXT_LINES = 15
+const MAX_CONTEXT_FIELD = 200
+
+function sanitizeContext(raw: unknown): ContactContext | undefined {
+  if (!raw || typeof raw !== 'object') return undefined
+  const obj = raw as { title?: unknown; lines?: unknown }
+  if (!Array.isArray(obj.lines)) return undefined
+  const clean = (s: unknown) =>
+    (typeof s === 'string' ? s : '').replace(/[\r\n\t]+/g, ' ').trim().slice(0, MAX_CONTEXT_FIELD)
+  const lines = obj.lines
+    .slice(0, MAX_CONTEXT_LINES)
+    .map((l) => {
+      const item = (l ?? {}) as { label?: unknown; value?: unknown }
+      return { label: clean(item.label), value: clean(item.value) }
+    })
+    .filter((l) => l.label && l.value)
+  if (lines.length === 0) return undefined
+  return { title: clean(obj.title) || 'Details', lines }
+}
 
 // Resend's SDK uses node fetch under the hood — Edge runtime won't work.
 // Under cacheComponents: true the runtime is implicit (Node is default);
@@ -92,6 +116,9 @@ export async function POST(req: Request): Promise<NextResponse<FormSubmitRespons
   if (!variant || typeof fields !== 'object' || fields === null) {
     return jsonError(400, 'Missing variant or fields')
   }
+  // Non-field recap (e.g. pricing-calculator selections). Never enters `fields`
+  // / Zod / the spam scorer — appended to the email body only, sanitized.
+  const context = sanitizeContext((payload as { context?: unknown } | null)?.context)
 
   // Anti-spam layers 1 + 2 (free, local): honeypot + timing trap. A real
   // browser leaves the honeypot empty and takes longer than MIN_SUBMIT_MS to
@@ -174,7 +201,7 @@ export async function POST(req: Request): Promise<NextResponse<FormSubmitRespons
 
   const baseSubject = buildEmailSubject(variant as FormVariant, brand.firm.name, submitterName)
   const subject = content.flag ? `[likely spam] ${baseSubject}` : baseSubject
-  let text = buildEmailBody(stringFields, variant === 'custom' ? (fieldDefs as FieldDef[]) : undefined)
+  let text = buildEmailBody(stringFields, variant === 'custom' ? (fieldDefs as FieldDef[]) : undefined, context)
   if (content.flag) {
     text = `⚠ Flagged by spam heuristics: ${content.reasons.join('; ')}\n\n${text}`
   }

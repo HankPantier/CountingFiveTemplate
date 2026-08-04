@@ -1,7 +1,7 @@
 'use client'
 
 import { useState } from 'react'
-import type { FieldDef, FormVariant } from './types'
+import type { ContactContext, FieldDef, FormVariant } from './types'
 import { trackLead } from '@/lib/analytics/track-event'
 import {
   buildCustomFormSchema,
@@ -16,7 +16,7 @@ import { siteConfig } from '../../../site.config'
 // Resend/mailto-fallback logic so there is a single source of truth. The
 // caller owns its own field/honeypot inputs and passes the assembled values in.
 
-type SubmitMeta = { hp: string; t: number; customFields?: FieldDef[] }
+type SubmitMeta = { hp: string; t: number; customFields?: FieldDef[]; context?: ContactContext }
 
 function schemaFor(variant: FormVariant, customFields?: FieldDef[]) {
   return variant === 'contact'
@@ -40,11 +40,20 @@ function humanize(s: string): string {
   return s.replace(/[_-]+/g, ' ').replace(/\b\w/g, c => c.toUpperCase())
 }
 
-function openMailtoFallback(fields: Record<string, string>, firmName: string, recipient: string) {
+function openMailtoFallback(
+  fields: Record<string, string>,
+  firmName: string,
+  recipient: string,
+  context?: ContactContext
+) {
   const name = fields.name ?? ''
   const lines = Object.entries(fields)
     .filter(([k, v]) => k !== 'website' && v && v.trim())
     .map(([k, v]) => `${humanize(k)}: ${v}`)
+  if (context && context.lines.length > 0) {
+    lines.push('', `${context.title || 'Details'}:`)
+    for (const { label, value } of context.lines) lines.push(`  ${label}: ${value}`)
+  }
   const subject = encodeURIComponent(`Inquiry to ${firmName} from ${name || 'website visitor'}`)
   const body = encodeURIComponent(lines.join('\n'))
   window.location.href = `mailto:${recipient}?subject=${subject}&body=${body}`
@@ -96,7 +105,7 @@ export function useContactSubmit() {
       const res = await fetch('/api/contact', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ variant, fields, fieldDefs: meta.customFields, hp: meta.hp, t: meta.t }),
+        body: JSON.stringify({ variant, fields, fieldDefs: meta.customFields, hp: meta.hp, t: meta.t, context: meta.context }),
       })
 
       // 503 → Resend not configured. 403 → BotID blocked. Either way, a real
@@ -104,7 +113,7 @@ export function useContactSubmit() {
       if (res.status === 503 || res.status === 403) {
         const recipient = document.body.dataset.contactEmail ?? ''
         const firmName = document.body.dataset.firmName ?? 'the team'
-        openMailtoFallback(fields, firmName, recipient)
+        openMailtoFallback(fields, firmName, recipient, meta.context)
         setSubmitted(true)
         trackLead({ method: 'mailto_fallback', variant })
         return true

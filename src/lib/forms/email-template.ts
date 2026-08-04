@@ -1,4 +1,4 @@
-import type { FieldDef, FormVariant } from './types'
+import type { ContactContext, FieldDef, FormVariant } from './types'
 
 /**
  * Build the subject line + plain-text body for a form-submission email.
@@ -31,7 +31,8 @@ export function buildEmailSubject(
  */
 export function buildEmailBody(
   fields: Record<string, string>,
-  fieldDefs?: FieldDef[]
+  fieldDefs?: FieldDef[],
+  context?: ContactContext
 ): string {
   const lines: string[] = []
   const ordered = fieldDefs
@@ -53,6 +54,17 @@ export function buildEmailBody(
 
   if (lines.length === 0) {
     lines.push('(no fields submitted)')
+  }
+
+  // Non-field recap (e.g. pricing-calculator selections) — rendered as its own
+  // labelled section so the firm can see exactly what the visitor configured.
+  if (context && context.lines.length > 0) {
+    lines.push('')
+    lines.push(`${context.title || 'Details'}:`)
+    for (const { label, value } of context.lines) {
+      if (!value.trim()) continue
+      lines.push(`  ${label}: ${value}`)
+    }
   }
 
   lines.push('')

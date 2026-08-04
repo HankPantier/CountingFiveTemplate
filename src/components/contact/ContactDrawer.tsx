@@ -11,6 +11,7 @@ import { Label } from '@/components/ui/label'
 import { cn } from '@/lib/utils'
 import { BookingEmbed } from '@/components/blocks/BookingEmbed'
 import { useContactSubmit } from '@/lib/forms/use-contact-submit'
+import type { ContactContext } from '@/lib/forms/types'
 
 export type ContactDrawerConfig = {
   firmName: string
@@ -28,12 +29,14 @@ function telHref(phone: string): string {
 export function ContactDrawer({
   open,
   view,
+  context,
   onViewChange,
   onOpenChange,
   config,
 }: {
   open: boolean
   view: DrawerView
+  context?: ContactContext | null
   onViewChange: (v: DrawerView) => void
   onOpenChange: (o: boolean) => void
   config: ContactDrawerConfig
@@ -85,7 +88,11 @@ export function ContactDrawer({
             </p>
           </header>
 
-          {view === 'call' ? <CallView config={config} hasBooking={hasBooking} /> : <DrawerContactForm firmName={config.firmName} />}
+          {view === 'call' ? (
+            <CallView config={config} hasBooking={hasBooking} />
+          ) : (
+            <DrawerContactForm firmName={config.firmName} context={context ?? undefined} />
+          )}
         </div>
       </SheetContent>
     </Sheet>
@@ -146,7 +153,26 @@ function CallView({ config, hasBooking }: { config: ContactDrawerConfig; hasBook
 
 const DEFAULT_SUCCESS = "Thank you! We'll be in touch shortly."
 
-function DrawerContactForm({ firmName }: { firmName: string }) {
+function ContextRecap({ context }: { context: ContactContext }) {
+  return (
+    <div className="mb-5 rounded-xl border border-border bg-muted/50 p-4 text-left">
+      <p className="mb-2 font-heading text-xs font-semibold uppercase tracking-wide text-muted-foreground">
+        {context.title}
+      </p>
+      <dl className="space-y-1">
+        {context.lines.map((line, i) => (
+          <div key={i} className="flex gap-2 text-sm">
+            <dt className="shrink-0 font-medium text-foreground/70">{line.label}:</dt>
+            <dd className="text-foreground">{line.value}</dd>
+          </div>
+        ))}
+      </dl>
+      <p className="mt-3 text-xs text-muted-foreground">We&rsquo;ll include this with your message.</p>
+    </div>
+  )
+}
+
+function DrawerContactForm({ firmName, context }: { firmName: string; context?: ContactContext }) {
   const { submitting, submitted, generalError, fieldErrors, submit } = useContactSubmit()
   const [honeypot, setHoneypot] = useState('')
   const mountedAt = useRef(0)
@@ -162,7 +188,7 @@ function DrawerContactForm({ firmName }: { firmName: string }) {
       if (k === 'website') continue
       fields[k] = typeof v === 'string' ? v : ''
     }
-    await submit('contact', fields, { hp: honeypot, t: mountedAt.current })
+    await submit('contact', fields, { hp: honeypot, t: mountedAt.current, context })
   }
 
   if (submitted) {
@@ -175,6 +201,7 @@ function DrawerContactForm({ firmName }: { firmName: string }) {
 
   return (
     <form onSubmit={onSubmit} className="flex flex-col gap-4" aria-label={`Contact ${firmName}`} noValidate>
+      {context && context.lines.length > 0 && <ContextRecap context={context} />}
       <input
         type="text"
         name="website"

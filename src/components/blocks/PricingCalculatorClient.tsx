@@ -2,6 +2,7 @@
 
 import { useMemo, useState } from 'react'
 import {
+  buildContactContext,
   computeEstimate,
   initialSelection,
   nearestSizeTierIndex,
@@ -9,6 +10,7 @@ import {
   type PricingSelection,
   type ServiceOptionGroup,
 } from '@/lib/content/pricing-calculator-types'
+import { useContactDrawer } from '@/components/contact/ContactDrawerProvider'
 
 // All styling uses theme tokens (bg-primary, bg-card, text-foreground,
 // var(--color-action), accent-color:var(--color-primary), the brand-tinted
@@ -23,6 +25,15 @@ function useCurrency(currency: string) {
       return new Intl.NumberFormat('en-US', { maximumFractionDigits: 0 })
     }
   }, [currency])
+}
+
+// Trailing-slash-insensitive pathname of a nav url (relative or absolute).
+function pathnameOf(url: string): string {
+  try {
+    return new URL(url, 'http://x').pathname.replace(/\/$/, '') || '/'
+  } catch {
+    return url.replace(/\/$/, '')
+  }
 }
 
 function CheckIcon({ className }: { className?: string }) {
@@ -165,11 +176,24 @@ export function PricingCalculatorClient({ config }: { config: PricingCalculatorC
   const sizeTiers = config.sizeTiers
   const sizeIdx = nearestSizeTierIndex(sizeTiers, selection.sizePos)
 
+  const { openDrawer } = useContactDrawer()
+
   let step = 0
   const estimateLabel = anyService ? `${fmt.format(estimate.low)}–${fmt.format(estimate.high)}` : null
   const ctaHref = estimateLabel
     ? `${config.cta.url}${config.cta.url.includes('?') ? '&' : '?'}estimate=${encodeURIComponent(`${estimateLabel}/${period}`)}`
     : config.cta.url
+
+  // When the CTA targets the contact drawer, open it directly with the recap
+  // attached (data-no-drawer keeps the generic interceptor from also firing).
+  // Otherwise the link navigates normally (keeps the ?estimate= query).
+  const ctaTargetsContact = pathnameOf(config.cta.url) === '/contact'
+  function handleCtaClick(e: React.MouseEvent<HTMLAnchorElement>) {
+    if (!ctaTargetsContact) return
+    e.preventDefault()
+    const context = buildContactContext(config, selection, estimate, n => fmt.format(n))
+    openDrawer('message', context)
+  }
 
   return (
     <div className="grid gap-8 lg:grid-cols-[1fr_360px] lg:gap-10">
@@ -348,6 +372,8 @@ export function PricingCalculatorClient({ config }: { config: PricingCalculatorC
 
           <a
             href={ctaHref}
+            onClick={handleCtaClick}
+            data-no-drawer={ctaTargetsContact ? '' : undefined}
             className="mt-5 inline-flex w-full items-center justify-center rounded-full bg-[color:var(--color-action,theme(colors.cyan.500))] px-6 py-3.5 font-heading font-semibold text-[color:var(--color-action-foreground,#fff)] shadow-[var(--shadow-card)] transition-transform hover:-translate-y-0.5"
           >
             {config.cta.label}

@@ -28,6 +28,18 @@ export type FieldDef = {
 
 export type FormVariant = 'contact' | 'quote' | 'newsletter' | 'custom'
 
+/**
+ * Extra structured recap attached to a submission but NOT a form field — e.g.
+ * the pricing-calculator selections a visitor configured before opening the
+ * drawer. Shown read-only to the visitor and appended to the firm's email.
+ * Rides at the top level of the payload (like `hp`/`t`) so the Zod field
+ * schemas never see it, and is sanitized server-side before use.
+ */
+export type ContactContext = {
+  title: string
+  lines: { label: string; value: string }[]
+}
+
 export type FormSubmitPayload = {
   variant: FormVariant
   fields: Record<string, string>
@@ -37,6 +49,8 @@ export type FormSubmitPayload = {
   hp?: string
   /** Form-mount epoch ms, used by the timing trap. Top-level for the same reason as `hp`. */
   t?: number
+  /** Optional non-field recap (e.g. pricing-calculator selections). Top-level; sanitized server-side. */
+  context?: ContactContext
 }
 
 export type FormSubmitResponse =

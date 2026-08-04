@@ -4,12 +4,14 @@ import { createContext, useCallback, useContext, useEffect, useMemo, useState } 
 import type { ReactNode } from 'react'
 import { ContactDrawer, type ContactDrawerConfig } from './ContactDrawer'
 import { ContactFab } from './ContactFab'
+import type { ContactContext } from '@/lib/forms/types'
 
 type DrawerView = 'call' | 'message'
 
 type ContactDrawerContextValue = {
   open: boolean
-  openDrawer: (view?: DrawerView) => void
+  context: ContactContext | null
+  openDrawer: (view?: DrawerView, context?: ContactContext | null) => void
   closeDrawer: () => void
 }
 
@@ -45,12 +47,23 @@ export function ContactDrawerProvider({
   const [open, setOpen] = useState(false)
   // Default to the message tab (the low-friction option).
   const [view, setView] = useState<DrawerView>('message')
+  // Optional recap (e.g. pricing-calculator selections) shown above the form
+  // and attached to the email. Cleared when the drawer closes.
+  const [context, setContext] = useState<ContactContext | null>(null)
 
-  const openDrawer = useCallback((next: DrawerView = 'message') => {
+  const openDrawer = useCallback((next: DrawerView = 'message', ctx: ContactContext | null = null) => {
     setView(next)
+    setContext(ctx)
     setOpen(true)
   }, [])
   const closeDrawer = useCallback(() => setOpen(false), [])
+
+  // Drop the recap once the drawer has fully closed so a later plain open
+  // (nav/footer) never resurfaces a stale estimate.
+  const handleOpenChange = useCallback((o: boolean) => {
+    setOpen(o)
+    if (!o) setContext(null)
+  }, [])
 
   // Delegated interception: any link to the contact path opens the drawer
   // instead of navigating — covers the nav Contact link, header CTA, mobile
@@ -75,13 +88,23 @@ export function ContactDrawerProvider({
     return () => document.removeEventListener('click', onClick, true)
   }, [contactPath, openDrawer])
 
-  const value = useMemo(() => ({ open, openDrawer, closeDrawer }), [open, openDrawer, closeDrawer])
+  const value = useMemo(
+    () => ({ open, context, openDrawer, closeDrawer }),
+    [open, context, openDrawer, closeDrawer]
+  )
 
   return (
     <ContactDrawerContext.Provider value={value}>
       {children}
       <ContactFab onOpen={() => openDrawer('message')} />
-      <ContactDrawer open={open} view={view} onViewChange={setView} onOpenChange={setOpen} config={config} />
+      <ContactDrawer
+        open={open}
+        view={view}
+        context={context}
+        onViewChange={setView}
+        onOpenChange={handleOpenChange}
+        config={config}
+      />
     </ContactDrawerContext.Provider>
   )
 }
