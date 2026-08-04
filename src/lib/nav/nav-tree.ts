@@ -13,6 +13,28 @@ export function isHomeNavItem(item: NavItem): boolean {
   return /^https?:\/\/[^/]+\/?$/i.test(url)
 }
 
+/**
+ * True when a nav item is the Contact entry — labelled "Contact"/"Contact Us"
+ * or pointing at a "/contact" path (root-relative or absolute). Contact is
+ * always pinned to the end (rightmost) of the primary nav.
+ */
+export function isContactNavItem(item: NavItem): boolean {
+  if (item.label.trim().toLowerCase().startsWith('contact')) return true
+  return /\/contact\/?$/i.test((item.url ?? '').trim())
+}
+
+/**
+ * The primary nav as rendered: drop the home item (the logo is the sole home
+ * link) and pin the Contact item last so it's always rightmost, regardless of
+ * the order in nav.json. Order is otherwise preserved (stable).
+ */
+export function orderedPrimaryNav(items: NavItem[]): NavItem[] {
+  const visible = items.filter((item) => !isHomeNavItem(item))
+  const contact = visible.filter(isContactNavItem)
+  const rest = visible.filter((item) => !isContactNavItem(item))
+  return [...rest, ...contact]
+}
+
 /** True when `pathname` is exactly `target` or sits beneath it (e.g. /about + /about/our-team). */
 export function isUrlActive(pathname: string, target: string): boolean {
   if (target === '/') return pathname === '/'
