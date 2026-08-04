@@ -15,14 +15,8 @@ import {
   SelectValue,
 } from '@/components/ui/select'
 import type { FormProps } from '@/lib/assembly/extract-block-props'
-import type { FieldDef, FormSubmitResponse } from '@/lib/forms/types'
-import { trackLead } from '@/lib/analytics/track-event'
-import {
-  buildCustomFormSchema,
-  contactFormSchema,
-  newsletterFormSchema,
-  quoteFormSchema,
-} from '@/lib/forms/schemas'
+import type { FieldDef } from '@/lib/forms/types'
+import { useContactSubmit } from '@/lib/forms/use-contact-submit'
 import { siteConfig } from '../../../site.config'
 
 /**
@@ -30,6 +24,10 @@ import { siteConfig } from '../../../site.config'
  * The server-side `Form` wrapper pre-renders any markdown intro/sidebar
  * into `introNode`/`sidebarNode` so this component does not need
  * react-markdown / remark-gfm in its bundle.
+ *
+ * Submission (validation, anti-spam, Resend/mailto fallback) lives in the
+ * shared useContactSubmit() hook so the page form and the contact drawer
+ * stay in lockstep.
  */
 export type FormFieldsProps = Omit<FormProps, 'intro' | 'sidebar_content'> & {
   introNode?: ReactNode
@@ -37,73 +35,6 @@ export type FormFieldsProps = Omit<FormProps, 'intro' | 'sidebar_content'> & {
 }
 
 const DEFAULT_SUCCESS = "Thank you! We'll be in touch shortly."
-
-// ---------------------------------------------------------------------------
-// Submission helpers
-// ---------------------------------------------------------------------------
-
-type SubmitOutcome =
-  | { kind: 'ok' }
-  | { kind: 'field-errors'; errors: Record<string, string> }
-  | { kind: 'error'; message: string }
-
-async function submitToApi(
-  variant: FormProps['variant'],
-  fields: Record<string, string>,
-  meta: { hp: string; t: number },
-  customFields?: FieldDef[]
-): Promise<SubmitOutcome | { kind: 'fallback-mailto' }> {
-  const res = await fetch('/api/contact', {
-    method: 'POST',
-    headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify({ variant, fields, fieldDefs: customFields, hp: meta.hp, t: meta.t }),
-  })
-
-  // 503 → Resend not configured. 403 → BotID blocked (or a rare false
-  // positive). Either way, fall back to mailto so a real visitor still has a
-  // path to reach the firm; a bot won't drive a mail client.
-  if (res.status === 503 || res.status === 403) return { kind: 'fallback-mailto' }
-
-  let data: FormSubmitResponse | null = null
-  try {
-    data = (await res.json()) as FormSubmitResponse
-  } catch {
-    return { kind: 'error', message: 'Network error — please try again.' }
-  }
-
-  if (data && 'ok' in data && data.ok) return { kind: 'ok' }
-  if (data && 'ok' in data && !data.ok) {
-    if (data.fieldErrors && Object.keys(data.fieldErrors).length > 0) {
-      return { kind: 'field-errors', errors: data.fieldErrors }
-    }
-    return { kind: 'error', message: data.error || 'Submission failed' }
-  }
-  return { kind: 'error', message: 'Submission failed' }
-}
-
-function openMailtoFallback(fields: Record<string, string>, firmName: string, recipient: string) {
-  const name = fields.name ?? ''
-  const lines = Object.entries(fields)
-    .filter(([k, v]) => k !== 'website' && v && v.trim())
-    .map(([k, v]) => `${humanize(k)}: ${v}`)
-  const subject = encodeURIComponent(
-    `Inquiry to ${firmName} from ${name || 'website visitor'}`
-  )
-  const body = encodeURIComponent(lines.join('\n'))
-  window.location.href = `mailto:${recipient}?subject=${subject}&body=${body}`
-}
-
-function humanize(s: string): string {
-  return s.replace(/[_-]+/g, ' ').replace(/\b\w/g, c => c.toUpperCase())
-}
-
-function flattenFieldErrors(formatted: Record<string, string[] | undefined>): Record<string, string> {
-  const out: Record<string, string> = {}
-  for (const [k, v] of Object.entries(formatted)) {
-    if (v && v.length > 0) out[k] = v[0]
-  }
-  return out
-}
 
 // ---------------------------------------------------------------------------
 // Field rendering for custom variant
@@ -259,10 +190,7 @@ export function FormFields({
   success_message,
   customFields,
 }: FormFieldsProps) {
-  const [submitted, setSubmitted] = useState(false)
-  const [submitting, setSubmitting] = useState(false)
-  const [generalError, setGeneralError] = useState<string | null>(null)
-  const [fieldErrors, setFieldErrors] = useState<Record<string, string>>({})
+  const { submitting, submitted, generalError, fieldErrors, submit } = useContactSubmit()
   const [honeypot, setHoneypot] = useState('')
   // Stamped on mount (in an effect, to keep render pure); feeds the server's
   // timing trap — a submit faster than the threshold is a bot signal. Stays 0
@@ -279,18 +207,8 @@ export function FormFields({
     return init
   })
 
-  // Shared submit pipeline: read fields → zod validate → POST /api/contact
-  // → on 503, fall back to mailto: → on field errors, render inline.
   async function handleSubmit(e: FormEvent<HTMLFormElement>) {
     e.preventDefault()
-    setGeneralError(null)
-    setFieldErrors({})
-
-    // Honeypot — silently succeed without sending anything
-    if (honeypot) {
-      setSubmitted(true)
-      return
-    }
 
     // Collect fields. For custom we trust state; for built-ins we read FormData.
     let fields: Record<string, string>
@@ -305,60 +223,7 @@ export function FormFields({
       }
     }
 
-    // Client-side validation — mirror the server's schema choice.
-    const schema =
-      variant === 'contact'
-        ? contactFormSchema
-        : variant === 'quote'
-        ? quoteFormSchema
-        : variant === 'newsletter'
-        ? newsletterFormSchema
-        : buildCustomFormSchema(customFields ?? [])
-    const parsed = schema.safeParse(fields)
-    if (!parsed.success) {
-      setFieldErrors(flattenFieldErrors(parsed.error.flatten().fieldErrors))
-      return
-    }
-
-    setSubmitting(true)
-
-    // If a custom external endpoint is set, POST there and call it good.
-    if (siteConfig.forms.endpoint) {
-      try {
-        const res = await fetch(siteConfig.forms.endpoint, {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify(fields),
-        })
-        if (!res.ok) throw new Error('Submit failed')
-        setSubmitted(true)
-        trackLead({ method: 'form_submit', variant })
-      } catch {
-        setGeneralError('Something went wrong — please try again.')
-      } finally {
-        setSubmitting(false)
-      }
-      return
-    }
-
-    // Otherwise hit the built-in /api/contact route. On 503 (Resend not
-    // configured) fall back to mailto: so the form stays functional.
-    const outcome = await submitToApi(variant, fields, { hp: honeypot, t: mountedAt.current }, customFields)
-    if (outcome.kind === 'ok') {
-      setSubmitted(true)
-      trackLead({ method: 'form_submit', variant })
-    } else if (outcome.kind === 'fallback-mailto') {
-      const recipient = document.body.dataset.contactEmail ?? ''
-      const firmName = document.body.dataset.firmName ?? 'the team'
-      openMailtoFallback(fields, firmName, recipient)
-      setSubmitted(true)
-      trackLead({ method: 'mailto_fallback', variant })
-    } else if (outcome.kind === 'field-errors') {
-      setFieldErrors(outcome.errors)
-    } else {
-      setGeneralError(outcome.message)
-    }
-    setSubmitting(false)
+    await submit(variant, fields, { hp: honeypot, t: mountedAt.current, customFields })
   }
 
   // -------------------------------------------------------------------------

@@ -1,6 +1,6 @@
-import Script from 'next/script'
 import { Section } from './Section'
 import { InlineProse } from './InlineProse'
+import { BookingEmbed } from './BookingEmbed'
 import { siteConfig } from '../../../site.config'
 import type { BookingProps } from '@/lib/assembly/extract-block-props'
 
@@ -39,29 +39,7 @@ export function Booking({ heading, intro }: BookingProps) {
         </header>
       )}
 
-      {provider === 'calendly' ? (
-        <>
-          <div
-            className="calendly-inline-widget"
-            data-url={url}
-            style={{ minWidth: 320, height: 700 }}
-            data-slot="widget"
-          />
-          <Script
-            src="https://assets.calendly.com/assets/external/widget.js"
-            strategy="lazyOnload"
-          />
-        </>
-      ) : (
-        <iframe
-          src={url}
-          title="Book a meeting"
-          loading="lazy"
-          className="w-full"
-          style={{ height: 700, border: 0 }}
-          data-slot="widget"
-        />
-      )}
+      <BookingEmbed provider={provider} url={url} />
     </Section>
   )
 }
