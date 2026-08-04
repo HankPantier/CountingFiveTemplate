@@ -1,5 +1,18 @@
 import type { NavItem, NavJson } from './types'
 
+/**
+ * True when a nav item points at the site home. The logo is the sole home
+ * link, so any explicit "Home" entry is filtered out of the primary nav.
+ * Matches a root-relative '/', an empty url, an absolute root URL
+ * (https://firm.com or .../), or an item literally labelled "Home".
+ */
+export function isHomeNavItem(item: NavItem): boolean {
+  const url = (item.url ?? '').trim()
+  if (item.label.trim().toLowerCase() === 'home') return true
+  if (url === '' || url === '/') return true
+  return /^https?:\/\/[^/]+\/?$/i.test(url)
+}
+
 /** True when `pathname` is exactly `target` or sits beneath it (e.g. /about + /about/our-team). */
 export function isUrlActive(pathname: string, target: string): boolean {
   if (target === '/') return pathname === '/'

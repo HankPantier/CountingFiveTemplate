@@ -17,7 +17,7 @@ import {
 import { MobileNav } from './MobileNav'
 import { ThemeToggle } from '@/components/theme/ThemeToggle'
 import { resolveImageSrc } from '@/lib/assembly/resolve-image'
-import { isUrlActive } from '@/lib/nav/nav-tree'
+import { isUrlActive, isHomeNavItem } from '@/lib/nav/nav-tree'
 import type { BrandJson } from '@/lib/brand/types'
 import type { NavJson } from '@/lib/nav/types'
 
@@ -72,7 +72,7 @@ export function NavBar({ brand, nav }: { brand: BrandJson; nav: NavJson }) {
 
         <NavigationMenu className="hidden md:flex">
           <NavigationMenuList>
-            {nav.primary.map(item => {
+            {nav.primary.filter(item => !isHomeNavItem(item)).map(item => {
               const itemActive = isUrlActive(pathname, item.url)
               return item.children?.length ? (
                 <NavigationMenuItem key={item.url}>
