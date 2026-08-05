@@ -47,3 +47,7 @@ next-env.d.ts
 
 # generated theme CSS (built per-client from brand/design.json)
 # NOTE: committed as a placeholder; generate-theme.ts will overwrite it
+
+# Design Kit / brief (generated for Claude Design handoff)
+design-kit/
+design-brief.md
