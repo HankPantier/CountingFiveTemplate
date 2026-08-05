@@ -1,6 +1,6 @@
 import type { Metadata } from 'next'
 import type { CSSProperties } from 'react'
-import { Public_Sans } from 'next/font/google'
+import { Public_Sans, Fraunces } from 'next/font/google'
 import './globals.css'
 import { NavBar } from '@/components/nav/NavBar'
 import { Footer } from '@/components/footer/Footer'
@@ -20,6 +20,18 @@ const publicSans = Public_Sans({
   subsets: ['latin'],
   weight: ['400', '500', '700'],
   variable: '--font-heading-loaded',
+  display: 'swap',
+})
+
+// Italic-serif accent role for the Ink & Clay statement headlines / eyebrows.
+// Exposed as --font-accent-loaded; globals.css maps --font-accent to it with a
+// serif fallback. generate-theme.ts will swap this per client (design.json
+// accentFont) in a later pass — Fraunces is the default pairing.
+const fraunces = Fraunces({
+  subsets: ['latin'],
+  weight: ['400', '500'],
+  style: ['normal', 'italic'],
+  variable: '--font-accent-loaded',
   display: 'swap',
 })
 
@@ -96,7 +108,7 @@ export default async function RootLayout({
   return (
     <html
       lang="en"
-      className={publicSans.variable}
+      className={`${publicSans.variable} ${fraunces.variable}`}
       style={{ '--font-body-loaded': 'var(--font-heading-loaded)' } as CSSProperties}
       // next-themes sets the theme class on <html> before hydration, so the
       // server/client class attributes intentionally differ on first paint.

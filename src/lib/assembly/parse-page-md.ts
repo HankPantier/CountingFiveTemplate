@@ -44,6 +44,7 @@ export type PageManifest = {
   hero_image_alt?: string
   hero_subhead?: string     // Benefit-led hero copy; falls back to meta_description in consumers
   hero_headline?: string    // Marketing H1; falls back to the page title in consumers
+  hero_eyebrow?: string     // Small-caps kicker above a statement-variant hero headline
   hero_video?: string       // Background video source for hero_variant: 'video'
   hero_images?: string[]    // Crossfade slides for hero_variant: 'slider'
   // Optional structured data (passed through)
@@ -240,6 +241,7 @@ export function parsePageMd(markdown: string): PageManifest {
     hero_image_alt: fm.hero_image_alt,
     hero_subhead: fm.hero_subhead?.trim() || undefined,
     hero_headline: fm.hero_headline?.trim() || undefined,
+    hero_eyebrow: fm.hero_eyebrow?.trim() || undefined,
     hero_video: fm.hero_video?.trim() || undefined,
     hero_images: fm.hero_images?.length ? fm.hero_images : undefined,
     answer_block: fm.answer_block,

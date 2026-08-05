@@ -32,13 +32,14 @@ export type { PricingTier }
 // ---------------------------------------------------------------------------
 
 export type HeroProps = {
-  variant: 'image' | 'video' | 'slider' | 'image-right' | 'image-left'
+  variant: 'image' | 'video' | 'slider' | 'image-right' | 'image-left' | 'statement'
   image?: string
   image_alt?: string
   video?: string
   images?: string[]
   headline: string
   subheadline: string
+  eyebrow?: string
   cta_primary?: { label: string; url: string }
 }
 
@@ -56,6 +57,7 @@ export function extractHeroProps(manifest: PageManifest): HeroProps {
     images: manifest.hero_images,
     headline: heroHeadline(manifest),
     subheadline: manifest.hero_subhead ?? manifest.meta_description,
+    eyebrow: manifest.hero_eyebrow,
     cta_primary: undefined,
   }
 }

@@ -7,7 +7,10 @@ target_keyword: Tyngsborough CPA firm
 canonical_url: https://korbeylague.com/
 schema_markup: LocalBusiness
 hero: hero
-hero_variant: image
+hero_variant: statement
+hero_headline: Three generations of CPAs who actually *answer*.
+hero_eyebrow: Tyngsborough, MA · Since 1972
+hero_subhead: Boutique tax, advisory, and audit for closely held businesses across the Merrimack Valley.
 hero_image: hero-office.png
 hero_image_alt: The Korbey Lague office in Tyngsborough
 ---

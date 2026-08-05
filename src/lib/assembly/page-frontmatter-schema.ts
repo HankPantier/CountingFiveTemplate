@@ -52,6 +52,7 @@ export const PageFrontmatterSchema = z
     hero_image_alt: optStr,
     hero_subhead: optStr,
     hero_headline: optStr,
+    hero_eyebrow: optStr,
     // hero_variant: 'video' streams hero_video as a muted-loop background;
     // 'slider' crossfades hero_images. Both fall back to the static hero_image.
     hero_video: optStr,
