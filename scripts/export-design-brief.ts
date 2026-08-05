@@ -94,9 +94,9 @@ const BLOCK_CATALOG: BlockSpec[] = [
   // Page-level
   {
     id: 'hero',
-    purpose: 'Full-bleed, above-the-fold page opener.',
-    variants: ['image', 'video', 'slider'],
-    tokens: '--color-primary (overlay), --color-action (CTA), --font-heading',
+    purpose: 'Above-the-fold page opener. The `statement` variant is the Ink & Clay signature: light canvas, a large grotesk display headline that promotes one *word* to the italic-serif accent role in --color-action, a small-caps kicker, and a framed/duotone-graded side image. image/video/slider are full-bleed with a directional brand scrim.',
+    variants: ['statement', 'image', 'video', 'slider'],
+    tokens: '--font-heading (display), --font-accent (accent word), --color-action (accent + kicker), --color-primary (scrim)',
   },
   {
     id: 'hero-split',
@@ -481,6 +481,18 @@ You are the designer for **${firm}**${taglinePart}${locationPart}. Give this web
 - Keep every text/background pairing at **WCAG AA** (≥ 4.5:1).
 - Navy-tinted shadows, never pure black. One action-color CTA per screen.
 
+## The design language you're extending — "Ink & Clay"
+
+This template already ships a deliberate design language. **Your job is to make it sing in this firm's brand, not flatten it into a generic recolor.** Lean into these moves (all token-driven, already in the markup — style/tune them, don't fight them):
+
+- **Statement hero** (\`[data-block="hero"]\` with the \`statement\` variant): a large grotesk display headline with ONE word promoted to an italic-serif accent (\`.font-accent\`, colored \`--color-action\`), a small-caps kicker (\`.t-kicker\`), and a framed, duotone-graded side image. Style the accent, kicker, and framing — keep the composition.
+- **Light → ink → light rhythm:** sections alternate a light canvas with a deep **ink band** (\`--color-primary\`, e.g. an \`industry-cards\` or \`cta-banner\` with a \`theme: ink\` treatment) carrying small-caps labels + italic-serif numeric markers (01 / 02 / 03). Reinforce this cadence; don't paint every section one color.
+- **Framed, graded imagery:** images sit in rounded brand-tinted frames with a subtle \`--color-primary\`→\`--color-action\` duotone wash so mixed stock reads as one set. Tune the grade strength / frame, don't strip it.
+- **Type scale + accent role:** headings use the fluid scale (\`.t-display\`/\`.t-h1\`…\`.t-h4\`); the italic-serif \`--font-accent\` is reserved for emphasis words + numerals. Refine the pairing in \`design.json\` if you want, but preserve the grotesk-display + serif-accent contrast.
+- **Hairline structure:** small-caps kickers, tabular numerals, brand-tinted hairline dividers, \`.u-card\` surfaces with a resting shadow + hover lift. Restrained and editorial — the opposite of a flat template.
+
+Reach for boldness here: a distinctive accent treatment, a signature section rhythm, considered imagery. A timid recolor is a failure — the floor is already good, so your job is to give it a point of view for THIS firm.
+
 ## What's in this kit
 
 - **brand.md** — who ${firm} is, how they sound, and their intended design direction (palette rationale, visual feel, do's & don'ts).
@@ -651,7 +663,33 @@ ${radiusList}
 
 - \`--c5-space-xs\` through \`--c5-space-2xl\` (brand spacing scale; namespaced to avoid Tailwind v4's \`--spacing-*\` namespace. For a Tailwind utility value use the native scale: p-1=4px, p-2=8px, p-4=16px, p-6=24px, p-12=48px, p-24=96px)
 - \`--radius-sm\`, \`--radius-md\`, \`--radius-lg\`, \`--radius-pill\`, \`--radius\` (default)
-- \`--font-heading\`, \`--font-body\`
+- \`--font-heading\`, \`--font-body\`, and \`--font-accent\` (the italic-serif accent role — used for emphasis words + numerals; refine via \`design.json\` accentFont)
+
+## Ink & Clay foundation (type scale, utilities, rhythm)
+
+The template ships these composition primitives (bare CSS in \`globals.css\`, always emitted — token-driven, so they re-skin with the palette). Style/tune them; don't reinvent them.
+
+### Type scale (use these, don't hardcode \`text-3xl\` etc.)
+
+- \`--type-display\` / \`--type-h1\` … \`--type-h4\`, \`--type-body-lg\`, \`--type-small\`, \`--type-caption\` (fluid \`clamp()\` sizes), plus \`--tracking-display\` / \`--tracking-tight\`.
+- Applied via utility classes: \`.t-display\`, \`.t-h1\`…\`.t-h4\`, \`.t-body-lg\`, \`.t-small\`, and \`.t-kicker\` (small-caps eyebrow in \`--color-action\`).
+
+### Composition utilities (target or restyle via these)
+
+- \`.font-accent\` — italic serif in \`--color-action\` (the promoted \`*word*\` in a statement headline + numeric markers).
+- \`.u-card\` (brand-tinted hairline + resting shadow) and \`.u-card-interactive\` (hover lift) — the card surface.
+- \`.u-frame\` — the rounded brand-tinted media frame; images route through \`FramedMedia\` (aspect ratio + frame + optional \`grade="duotone"\` \`--color-primary\`→\`--color-action\` wash).
+- \`.u-icon-square\` — squared, action-tinted icon chip.
+
+### Section rhythm + ink bands
+
+- \`<Section spacing="compact|normal|spacious">\` sets the vertical rhythm.
+- **Ink band:** section blocks accept a \`theme: ink\` annotation (\`<!-- block: industry-cards | variant: 3-col | theme: ink -->\`) → the block renders on the deep \`--color-primary\` band with light text, small-caps labels, and italic-serif index numerals. This drives the light → ink → light cadence. Style the band via \`[data-block][class*="bg-primary"]\` or the specific \`data-block\`.
+- Motion/overlay tokens: \`--duration-base\`, \`--overlay-soft\`, \`--overlay-medium\`.
+
+### Button variants
+
+\`--color-action\` CTA (\`variant="cta"\`), plus \`secondary\` (primary-tint fill) and \`tertiary\` (action-outline) for lower-weight CTAs.
 
 ### Prose baseline in globals.css
 
