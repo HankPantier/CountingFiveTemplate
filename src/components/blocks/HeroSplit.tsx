@@ -1,11 +1,32 @@
 import { Section } from './Section'
 import { Button } from '@/components/ui/button'
 import Link from 'next/link'
-import { Image } from '@/components/ui/skeleton-image'
+import type { ReactNode } from 'react'
+import { FramedMedia } from '@/components/ui/framed-media'
 import type { HeroSplitProps } from '@/lib/assembly/extract-block-props'
 import { resolveImageSrc } from '@/lib/assembly/resolve-image'
 
 export type { HeroSplitProps }
+
+/**
+ * Render a headline, promoting a single `*word*` span to the italic-serif
+ * accent role in the action colour (the Ink & Clay signature). Falls back to
+ * plain text when no marker is present.
+ */
+function renderHeadline(text: string): ReactNode {
+  const m = text.match(/^([\s\S]*?)\*([^*]+)\*([\s\S]*)$/)
+  if (!m) return text
+  const [, before, accent, after] = m
+  return (
+    <>
+      {before}
+      <span className="font-accent" style={{ color: 'var(--color-action)' }}>
+        {accent}
+      </span>
+      {after}
+    </>
+  )
+}
 
 export function HeroSplit({
   variant,
@@ -21,12 +42,8 @@ export function HeroSplit({
 
   const textColumn = (
     <div className="flex flex-col justify-center gap-6">
-      <h1
-        className="font-heading text-4xl md:text-5xl font-bold leading-tight text-foreground"
-      >
-        {headline}
-      </h1>
-      <p className="text-lg text-foreground/75 leading-relaxed max-w-prose">
+      <h1 className="t-h1 text-foreground">{renderHeadline(headline)}</h1>
+      <p className="t-body-lg max-w-prose text-foreground/70">
         {subheadline}
       </p>
       {(cta_primary || cta_secondary) && (
@@ -46,22 +63,20 @@ export function HeroSplit({
     </div>
   )
 
-  const imageColumn = (
-    <div className="relative w-full aspect-[4/5] md:aspect-auto md:h-full min-h-[320px] rounded-lg overflow-hidden">
-      {imgSrc ? (
-        <Image
-          src={imgSrc}
-          alt={image_alt}
-          fill
-          className="object-cover"
-          sizes="(max-width: 768px) 100vw, 50vw"
-        />
-      ) : (
-        // Placeholder when no image is provided
-        <div className="absolute inset-0 bg-muted/40 flex items-center justify-center">
-          <span className="text-muted-foreground text-sm">Image</span>
-        </div>
-      )}
+  const imageColumn = imgSrc ? (
+    <FramedMedia
+      src={imgSrc}
+      alt={image_alt}
+      ratio="4/5"
+      grade="duotone"
+      priority
+      sizes="(max-width: 768px) 100vw, 45vw"
+    />
+  ) : (
+    <div className="relative aspect-[4/5] u-frame bg-muted/40">
+      <div className="absolute inset-0 flex items-center justify-center text-muted-foreground t-small">
+        Image
+      </div>
     </div>
   )
 

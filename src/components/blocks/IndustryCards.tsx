@@ -1,29 +1,84 @@
 import { Section } from './Section'
 import { InlineProse } from './InlineProse'
 import { Icon } from './Icon'
-import { Card } from '@/components/ui/card'
 import Link from 'next/link'
 import { cn } from '@/lib/utils'
 import type { IndustryCardsProps } from '@/lib/assembly/extract-block-props'
 
 export type { IndustryCardsProps }
 
-export function IndustryCards({ variant, heading, intro, industries }: IndustryCardsProps) {
+export function IndustryCards({ variant, theme, heading, intro, industries }: IndustryCardsProps) {
   const colsClass =
     variant === '4-col'
       ? 'sm:grid-cols-2 lg:grid-cols-4'
       : 'sm:grid-cols-2 lg:grid-cols-3'
 
+  // ---- Signature ink index band ----
+  if (theme === 'ink') {
+    return (
+      <Section fullBleed bg="primary" spacing="spacious" dataBlock="industry-cards">
+        <div className="grid gap-y-12 gap-x-10 lg:grid-cols-[0.9fr_1.6fr] lg:items-start">
+          <header className="max-w-md">
+            <div className="t-kicker mb-4">Industries</div>
+            <h2 className="t-h2 text-primary-foreground">{heading}</h2>
+            {intro && (
+              <InlineProse text={intro} className="mt-4 t-body-lg text-primary-foreground/70" />
+            )}
+          </header>
+
+          <div className={cn('grid gap-x-8 gap-y-10', colsClass)}>
+            {industries.map((industry, i) => {
+              const itemKey = industry.url ?? industry.title
+              const index = String(i + 1).padStart(2, '0')
+
+              const cell = (
+                <div className="flex h-full flex-col items-start gap-3 border-t border-[color:var(--color-primary-foreground)]/15 pt-5">
+                  <span className="font-accent text-3xl">{index}</span>
+                  <h3 className="t-h4 text-primary-foreground">
+                    {industry.title}
+                    {industry.url && (
+                      <span aria-hidden className="ml-2 inline-block transition-transform group-hover:translate-x-1">
+                        →
+                      </span>
+                    )}
+                  </h3>
+                  {industry.description && (
+                    <p className="t-small text-primary-foreground/70">{industry.description}</p>
+                  )}
+                </div>
+              )
+
+              if (industry.url) {
+                return (
+                  <Link
+                    key={itemKey}
+                    href={industry.url}
+                    aria-label={industry.title}
+                    className="group block h-full transition-opacity hover:opacity-90 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
+                  >
+                    {cell}
+                  </Link>
+                )
+              }
+              return (
+                <div key={itemKey} className="h-full">
+                  {cell}
+                </div>
+              )
+            })}
+          </div>
+        </div>
+      </Section>
+    )
+  }
+
+  // ---- Light card grid ----
   return (
     <Section dataBlock="industry-cards">
       <header className="max-w-2xl mx-auto text-center">
-        <h2
-          className="font-heading text-3xl md:text-4xl font-semibold text-foreground"
-        >
-          {heading}
-        </h2>
+        <h2 className="t-h2 text-foreground">{heading}</h2>
         {intro && (
-          <InlineProse text={intro} className="mt-3 text-foreground/70 leading-relaxed" />
+          <InlineProse text={intro} className="mt-3 t-body-lg text-foreground/70" />
         )}
       </header>
 
@@ -31,40 +86,30 @@ export function IndustryCards({ variant, heading, intro, industries }: IndustryC
         {industries.map((industry) => {
           const itemKey = industry.url ?? industry.title
           const cardContent = (
-            <Card
+            <div
               className={cn(
-                'h-full p-6 flex flex-col items-start gap-3 shadow-card transition-shadow',
-                industry.url && 'hover:shadow-card-hover cursor-pointer'
+                'u-card h-full p-6 flex flex-col items-start gap-3',
+                industry.url && 'u-card-interactive cursor-pointer'
               )}
             >
-              <div
-                className="flex items-center justify-center w-12 h-12 rounded-lg"
-                style={{
-                  backgroundColor:
-                    'color-mix(in srgb, var(--color-primary,theme(colors.blue.700)) 12%, transparent)',
-                }}
-              >
-                <Icon
-                  name={industry.icon}
-                  className="h-6 w-6 text-[color:var(--color-primary,theme(colors.blue.700))]"
-                />
+              <div className="u-icon-square flex items-center justify-center w-12 h-12">
+                <Icon name={industry.icon} className="h-6 w-6" />
               </div>
-              <h3
-                className="font-heading font-semibold text-lg text-foreground"
-              >
-                {industry.title}
-              </h3>
+              <h3 className="t-h4">{industry.title}</h3>
               {industry.description && (
-                <p className="text-foreground/70 text-sm leading-relaxed">
-                  {industry.description}
-                </p>
+                <p className="t-small text-foreground/70">{industry.description}</p>
               )}
-            </Card>
+            </div>
           )
 
           if (industry.url) {
             return (
-              <Link key={itemKey} href={industry.url} aria-label={industry.title} className="block h-full focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring rounded-lg">
+              <Link
+                key={itemKey}
+                href={industry.url}
+                aria-label={industry.title}
+                className="block h-full focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring rounded-[var(--radius-md)]"
+              >
                 {cardContent}
               </Link>
             )

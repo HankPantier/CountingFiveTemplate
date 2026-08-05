@@ -20,6 +20,9 @@ export type PageSection = {
    * preserved so consumers can introspect or surface it if needed.
    */
   query?: string
+  /** Ink & Clay section theme. 'ink' renders the block on the deep primary
+   * band (the light→ink→light rhythm); default/undefined = light canvas. */
+  theme?: string
   heading: string
   content: string   // raw markdown body below the heading (excluding heading line)
   position: number
@@ -165,7 +168,7 @@ export function parsePageMd(markdown: string): PageManifest {
    * by the time the deliverable lands.
    */
   const SECTION_PATTERN =
-    /<!-- block: ([a-z-]+)(?:\s*\|\s*variant:\s*([a-z0-9-]+))?(?:\s*\|\s*image:\s*([^\s|>]+))?(?:\s*\|\s*alt:\s*"([^"]*)")?(?:\s*\|\s*query:\s*"([^"]+)")?\s*-->\s*\n##\s+(.+?)\n([\s\S]*?)(?=\n<!-- block:|$)/g
+    /<!-- block: ([a-z-]+)(?:\s*\|\s*variant:\s*([a-z0-9-]+))?(?:\s*\|\s*image:\s*([^\s|>]+))?(?:\s*\|\s*alt:\s*"([^"]*)")?(?:\s*\|\s*query:\s*"([^"]+)")?(?:\s*\|\s*theme:\s*([a-z]+))?\s*-->\s*\n##\s+(.+?)\n([\s\S]*?)(?=\n<!-- block:|$)/g
 
   const sections: PageSection[] = []
   let m: RegExpExecArray | null
@@ -178,8 +181,9 @@ export function parsePageMd(markdown: string): PageManifest {
       image: m[3] || undefined,
       alt: m[4] || undefined,
       query: m[5] || undefined,
-      heading: m[6].trim(),
-      content: m[7].trim(),
+      theme: m[6] || undefined,
+      heading: m[7].trim(),
+      content: m[8].trim(),
       position: i++,
     })
   }

@@ -105,6 +105,7 @@ export function extractContentSplitProps(section: PageSection): ContentSplitProp
 
 export type FeatureGridProps = {
   variant: '3-col' | '4-col'
+  theme?: 'light' | 'ink'
   heading: string
   intro?: string
   items: Array<{ icon: string; title: string; description: string }>
@@ -123,6 +124,7 @@ export function extractFeatureGridProps(section: PageSection): FeatureGridProps 
 
   return {
     variant: (section.variant as '3-col' | '4-col') ?? '3-col',
+    theme: section.theme === 'ink' ? 'ink' : undefined,
     heading: section.heading,
     intro,
     items,
@@ -135,6 +137,7 @@ export function extractFeatureGridProps(section: PageSection): FeatureGridProps 
 
 export type CtaBannerProps = {
   variant: 'color-bg' | 'image-bg'
+  theme?: 'light' | 'ink'
   heading: string
   body?: string
   background_asset?: string
@@ -146,6 +149,7 @@ export function extractCtaBannerProps(section: PageSection): CtaBannerProps {
   const { body, cta } = extractTrailingCta(img.body)
   return {
     variant: (section.variant as 'color-bg' | 'image-bg') ?? 'color-bg',
+    theme: section.theme === 'ink' ? 'ink' : undefined,
     heading: section.heading,
     body: body.trim() || undefined,
     background_asset: img.src ?? section.image,
@@ -229,6 +233,7 @@ export function extractPageHeaderProps(manifest: PageManifest): PageHeaderProps 
 
 export type ServiceCardsProps = {
   variant: '2-col' | '3-col'
+  theme?: 'light' | 'ink'
   heading: string
   intro?: string
   cards: Array<{
@@ -244,6 +249,7 @@ export function extractServiceCardsProps(section: PageSection): ServiceCardsProp
   const { intro, cards } = parseH3CardList(section.content)
   return {
     variant: (section.variant as ServiceCardsProps['variant']) ?? '3-col',
+    theme: section.theme === 'ink' ? 'ink' : undefined,
     heading: section.heading,
     intro,
     cards,
@@ -309,6 +315,7 @@ export function extractTestimonialsProps(section: PageSection): TestimonialsProp
 
 export type StatsBarProps = {
   variant: '3-up' | '4-up'
+  theme?: 'light' | 'ink'
   heading?: string
   stats: Array<{ value: string; label: string }>
 }
@@ -318,6 +325,7 @@ export function extractStatsBarProps(section: PageSection): StatsBarProps {
   const stats = parseStatsList(section.content)
   return {
     variant: (section.variant as StatsBarProps['variant']) ?? '3-up',
+    theme: section.theme === 'ink' ? 'ink' : undefined,
     heading: section.heading || undefined,
     stats,
   }
@@ -410,6 +418,7 @@ export function extractProcessStepsProps(section: PageSection): ProcessStepsProp
 
 export type IndustryCardsProps = {
   variant: '3-col' | '4-col'
+  theme?: 'light' | 'ink'
   heading: string
   intro?: string
   industries: Array<{ icon: string; title: string; description: string; url?: string }>
@@ -437,6 +446,7 @@ export function extractIndustryCardsProps(section: PageSection): IndustryCardsPr
 
   return {
     variant: (section.variant as IndustryCardsProps['variant']) ?? '3-col',
+    theme: section.theme === 'ink' ? 'ink' : undefined,
     heading: section.heading,
     intro,
     industries,

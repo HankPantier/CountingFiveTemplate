@@ -1,7 +1,6 @@
 'use client'
 
 import { Section } from './Section'
-import { Card, CardContent } from '@/components/ui/card'
 import {
   Carousel,
   CarouselContent,
@@ -21,11 +20,7 @@ export function Testimonials({ variant, heading, testimonials }: TestimonialsPro
     <Section bg="surface" dataBlock="testimonials">
       {heading && (
         <header className="mb-10 text-center">
-          <h2
-            className="font-heading text-3xl md:text-4xl font-semibold text-foreground"
-          >
-            {heading}
-          </h2>
+          <h2 className="t-h2 text-foreground">{heading}</h2>
         </header>
       )}
 
@@ -49,27 +44,65 @@ type QuoteCardProps = {
   name: string
   title?: string
   company?: string
+  rating?: number
 }
 
-function QuoteCard({ quote, name, title, company }: QuoteCardProps) {
+/** First letters of the first two words of a name → "Jane Doe" → "JD". */
+function initials(name: string): string {
+  return name
+    .trim()
+    .split(/\s+/)
+    .slice(0, 2)
+    .map((w) => w[0]?.toUpperCase() ?? '')
+    .join('')
+}
+
+function QuoteCard({ quote, name, title, company, rating }: QuoteCardProps) {
+  const subline = [title, company].filter(Boolean).join(', ')
+  const stars = rating && rating > 0 ? Math.round(rating) : 0
+
   return (
-    <Card className="h-full flex flex-col p-6">
-      <CardContent className="flex-1 p-0">
-        <blockquote className="text-foreground/80 leading-relaxed italic text-base">
-          &ldquo;{quote}&rdquo;
-        </blockquote>
-      </CardContent>
-      <footer className="mt-6 pt-4 border-t border-border">
-        <cite className="font-heading font-semibold text-foreground text-sm not-italic">
-          {name}
-          {(title || company) && (
-            <span className="block font-normal text-xs text-foreground/60 mt-0.5">
-              {[title, company].filter(Boolean).join(', ')}
+    <figure className="u-card p-6 h-full flex flex-col">
+      {stars > 0 && (
+        <div
+          className="mb-4 flex gap-0.5 text-base leading-none"
+          style={{ color: 'var(--color-action)' }}
+          aria-label={`${stars} out of 5 stars`}
+        >
+          {Array.from({ length: stars }, (_, i) => (
+            <span key={i} aria-hidden="true">
+              ★
             </span>
-          )}
-        </cite>
-      </footer>
-    </Card>
+          ))}
+        </div>
+      )}
+      <blockquote className="flex-1 t-body-lg text-foreground/85">
+        <span
+          aria-hidden="true"
+          className="font-accent mr-1 align-[-0.35em] text-5xl leading-none"
+          style={{ color: 'var(--color-action)' }}
+        >
+          &ldquo;
+        </span>
+        {quote}
+      </blockquote>
+      <figcaption className="mt-6 flex items-center gap-3">
+        <span
+          className="grid h-12 w-12 shrink-0 place-items-center rounded-full text-sm font-semibold"
+          style={{
+            background: 'color-mix(in srgb, var(--color-action) 16%, var(--color-near-white))',
+            color: 'var(--color-primary)',
+          }}
+          aria-hidden="true"
+        >
+          {initials(name)}
+        </span>
+        <span className="min-w-0">
+          <cite className="t-h4 not-italic text-foreground block truncate">{name}</cite>
+          {subline && <span className="t-small text-foreground/60 block truncate">{subline}</span>}
+        </span>
+      </figcaption>
+    </figure>
   )
 }
 
