@@ -54,8 +54,11 @@ function getServerSnapshot(): Consent | null {
  * the banner is rendered HIDDEN (inline display:none). This keeps its markup
  * in the plain SSR HTML — which scripts/export-design-brief.ts captures with
  * a regex and cannot execute JS for — while consented visitors never see a
- * flash. After the read: 'unset' reveals it (when an analytics ID is
- * configured), 'accepted' swaps in GA/GTM, 'declined' renders nothing.
+ * flash. After the read: 'unset' ALWAYS reveals it (every undecided visitor
+ * sees the banner even with no analytics configured — it's the right-to-consent
+ * prompt and the reopen target for the footer "Cookie preferences" button),
+ * 'accepted' swaps in GA/GTM (or nothing when no ID is set), 'declined' renders
+ * nothing.
  *
  * When both GA4 and GTM IDs are set, GTM wins (it can load GA4 itself, so
  * loading both is double-counting).
@@ -78,9 +81,10 @@ export function Analytics() {
   }
   if (consent === 'declined') return null
 
-  // Pre-read (null) → hidden but present in SSR markup. 'unset' → visible,
-  // but only when an analytics ID is configured (no IDs = nothing to consent
-  // to; the hidden markup still lets the design-brief script capture it).
-  const reveal = consent === 'unset' && Boolean(ga4Id || gtmId)
+  // Pre-read (null) → hidden but present in SSR markup. 'unset' → always
+  // visible: shown to every undecided visitor regardless of analytics config.
+  // Accept still only loads GA/GTM when an ID is set (the accepted branch
+  // above returns null otherwise).
+  const reveal = consent === 'unset'
   return <ConsentBanner hidden={!reveal} onDecision={emitConsentChange} />
 }

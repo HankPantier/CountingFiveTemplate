@@ -1,5 +1,6 @@
 'use client'
 
+import { useEffect } from 'react'
 import Link from 'next/link'
 import { Button } from '@/components/ui/button'
 
@@ -36,6 +37,24 @@ export function ConsentBanner({ hidden = false, onDecision }: ConsentBannerProps
     onDecision(value)
   }
 
+  // Auto-accept on scroll: scrolling a full viewport past the hero is treated
+  // as implied consent (a common pattern for US audiences). Gated on !hidden so
+  // it never fires during SSR / the pre-cookie-read state or after a decision —
+  // once a decision is recorded <Analytics> unmounts this banner, and the
+  // cleanup below detaches the listener. Passive listener for scroll perf. A
+  // fast scroll may call setConsent repeatedly before unmount; that's
+  // idempotent (same cookie write). Pages shorter than one viewport can never
+  // cross the threshold, so they simply wait for an explicit click.
+  useEffect(() => {
+    if (hidden) return
+    const onScroll = () => {
+      if (window.scrollY > window.innerHeight) setConsent('accepted')
+    }
+    window.addEventListener('scroll', onScroll, { passive: true })
+    return () => window.removeEventListener('scroll', onScroll)
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [hidden])
+
   return (
     <aside
       data-component="cookie-consent"
@@ -44,7 +63,7 @@ export function ConsentBanner({ hidden = false, onDecision }: ConsentBannerProps
     >
       <p data-slot="message" className="text-sm text-foreground">
         We use cookies to understand how visitors use our site.{' '}
-        <Link href="/privacy" className="underline">
+        <Link href="/privacy-policy" className="underline">
           Learn more
         </Link>
         .

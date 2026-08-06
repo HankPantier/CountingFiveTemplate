@@ -89,8 +89,8 @@ export type SiteConfig = {
 export const siteConfig: SiteConfig = {
   siteUrl: 'https://korbeylague.com',
   legalLinks: [
-    { label: 'Privacy Policy', url: '/privacy' },
-    { label: 'Terms of Service', url: '/terms' },
+    { label: 'Privacy Policy', url: '/privacy-policy' },
+    { label: 'Terms of Service', url: '/terms-of-use' },
   ],
   forms: {
     endpoint: '',
