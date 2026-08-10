@@ -10,10 +10,12 @@ import { cn } from '@/lib/utils'
 import { isUrlActive, orderedPrimaryNav } from '@/lib/nav/nav-tree'
 import type { NavJson, NavItem } from '@/lib/nav/types'
 import { useState } from 'react'
+import { useClientCenter } from '@/components/client-center/ClientCenterProvider'
 
 export function MobileNav({ nav }: { nav: NavJson }) {
   const pathname = usePathname() ?? '/'
   const [open, setOpen] = useState(false)
+  const clientCenter = useClientCenter()
   return (
     <Sheet open={open} onOpenChange={setOpen}>
       <SheetTrigger asChild>
@@ -85,13 +87,27 @@ export function MobileNav({ nav }: { nav: NavJson }) {
             })}
           </Accordion>
         </nav>
-        {nav.cta && (
-          <div className="absolute bottom-6 left-6 right-6">
-            <Button asChild className="w-full">
-              <Link href={nav.cta.url} onClick={() => setOpen(false)}>
-                {nav.cta.label}
-              </Link>
-            </Button>
+        {(nav.cta || clientCenter.enabled) && (
+          <div className="absolute bottom-6 left-6 right-6 flex flex-col gap-2">
+            {clientCenter.enabled && (
+              <Button
+                variant="outline"
+                className="w-full"
+                onClick={() => {
+                  setOpen(false)
+                  clientCenter.openModal()
+                }}
+              >
+                {clientCenter.label}
+              </Button>
+            )}
+            {nav.cta && (
+              <Button asChild className="w-full">
+                <Link href={nav.cta.url} onClick={() => setOpen(false)}>
+                  {nav.cta.label}
+                </Link>
+              </Button>
+            )}
           </div>
         )}
       </SheetContent>
