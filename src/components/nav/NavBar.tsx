@@ -16,7 +16,6 @@ import {
 } from '@/components/ui/navigation-menu'
 import { MobileNav } from './MobileNav'
 import { ThemeToggle } from '@/components/theme/ThemeToggle'
-import { useClientCenter } from '@/components/client-center/ClientCenterProvider'
 import { resolveImageSrc } from '@/lib/assembly/resolve-image'
 import { isUrlActive, orderedPrimaryNav } from '@/lib/nav/nav-tree'
 import type { BrandJson } from '@/lib/brand/types'
@@ -24,7 +23,6 @@ import type { NavJson } from '@/lib/nav/types'
 
 export function NavBar({ brand, nav }: { brand: BrandJson; nav: NavJson }) {
   const pathname = usePathname() ?? '/'
-  const clientCenter = useClientCenter()
   const [scrolled, setScrolled] = useState(false)
   useEffect(() => {
     let frame = 0
@@ -143,15 +141,6 @@ export function NavBar({ brand, nav }: { brand: BrandJson; nav: NavJson }) {
         </NavigationMenu>
 
         <div className="flex items-center gap-2">
-          {clientCenter.enabled && (
-            <Button
-              variant="outline"
-              className="hidden md:inline-flex"
-              onClick={clientCenter.openModal}
-            >
-              {clientCenter.label}
-            </Button>
-          )}
           {nav.cta && (
             <Button asChild className="hidden md:inline-flex">
               <Link href={nav.cta.url}>{nav.cta.label}</Link>

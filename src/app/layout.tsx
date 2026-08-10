@@ -3,6 +3,7 @@ import type { CSSProperties } from 'react'
 import { Public_Sans, Fraunces } from 'next/font/google'
 import './globals.css'
 import { NavBar } from '@/components/nav/NavBar'
+import { TopUtilityBar } from '@/components/nav/TopUtilityBar'
 import { Footer } from '@/components/footer/Footer'
 import { Analytics } from '@/components/analytics/Analytics'
 import { ThemeProvider } from '@/components/theme/ThemeProvider'
@@ -154,6 +155,7 @@ export default async function RootLayout({
             >
               Skip to main content
             </a>
+            <TopUtilityBar phone={brand.contact.phone} />
             <NavBar brand={brand} nav={nav} />
             {children}
             <Footer />
