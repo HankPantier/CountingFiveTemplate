@@ -352,7 +352,7 @@ export function extractContentProseProps(section: PageSection): ContentProseProp
 // ---------------------------------------------------------------------------
 
 export type ChecklistSectionProps = {
-  variant: 'with-image' | 'standalone'
+  variant: 'with-image' | 'with-image-right' | 'with-image-left' | 'standalone'
   heading: string
   intro?: string
   items: string[]

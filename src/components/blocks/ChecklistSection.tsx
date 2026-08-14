@@ -62,10 +62,15 @@ export function ChecklistSection({
     </div>
   )
 
-  if (variant === 'with-image') {
+  if (variant.startsWith('with-image')) {
     return (
       <Section dataBlock="checklist-section">
-        <div className="grid gap-10 md:gap-16 md:grid-cols-2 items-center">
+        <div
+          className={cn(
+            'grid gap-10 md:gap-16 md:grid-cols-2 items-center',
+            variant === 'with-image-left' && 'md:[&>*:first-child]:order-2'
+          )}
+        >
           {checklist}
           <div className="relative aspect-[4/3] rounded-lg overflow-hidden bg-muted">
             {imgSrc ? (
