@@ -25,7 +25,9 @@ const EMPTY_PLACEHOLDER = '__no_posts__'
 // Cache Components requires generateStaticParams to return at least one entry,
 // matching the [...slug] pattern. The page handler maps the placeholder to 404.
 export async function generateStaticParams() {
-  const slugs = await listPostSlugs()
+  // Drop empty/whitespace slugs (a stray ".md" file → "") so a malformed post
+  // can't produce a degenerate /resources/ route and fail the build.
+  const slugs = (await listPostSlugs()).filter((slug) => slug.trim() !== '')
   return slugs.length === 0 ? [{ slug: EMPTY_PLACEHOLDER }] : slugs.map((slug) => ({ slug }))
 }
 

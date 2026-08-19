@@ -1,6 +1,7 @@
 import { notFound } from 'next/navigation'
 import type { Metadata } from 'next'
 import { listPageSlugs } from '@/lib/content/get-page'
+import { pageSlugToSegments } from '@/lib/content/page-slug'
 import {
   renderGeneratedPage,
   generatedPageMetadata,
@@ -22,16 +23,25 @@ const EMPTY_PLACEHOLDER = '__no_pages__'
 
 export async function generateStaticParams() {
   const slugs = await listPageSlugs()
-  if (slugs.length === 0) {
-    return [{ slug: [EMPTY_PLACEHOLDER] }]
-  }
   // Each slug like "services" or "services--virtual-cfo" — convert to slug[]
   // form. We use double-dash as URL segment separator in filenames, but the
   // Next.js dynamic [...slug] expects an array of single-segment strings.
-  return slugs.map(filename => {
-    const segments = filename.split('--')
-    return { slug: segments }
-  })
+  // pageSlugToSegments returns null for a malformed filename (empty segment);
+  // skip it so one bad content file can't fail the whole build — see its doc.
+  const params: { slug: string[] }[] = []
+  for (const filename of slugs) {
+    const segments = pageSlugToSegments(filename)
+    if (!segments) {
+      console.warn(
+        `[content] Skipping malformed page file "${filename}.md" — it produces an empty route segment and would break the build.`
+      )
+      continue
+    }
+    params.push({ slug: segments })
+  }
+  // Cache Components requires generateStaticParams to return at least one entry
+  // (see EMPTY_PLACEHOLDER) — hold to that even if every file was malformed.
+  return params.length > 0 ? params : [{ slug: [EMPTY_PLACEHOLDER] }]
 }
 
 export async function generateMetadata({ params }: Props): Promise<Metadata> {
