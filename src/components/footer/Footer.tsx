@@ -1,7 +1,7 @@
 import Link from 'next/link'
 import Image from 'next/image'
 import { Separator } from '@/components/ui/separator'
-import { SocialIcon } from './SocialIcon'
+import { SocialIcon, platformLabel } from './SocialIcon'
 import { FooterCookiePrefsLink } from './FooterCookiePrefsLink'
 import { Phone, Mail, MapPin } from 'lucide-react'
 import { getBrandConfig } from '@/lib/brand/get-brand-config'
@@ -50,8 +50,8 @@ export async function Footer() {
           {brand.social.length > 0 && (
             <div className="flex gap-3 pt-2">
               {brand.social.map(s => (
-                <a key={s.url} href={s.url} target="_blank" rel="noopener noreferrer" aria-label={s.platform}>
-                  <SocialIcon platform={s.platform} className="h-5 w-5 opacity-80 hover:opacity-100" />
+                <a key={s.url} href={s.url} target="_blank" rel="noopener noreferrer" aria-label={platformLabel(s.platform, s.url)}>
+                  <SocialIcon platform={s.platform} url={s.url} className="h-5 w-5 opacity-80 hover:opacity-100" />
                 </a>
               ))}
             </div>
