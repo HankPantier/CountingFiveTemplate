@@ -53,8 +53,23 @@ export async function getPost(slug: string): Promise<Post | null> {
     if ((err as NodeJS.ErrnoException).code === 'ENOENT') return null
     throw err
   }
-  const parsed = matter(raw)
-  const frontmatter = PostFrontmatterSchema.parse(parsed.data)
+  // A single post with malformed YAML frontmatter or an invalid shape must not
+  // 500 the detail route (and, via listPostsMeta, take down the whole build).
+  // Treat it like a missing file — return null so the handler renders notFound()
+  // — and warn so the bad deliverable is still visible in build logs / CI.
+  let parsed: matter.GrayMatterFile<string>
+  try {
+    parsed = matter(raw)
+  } catch (err) {
+    console.warn(`[get-post] Skipping ${slug}.md — invalid YAML frontmatter:`, err instanceof Error ? err.message.split('\n')[0] : err)
+    return null
+  }
+  const result = PostFrontmatterSchema.safeParse(parsed.data)
+  if (!result.success) {
+    console.warn(`[get-post] Skipping ${slug}.md — frontmatter failed validation:`, result.error.issues.map((i) => i.path.join('.')).join(', '))
+    return null
+  }
+  const frontmatter = result.data
   return {
     slug: frontmatter.slug || slug,
     frontmatter,
@@ -71,14 +86,14 @@ export async function listPostsMeta(): Promise<PostMeta[]> {
   'use cache'
   cacheLife('max')
   const slugs = await listPostSlugs()
-  const entries = await Promise.all(
-    slugs.map(async (slug) => {
-      const raw = await fs.readFile(path.join(POSTS_DIR(), `${slug}.md`), 'utf-8')
-      const parsed = matter(raw)
-      const frontmatter = PostFrontmatterSchema.parse(parsed.data)
-      return { slug: frontmatter.slug || slug, frontmatter }
-    })
-  )
+  // Reuse getPost's resilient read: it returns null (and warns) for a post with
+  // malformed YAML or an invalid frontmatter shape rather than throwing. One bad
+  // deliverable must not take down /resources, feed.xml, or llms.txt — the pages
+  // that aggregate every post — so we skip it here instead of aborting the build.
+  const posts = await Promise.all(slugs.map((slug) => getPost(slug)))
+  const entries: PostMeta[] = posts
+    .filter((p): p is Post => p !== null)
+    .map((p) => ({ slug: p.slug, frontmatter: p.frontmatter }))
   return entries.sort((a, b) => {
     const da = a.frontmatter.date || ''
     const db = b.frontmatter.date || ''
