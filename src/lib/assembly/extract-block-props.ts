@@ -646,6 +646,23 @@ export function extractPricingCalculatorProps(section: PageSection): PricingCalc
   }
 }
 
+export type PricingPlansProps = {
+  heading?: string
+  intro?: string
+}
+
+/**
+ * PricingPlans pulls its config from content/pricing-plans.json, not the page
+ * markdown. The section only carries an optional heading + intro to render above
+ * the tier cards; the body of the section (if any) is ignored.
+ */
+export function extractPricingPlansProps(section: PageSection): PricingPlansProps {
+  return {
+    heading: section.heading.trim() || undefined,
+    intro: section.content.trim() || undefined,
+  }
+}
+
 // ---------------------------------------------------------------------------
 // ResourceList (lead magnet)
 // ---------------------------------------------------------------------------
