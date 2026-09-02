@@ -166,12 +166,15 @@ export async function BlogPost({ slug }: { slug: string }) {
 
       {post.frontmatter.image && (
         <Section className="max-w-4xl mx-auto !pt-0">
-          <div className="relative w-full aspect-video bg-muted rounded-lg overflow-hidden">
+          {/* Intrinsic width/height (not `fill`) so the hero renders without
+              depending on the parent having a computed height. */}
+          <div className="relative overflow-hidden rounded-lg">
             <Image
               src={resolveImageSrc(post.frontmatter.image)!}
               alt={post.frontmatter.image_alt ?? post.frontmatter.title}
-              fill
-              className="object-cover"
+              width={1600}
+              height={900}
+              className="w-full h-auto"
               sizes="(max-width: 1024px) 100vw, 1024px"
               priority
             />

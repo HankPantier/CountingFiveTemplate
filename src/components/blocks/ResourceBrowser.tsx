@@ -61,7 +61,10 @@ export function ResourceBrowser({ posts, basePath }: { posts: BrowsablePost[]; b
     [posts, deferredSearch, contentType, tag, sort],
   )
 
-  const showTypeChips = types.length > 1
+  // Always surface the content-type filter when there are posts — even an
+  // all-one-type set shows "All · <type>", so the control is discoverable and
+  // becomes richer as other types are added.
+  const showTypeChips = types.length > 0
   const showTagFilter = tags.length > 0
 
   return (
