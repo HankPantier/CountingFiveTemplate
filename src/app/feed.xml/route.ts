@@ -1,5 +1,6 @@
 import { getBrandConfig } from '@/lib/brand/get-brand-config'
 import { listPostsMeta } from '@/lib/content/get-post'
+import { getBlogConfig } from '@/lib/content/get-blog-config'
 import { siteConfig } from '../../../site.config'
 
 /**
@@ -24,14 +25,14 @@ function rfc822(iso: string): string {
 }
 
 export async function GET(): Promise<Response> {
-  const [brand, posts] = await Promise.all([getBrandConfig(), listPostsMeta()])
+  const [brand, posts, blog] = await Promise.all([getBrandConfig(), listPostsMeta(), getBlogConfig()])
   const base = siteConfig.siteUrl.replace(/\/$/, '')
-  const channelTitle = `${brand.firm.name} — Resources`
+  const channelTitle = `${brand.firm.name} — ${blog.label}`
   const channelDesc = `Tax, advisory, and accounting resources from ${brand.firm.name}.`
 
   const items = posts
     .map((p) => {
-      const url = p.frontmatter.canonical_url || `${base}/resources/${p.slug}`
+      const url = p.frontmatter.canonical_url || `${base}${blog.path}/${p.slug}`
       const pubDate = rfc822(p.frontmatter.date || '')
       return [
         '    <item>',
@@ -52,7 +53,7 @@ export async function GET(): Promise<Response> {
 <rss version="2.0" xmlns:atom="http://www.w3.org/2005/Atom">
   <channel>
     <title>${escapeXml(channelTitle)}</title>
-    <link>${escapeXml(`${base}/resources`)}</link>
+    <link>${escapeXml(`${base}${blog.path}`)}</link>
     <description>${escapeXml(channelDesc)}</description>
     <language>en-us</language>
     <atom:link href="${escapeXml(`${base}/feed.xml`)}" rel="self" type="application/rss+xml" />

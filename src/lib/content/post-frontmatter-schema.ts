@@ -25,6 +25,13 @@ export const PostFrontmatterSchema = z
     image: z.string().optional(),
     image_alt: z.string().optional(),
     tags: z.array(z.string()).optional(),
+    /**
+     * Long-form content type written by the onboarding drafter
+     * (blog | article | thought-leadership | case-study). Lenient string so an
+     * unknown/absent value never fails the build; consumers coerce it to a known
+     * type (defaulting to blog) via content-type-meta's `asPostContentType`.
+     */
+    content_type: z.string().optional(),
     slug: z.string().optional(),
     /** Override canonical URL — usually unset; derived from /resources/<slug>. */
     canonical_url: z.string().optional(),

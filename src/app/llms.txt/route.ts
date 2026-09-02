@@ -1,6 +1,7 @@
 import { getBrandConfig } from '@/lib/brand/get-brand-config'
 import { getPageMarkdown, listPageSlugs } from '@/lib/content/get-page'
 import { listPostsMeta } from '@/lib/content/get-post'
+import { getBlogConfig } from '@/lib/content/get-blog-config'
 import { parsePageMd } from '@/lib/assembly/parse-page-md'
 import { siteConfig } from '../../../site.config'
 
@@ -38,10 +39,11 @@ export async function GET(): Promise<Response> {
   const brand = await getBrandConfig()
   const baseUrl = siteConfig.siteUrl.replace(/\/$/, '')
 
-  const [home, slugs, posts] = await Promise.all([
+  const [home, slugs, posts, blog] = await Promise.all([
     pageEntry(baseUrl, '/'),
     listPageSlugs(),
     listPostsMeta(),
+    getBlogConfig(),
   ])
 
   const pageEntries = (
@@ -65,12 +67,12 @@ export async function GET(): Promise<Response> {
   }
 
   if (posts.length) {
-    out.push('', '## Resources')
+    out.push('', `## ${blog.label}`)
     for (const p of posts) {
       out.push(
         line({
           title: p.frontmatter.meta_title || p.frontmatter.title,
-          url: `${baseUrl}/resources/${p.slug}`,
+          url: `${baseUrl}${blog.path}/${p.slug}`,
           desc: (p.frontmatter.meta_description || p.frontmatter.excerpt || '')
             .replace(/\s+/g, ' ')
             .trim(),

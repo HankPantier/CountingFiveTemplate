@@ -4,6 +4,7 @@ import nextBundleAnalyzer from '@next/bundle-analyzer'
 import { promises as fs } from 'node:fs'
 import path from 'node:path'
 import { siteConfig } from './site.config'
+import { readBlogConfigFile, DEFAULT_BLOG_PATH } from './src/lib/content/blog-config'
 
 const withBundleAnalyzer = nextBundleAnalyzer({
   enabled: process.env.ANALYZE === 'true',
@@ -154,10 +155,32 @@ const nextConfig: NextConfig = {
     if (r.length > 0) {
       console.log(`[next.config] Loaded ${r.length} redirect(s) from content/redirects.csv`)
     }
+    const blog = await readBlogConfigFile(process.cwd())
     // The blog section was renamed /insights → /resources; keep old URLs
-    // working for any links indexed before the rename.
-    r.push({ source: '/insights/:path*', destination: '/resources/:path*', permanent: true })
+    // working for any links indexed before the rename. Skip this when the client
+    // has *chosen* /insights as its blog path (below) — otherwise /insights →
+    // /resources → /insights would loop.
+    if (blog.path !== '/insights') {
+      r.push({ source: '/insights/:path*', destination: '/resources/:path*', permanent: true })
+    }
+    // Custom blog path: /resources is the internal canonical route; send its
+    // public URLs to the configured path so there's a single indexable URL.
+    // The inbound custom path is served by the rewrite() below.
+    if (blog.path !== DEFAULT_BLOG_PATH) {
+      r.push({ source: '/resources', destination: blog.path, permanent: true })
+      r.push({ source: '/resources/:slug', destination: `${blog.path}/:slug`, permanent: true })
+    }
     return r
+  },
+  async rewrites() {
+    // Serve the configured blog path from the canonical /resources route without
+    // a visible redirect. No-op when the client keeps the default path.
+    const blog = await readBlogConfigFile(process.cwd())
+    if (blog.path === DEFAULT_BLOG_PATH) return []
+    return [
+      { source: blog.path, destination: '/resources' },
+      { source: `${blog.path}/:slug`, destination: '/resources/:slug' },
+    ]
   },
   async headers() {
     const baseHeaders = [
