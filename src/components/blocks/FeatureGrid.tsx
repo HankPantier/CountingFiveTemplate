@@ -28,7 +28,7 @@ export function FeatureGrid({ variant, theme, heading, intro, items }: FeatureGr
               key={i}
               className="flex flex-col items-start gap-3 border-t border-[color:var(--color-primary-foreground)]/15 pt-5"
             >
-              <span className="font-accent text-2xl">
+              <span className="font-accent u-numeral text-2xl">
                 {String(i + 1).padStart(2, '0')}
               </span>
               <h3 className="t-h4 text-primary-foreground">{item.title}</h3>

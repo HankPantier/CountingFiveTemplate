@@ -33,7 +33,7 @@ export function IndustryCards({ variant, theme, heading, intro, industries }: In
 
               const cell = (
                 <div className="flex h-full flex-col items-start gap-3 border-t border-[color:var(--color-primary-foreground)]/15 pt-5">
-                  <span className="font-accent text-3xl">{index}</span>
+                  <span className="font-accent u-numeral text-3xl">{index}</span>
                   <h3 className="t-h4 text-primary-foreground">
                     {industry.title}
                     {industry.url && (

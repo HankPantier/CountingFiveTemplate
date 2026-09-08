@@ -187,6 +187,15 @@
    * layout.tsx sets --font-accent-loaded; fall back to a serif stack. */
   --font-accent: var(--font-accent-loaded, "Fraunces", Georgia, "Times New Roman", serif);
 
+  /* Monospace role — tracked eyebrows + numerals under the mono eyebrow
+   * treatment (data-eyebrow="mono"). layout.tsx sets --font-mono-loaded. */
+  --font-mono: var(--font-mono-loaded, ui-monospace, "SFMono-Regular", Menlo, Consolas, monospace);
+
+  /* Display role for the large headlines. Defaults to the heading family; the
+   * serif headline switch (data-headline="serif") repoints it to the accent
+   * serif, so the default look is unchanged. */
+  --font-display: var(--font-heading);
+
   /* Fluid type scale (clamp = smooth scaling, no breakpoint jumps). */
   --type-display: clamp(2.6rem, 1.4rem + 4.2vw, 4.25rem);
   --type-h1: clamp(2rem, 1.3rem + 2.4vw, 3rem);
@@ -208,9 +217,9 @@
 
 /* Typographic scale utilities — blocks use these instead of scattered
  * text-3xl/md:text-4xl so hierarchy lives in one place. */
-.t-display { font-family: var(--font-heading); font-size: var(--type-display); line-height: 1.02; letter-spacing: var(--tracking-display); font-weight: 700; }
-.t-h1 { font-family: var(--font-heading); font-size: var(--type-h1); line-height: 1.05; letter-spacing: var(--tracking-tight); font-weight: 700; }
-.t-h2 { font-family: var(--font-heading); font-size: var(--type-h2); line-height: 1.12; letter-spacing: var(--tracking-tight); font-weight: 700; }
+.t-display { font-family: var(--font-display); font-size: var(--type-display); line-height: 1.02; letter-spacing: var(--tracking-display); font-weight: 700; }
+.t-h1 { font-family: var(--font-display); font-size: var(--type-h1); line-height: 1.05; letter-spacing: var(--tracking-tight); font-weight: 700; }
+.t-h2 { font-family: var(--font-display); font-size: var(--type-h2); line-height: 1.12; letter-spacing: var(--tracking-tight); font-weight: 700; }
 .t-h3 { font-family: var(--font-heading); font-size: var(--type-h3); line-height: 1.25; font-weight: 600; }
 .t-h4 { font-family: var(--font-heading); font-size: var(--type-h4); line-height: 1.3; font-weight: 600; }
 .t-body-lg { font-size: var(--type-body-lg); line-height: 1.6; }
@@ -221,6 +230,51 @@
 
 /* Italic-serif accent role for the emphasised word in a statement headline. */
 .font-accent { font-family: var(--font-accent); font-style: italic; font-weight: 400; }
+
+/* .u-numeral is a pure marker (no base declarations) on the 01/02/03 figures of
+ * index-band grids and step badges. Each component keeps its own default numeral
+ * styling; only the mono eyebrow treatment (below) restyles marked numerals. */
+
+/* Hairline gradient divider — a soft brand-tinted rule that fades at both ends,
+ * echoing the reference site's section separators. Use on an <hr> or a <div>. */
+.u-divider-gradient {
+  height: 1px;
+  border: 0;
+  background: linear-gradient(90deg, transparent, color-mix(in srgb, var(--color-primary) 30%, transparent), transparent);
+}
+
+/* ---------------------------------------------------------------------------
+ * Opt-in Revaltus-corporate treatments. Gated by data-attributes that
+ * layout.tsx sets on <html> from design.json (headlineStyle / eyebrowStyle).
+ * Absent attributes => default look, so untouched sites are unaffected.
+ * ------------------------------------------------------------------------- */
+
+/* Editorial serif display headlines: repoint the display role to the accent
+ * serif (Fraunces, non-italic) and ease the weight/tracking so it reads as a
+ * refined headline serif rather than a synthesised bold. */
+html[data-headline="serif"] { --font-display: var(--font-accent); }
+html[data-headline="serif"] .t-display,
+html[data-headline="serif"] .t-h1,
+html[data-headline="serif"] .t-h2 {
+  font-style: normal;
+  font-weight: 500;
+  letter-spacing: -0.02em;
+}
+
+/* Mono eyebrow treatment: tracked uppercase monospace kickers + monospace
+ * numerals, matching the reference's Geist-Mono labels. Restyles the existing
+ * .t-kicker / .u-numeral in place so no per-component markup changes. */
+html[data-eyebrow="mono"] .t-kicker {
+  font-family: var(--font-mono);
+  letter-spacing: 0.13em;
+  font-weight: 500;
+}
+html[data-eyebrow="mono"] .u-numeral {
+  font-family: var(--font-mono);
+  font-style: normal;
+  font-weight: 500;
+  letter-spacing: -0.02em;
+}
 
 /* Card surface: brand-tinted hairline, resting depth; add .u-card-interactive
  * for the hover lift on linked cards. */

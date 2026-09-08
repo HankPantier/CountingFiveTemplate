@@ -11,6 +11,12 @@ export type DesignJson = {
   roundness: Roundness
   density: Density
   visualFeel: VisualFeel
+  /** Opt-in Revaltus-corporate treatments; absent = current look. headlineStyle
+   * and eyebrowStyle drive <html data-headline> / <html data-eyebrow> in
+   * layout.tsx; darkSections gates the ink section rhythm at use-site. */
+  headlineStyle?: 'sans' | 'serif'
+  eyebrowStyle?: 'standard' | 'mono'
+  darkSections?: boolean
   spacing: {
     xs: string
     sm: string

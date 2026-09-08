@@ -135,6 +135,12 @@ async function main() {
     const mutedForeground = ensureContrast(setLightness(palette.nearBlack, 40), muted)
     const borderColor = setLightness(palette.nearWhite, 90)
 
+    // Deep near-black "ink" section surface for the optional dark section rhythm
+    // (design.json darkSections). Mixed toward the primary so it carries a hint of
+    // brand hue, then floored to a very low lightness; foreground is AA-picked.
+    const ink = setLightness(chroma.mix(palette.nearBlack, palette.primary, 0.4, 'lab').hex(), 12)
+    const inkForeground = pickForeground(ink, palette.nearWhite, palette.nearBlack)
+
     // Static red for destructive. Use chroma's HSL constructor explicitly so
     // the bare-array doesn't get treated as RGB.
     const destructive = chroma.hsl(0, 0.84, 0.6).hex()
@@ -155,6 +161,7 @@ async function main() {
       { name: 'accent-fg / accent',              bg: accentBg,              fg: accentFg,          minRatio: 4.5 },
       { name: 'muted-fg / muted',                bg: muted,                 fg: mutedForeground,   minRatio: 4.5 },
       { name: 'footer muted text (text-bg/90)',  bg: palette.nearBlack,     fg: footerMutedText,   minRatio: 4.5 },
+      { name: 'ink-fg / ink',                    bg: ink,                   fg: inkForeground,     minRatio: 4.5 },
     ]
     const failures: string[] = []
     for (const { name, bg, fg, minRatio } of REQUIRED_PAIRS) {
@@ -229,6 +236,10 @@ async function main() {
   --color-footer: ${palette.nearBlack};
   --color-footer-foreground: ${palette.nearWhite};
 
+  /* Ink section surface — optional dark section rhythm (design.json darkSections). */
+  --color-ink: ${ink};
+  --color-ink-foreground: ${inkForeground};
+
   /* Spacing scale — exposed under a c5-prefixed namespace to avoid
    * colliding with Tailwind v4's --spacing-* namespace, which feeds
    * max-w-*, w-*, h-*, p-*, m-*, gap-* utilities. Naming these tokens
@@ -301,6 +312,10 @@ async function main() {
    * .dark override below. */
   --color-footer: ${palette.nearBlack};
   --color-footer-foreground: ${palette.nearWhite};
+
+  /* Ink section surface — optional dark section rhythm (design.json darkSections). */
+  --color-ink: ${ink};
+  --color-ink-foreground: ${inkForeground};
 
   /* Spacing scale (c5-prefixed to avoid Tailwind --spacing-* collision) */
   --c5-space-xs: ${spacing.xs};

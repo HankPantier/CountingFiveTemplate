@@ -1,6 +1,6 @@
 import type { Metadata } from 'next'
 import type { CSSProperties } from 'react'
-import { Public_Sans, Fraunces } from 'next/font/google'
+import { Public_Sans, Fraunces, Geist_Mono } from 'next/font/google'
 import './globals.css'
 import { NavBar } from '@/components/nav/NavBar'
 import { TopUtilityBar } from '@/components/nav/TopUtilityBar'
@@ -12,6 +12,7 @@ import { ClientCenterProvider } from '@/components/client-center/ClientCenterPro
 import { getBrandConfig } from '@/lib/brand/get-brand-config'
 import { getNavConfig } from '@/lib/nav/get-nav-config'
 import { getClientCenterConfig } from '@/lib/client-center/get-client-center-config'
+import { getDesignConfig } from '@/lib/theme/get-theme-vars'
 import { siteConfig } from '../../site.config'
 
 // Placeholder fonts — generate-theme.ts will rewrite these per client in a
@@ -38,6 +39,17 @@ const fraunces = Fraunces({
   display: 'swap',
 })
 
+// Monospace role for the opt-in mono eyebrow treatment (design.json
+// eyebrowStyle: 'mono') — the tracked uppercase kickers + 01/02/03 numerals.
+// Matches the reference site's Geist Mono. Exposed as --font-mono-loaded;
+// globals.css maps --font-mono to it with a system-mono fallback.
+const geistMono = Geist_Mono({
+  subsets: ['latin'],
+  weight: ['400', '500'],
+  variable: '--font-mono-loaded',
+  display: 'swap',
+})
+
 export async function generateMetadata(): Promise<Metadata> {
   const brand = await getBrandConfig()
   return {
@@ -56,10 +68,11 @@ export default async function RootLayout({
 }: {
   children: React.ReactNode
 }) {
-  const [brand, nav, clientCenter] = await Promise.all([
+  const [brand, nav, clientCenter, design] = await Promise.all([
     getBrandConfig(),
     getNavConfig(),
     getClientCenterConfig(),
+    getDesignConfig(),
   ])
 
   // Site-wide Organization JSON-LD. Page-level WebPage / LocalBusiness /
@@ -115,7 +128,12 @@ export default async function RootLayout({
   return (
     <html
       lang="en"
-      className={`${publicSans.variable} ${fraunces.variable}`}
+      className={`${publicSans.variable} ${fraunces.variable} ${geistMono.variable}`}
+      // Opt-in Revaltus-corporate treatments from design.json. Absent/default
+      // values ('sans' / 'standard') are inert — the globals.css rules only key
+      // off 'serif' / 'mono' — so untouched sites render exactly as before.
+      data-headline={design.headlineStyle ?? 'sans'}
+      data-eyebrow={design.eyebrowStyle ?? 'standard'}
       style={{ '--font-body-loaded': 'var(--font-heading-loaded)' } as CSSProperties}
       // next-themes sets the theme class on <html> before hydration, so the
       // server/client class attributes intentionally differ on first paint.
