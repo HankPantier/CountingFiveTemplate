@@ -1,6 +1,7 @@
 import { Section } from './Section'
 import { InlineProse } from './InlineProse'
 import { getPricingCalculatorConfig } from '@/lib/content/get-pricing-calculator-config'
+import { isValidPricingCalculatorConfig } from '@/lib/content/pricing-calculator-types'
 import { PricingCalculatorClient } from './PricingCalculatorClient'
 import type { PricingCalculatorProps } from '@/lib/assembly/extract-block-props'
 
@@ -9,12 +10,15 @@ export type { PricingCalculatorProps }
 /**
  * Pricing calculator block — config-driven (like Booking / ContactInfo). Reads
  * content/pricing-calculator.json at build time and renders the interactive
- * estimator. Renders nothing when no (or an empty) calculator config ships, so
- * a deliverable that includes the annotation but no JSON stays harmless.
+ * estimator. Renders nothing when no (or an empty, or malformed) calculator
+ * config ships, so a deliverable that includes the annotation but no JSON —
+ * or a hand-edited/stale JSON missing required arrays — stays harmless
+ * instead of throwing (this block is rendered from live client content on
+ * every site's /design-specimen).
  */
 export async function PricingCalculator({ heading, intro }: PricingCalculatorProps) {
   const config = await getPricingCalculatorConfig()
-  if (!config || config.serviceLines.length === 0) return null
+  if (!isValidPricingCalculatorConfig(config)) return null
 
   return (
     <Section dataBlock="pricing-calculator">

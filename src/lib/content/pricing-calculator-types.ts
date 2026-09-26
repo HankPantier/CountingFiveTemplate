@@ -189,6 +189,25 @@ export function buildContactContext(
   return { title: 'Your estimate', lines }
 }
 
+// Guards against a config file that exists (content/pricing-calculator.json
+// shipped) but has the wrong shape — e.g. missing serviceLines, or a field
+// that isn't an array because it was hand-edited or came from a stale
+// deliverable. /design-specimen renders this block from every client's own
+// content at build time, so a malformed file must resolve to "render
+// nothing", never throw and break every page on the site.
+export function isValidPricingCalculatorConfig(
+  config: PricingCalculatorConfig | null | undefined
+): config is PricingCalculatorConfig {
+  return (
+    !!config &&
+    Array.isArray(config.serviceLines) &&
+    config.serviceLines.length > 0 &&
+    Array.isArray(config.sizeTiers) &&
+    Array.isArray(config.complexityLevels) &&
+    Array.isArray(config.addOns)
+  )
+}
+
 // Default selections when the calculator first loads.
 export function initialSelection(config: PricingCalculatorConfig): PricingSelection {
   const services: Record<string, boolean> = {}

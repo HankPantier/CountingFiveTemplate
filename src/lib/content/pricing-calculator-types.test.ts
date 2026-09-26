@@ -3,6 +3,7 @@ import {
   buildContactContext,
   computeEstimate,
   initialSelection,
+  isValidPricingCalculatorConfig,
   type PricingCalculatorConfig,
   type PricingSelection,
 } from './pricing-calculator-types'
@@ -92,6 +93,32 @@ describe('computeEstimate', () => {
     expect(sel.serviceOptions.bk).toEqual({ freq: ['monthly'], inc: [] })
     expect(sel.sizePos).toBe(0)
     expect(sel.complexityId).toBe('basic')
+  })
+})
+
+describe('isValidPricingCalculatorConfig', () => {
+  it('accepts a well-formed config', () => {
+    expect(isValidPricingCalculatorConfig(config)).toBe(true)
+  })
+  it('rejects null/undefined', () => {
+    expect(isValidPricingCalculatorConfig(null)).toBe(false)
+    expect(isValidPricingCalculatorConfig(undefined)).toBe(false)
+  })
+  it('rejects a config missing serviceLines (wrong-shape JSON)', () => {
+    // eslint-disable-next-line @typescript-eslint/no-unused-vars
+    const { serviceLines: _serviceLines, ...rest } = config
+    expect(isValidPricingCalculatorConfig(rest as unknown as PricingCalculatorConfig)).toBe(false)
+  })
+  it('rejects an empty serviceLines array', () => {
+    expect(isValidPricingCalculatorConfig({ ...config, serviceLines: [] })).toBe(false)
+  })
+  it('rejects when a required array field is not an array', () => {
+    expect(
+      isValidPricingCalculatorConfig({ ...config, addOns: undefined as unknown as PricingCalculatorConfig['addOns'] })
+    ).toBe(false)
+    expect(
+      isValidPricingCalculatorConfig({ ...config, sizeTiers: {} as unknown as PricingCalculatorConfig['sizeTiers'] })
+    ).toBe(false)
   })
 })
 
