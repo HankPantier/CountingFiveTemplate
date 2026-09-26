@@ -17,6 +17,13 @@ All notable changes to this template are recorded here. The format follows [Keep
   unlinked. Samples now live in `src/lib/showcase/samples.ts`.
 - `c5-template.json` capabilities: `fonts`, `style-axes`, `specimen`.
 
+### Rollout notes
+- Never copy (and delete if present) `content/.template-default` — it marks the
+  *template's own* default content and gates template-only specs; it must never
+  reach a client repo (`npm run unpack` removes it automatically).
+- Ship the whole file set in **ONE commit**, with `c5-template.json` **last** —
+  `layout.tsx` hard-imports it, as does `src/app/fonts.generated.ts`.
+
 ## [2026.09.1] — Design Studio T1: live fonts + capability marker
 
 ### Added
