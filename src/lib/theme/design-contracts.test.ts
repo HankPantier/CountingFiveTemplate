@@ -3,6 +3,7 @@ import path from 'node:path'
 import { describe, expect, it } from 'vitest'
 import { fontManifestJson } from './font-manifest'
 import { fontsModuleKind, generateFontsModule } from './font-module'
+import { styleAxesJson } from './style-axes'
 
 const root = process.cwd()
 const read = (p: string) => readFileSync(path.join(root, p), 'utf-8')
@@ -41,6 +42,9 @@ describe('font contracts + goldens', () => {
   })
   it('docs/design/font-manifest.json matches the manifest (run npm run design-contracts)', () => {
     expect(read('docs/design/font-manifest.json')).toBe(fontManifestJson())
+  })
+  it('docs/design/style-axes.json matches the vocabulary (run npm run design-contracts)', () => {
+    expect(read('docs/design/style-axes.json')).toBe(styleAxesJson())
   })
 })
 

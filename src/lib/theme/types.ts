@@ -1,3 +1,5 @@
+import type { StyleAxes } from './style-axes'
+
 export type Roundness = 'sharp' | 'soft' | 'pill'
 export type Density = 'tight' | 'balanced' | 'airy'
 export type VisualFeel = 'classic' | 'modern' | 'editorial'
@@ -20,6 +22,9 @@ export type DesignJson = {
   headlineStyle?: 'sans' | 'serif'
   eyebrowStyle?: 'standard' | 'mono'
   darkSections?: boolean
+  /** Design Studio style axes (T2). Absent / 'default' = today's look; see
+   * src/lib/theme/style-axes.ts. layout.tsx maps it to <html data-c5-*>. */
+  style?: StyleAxes
   spacing: {
     xs: string
     sm: string
