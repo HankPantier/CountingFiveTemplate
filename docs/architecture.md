@@ -440,3 +440,18 @@ Remote images are enabled by `images.remotePatterns` in `next.config.ts`. The
 CSP `img-src` directive already includes `https:`, so remote origins are not
 blocked — the trade-off is that any HTTPS image origin is permitted, which is
 the standard posture for author-supplied images and low-risk for `img-src`.
+
+## Design Studio contracts (T1/T2)
+
+The Revaltus Design Studio drives four template levers. Each has one source file here
+and a mirror + parity test on the platform:
+
+| Lever | Template source | Platform mirror |
+|---|---|---|
+| Capability marker | `c5-template.json` + `<meta name="c5-capabilities">` | `lib/design/capabilities.ts` |
+| Live fonts | `src/lib/theme/font-{manifest,module}.ts` → `src/app/fonts.generated.ts` (`npm run generate-fonts`) | `lib/content/font-{manifest,module-generator}.ts` + goldens |
+| Style axes | `src/lib/theme/style-axes.ts` + `src/styles/style-axes.css` | `lib/design/style-axes.ts` + `docs/design/style-axes.json` |
+| Specimen | `src/app/design-specimen/page.tsx` | the page picker (`lib/design/pages.ts`) |
+
+After changing a contract, run `npm run design-contracts` and re-copy the JSON / golden
+files into the platform fixtures.

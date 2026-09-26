@@ -6,8 +6,11 @@
  *   [data-block="hero"] { ... }
  *   [data-block="feature-grid"] h2 { ... }
  *
- * Cascade order: tailwindcss → theme.css → design-overrides.css. Use specific
+ * Cascade order: tailwindcss → theme.css → style-axes.css → design-overrides.css. Use specific
  * selectors (data-block attribute + descendant) instead of !important.
+ * Exception: when design.json "style" sets accentUsage, style-axes.css sets
+ * the headline accent to `color: inherit !important`, so overriding the
+ * [data-c5="headline-accent"] colour here needs !important too.
  *
  * To regenerate: run `npm run export-brief`, paste the brief into Claude.ai
  * Design, save the returned CSS as this file, then `npm run dev`.

@@ -5,6 +5,7 @@ import { promises as fs } from 'node:fs'
 import path from 'node:path'
 import { siteConfig } from './site.config'
 import { readBlogConfigFile, DEFAULT_BLOG_PATH } from './src/lib/content/blog-config'
+import { parseRedirectsCsv } from './src/lib/redirects/parse-redirects-csv'
 
 const withBundleAnalyzer = nextBundleAnalyzer({
   enabled: process.env.ANALYZE === 'true',
@@ -77,58 +78,11 @@ async function readRedirectsCsv(): Promise<Array<{ source: string; destination: 
     return []
   }
 
-  const redirects: Array<{ source: string; destination: string; permanent: true }> = []
-  for (const rawLine of raw.split('\n')) {
-    const line = rawLine.trim()
-    if (!line) continue
-    // Skip comment lines.
-    if (line.startsWith('#')) continue
-    // Skip the header row.
-    if (line.startsWith('old_url,')) continue
-
-    // Minimal CSV parsing: handle quoted fields that may contain commas.
-    const cells = parseCsvLine(line)
-    const [from, to] = cells
-    if (!from || !to) continue
-    // Destinations must be path-relative. A row like `/old,https://evil.com`
-    // would otherwise ship as a 308 to an attacker-controlled URL.
-    if (!to.startsWith('/')) {
-      console.warn(`[next.config] Skipping redirect with non-relative destination: ${from} -> ${to}`)
-      continue
-    }
-    redirects.push({ source: from, destination: to, permanent: true })
+  const { redirects, skipped } = parseRedirectsCsv(raw)
+  for (const s of skipped) {
+    console.warn(`[next.config] Skipping redirect (${s.reason}): ${s.line}`)
   }
   return redirects
-}
-
-function parseCsvLine(line: string): string[] {
-  const out: string[] = []
-  let cur = ''
-  let inQuotes = false
-  for (let i = 0; i < line.length; i++) {
-    const ch = line[i]
-    if (inQuotes) {
-      if (ch === '"' && line[i + 1] === '"') {
-        cur += '"'
-        i++
-      } else if (ch === '"') {
-        inQuotes = false
-      } else {
-        cur += ch
-      }
-    } else {
-      if (ch === '"') {
-        inQuotes = true
-      } else if (ch === ',') {
-        out.push(cur)
-        cur = ''
-      } else {
-        cur += ch
-      }
-    }
-  }
-  out.push(cur)
-  return out.map(c => c.trim())
 }
 
 const nextConfig: NextConfig = {
@@ -188,7 +142,13 @@ const nextConfig: NextConfig = {
           : 'Content-Security-Policy'
       baseHeaders.push({ key, value })
     }
-    return [{ source: '/:path*', headers: baseHeaders }]
+    return [
+      { source: '/:path*', headers: baseHeaders },
+      // /design-specimen is a production page for the Design Studio only —
+      // never indexed. (robots.txt deliberately does NOT disallow it: a
+      // disallowed URL is never fetched, so its noindex would go unseen.)
+      { source: '/design-specimen', headers: [{ key: 'X-Robots-Tag', value: 'noindex, nofollow' }] },
+    ]
   },
 }
 

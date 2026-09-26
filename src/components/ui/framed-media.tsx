@@ -65,6 +65,7 @@ export function FramedMedia({
       {grade === 'duotone' && (
         <span
           aria-hidden
+          data-c5="media-grade"
           className="pointer-events-none absolute inset-0 mix-blend-multiply"
           style={{
             background:

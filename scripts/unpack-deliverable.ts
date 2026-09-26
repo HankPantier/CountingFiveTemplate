@@ -76,6 +76,13 @@ async function main(): Promise<void> {
     process.exit(1)
   }
 
+  // content/.template-default marks the TEMPLATE's own content (see
+  // e2e/template-default.ts) and must never survive into a client repo — a
+  // client's CI would otherwise run template-only specs (zero-change pixel
+  // baselines, content-dependent design-defaults) against client content.
+  const templateDefaultMarker = path.join(repoRoot, 'content', '.template-default')
+  await fs.rm(templateDefaultMarker, { force: true })
+
   console.log('\nRunning theme generator...')
   execSync('npx --yes tsx scripts/generate-theme.ts', { stdio: 'inherit', cwd: repoRoot })
 

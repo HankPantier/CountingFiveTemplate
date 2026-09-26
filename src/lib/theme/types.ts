@@ -1,3 +1,5 @@
+import type { StyleAxes } from './style-axes'
+
 export type Roundness = 'sharp' | 'soft' | 'pill'
 export type Density = 'tight' | 'balanced' | 'airy'
 export type VisualFeel = 'classic' | 'modern' | 'editorial'
@@ -6,6 +8,9 @@ export type DesignJson = {
   typography: {
     headingFont: string
     bodyFont: string
+    /** Italic-serif accent role (Ink & Clay). Absent in older design.json files
+     * → the generated fonts module uses the default (Fraunces). */
+    accentFont?: string
     googleFontsUrl: string
   }
   roundness: Roundness
@@ -17,6 +22,9 @@ export type DesignJson = {
   headlineStyle?: 'sans' | 'serif'
   eyebrowStyle?: 'standard' | 'mono'
   darkSections?: boolean
+  /** Design Studio style axes (T2). Absent / 'default' = today's look; see
+   * src/lib/theme/style-axes.ts. layout.tsx maps it to <html data-c5-*>. */
+  style?: StyleAxes
   spacing: {
     xs: string
     sm: string

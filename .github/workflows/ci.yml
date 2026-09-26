@@ -32,6 +32,9 @@ jobs:
       - name: Type check
         run: npx tsc --noEmit
 
+      - name: Fonts module matches design.json
+        run: npx tsx scripts/generate-fonts.ts --check
+
       - name: Test
         run: npm test
 
@@ -43,3 +46,50 @@ jobs:
 
       - name: E2E smoke
         run: npm run test:e2e
+
+  fonts:
+    name: Build every manifest font once
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      # This job runs a full second `next build` and is only useful in the
+      # template repo itself (it proves every manifest font family resolves).
+      # A client repo carries no content/.template-default marker (npm run
+      # unpack removes it — see scripts/unpack-deliverable.ts), so gate every
+      # step after checkout on it, rather than the job's own `if:` — a
+      # job-level `if:` is evaluated before checkout runs, so hashFiles()
+      # would always see an empty workspace and the condition would never be
+      # true, permanently disabling the job everywhere including here.
+      - name: Setup Node 20
+        if: ${{ hashFiles('content/.template-default') != '' }}
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+          cache: 'npm'
+
+      - name: Install
+        if: ${{ hashFiles('content/.template-default') != '' }}
+        run: npm ci
+
+      - name: Cache Next build
+        if: ${{ hashFiles('content/.template-default') != '' }}
+        uses: actions/cache@v4
+        with:
+          path: .next/cache
+          key: next-fonts-${{ runner.os }}-${{ hashFiles('package-lock.json', 'src/lib/theme/font-manifest.ts') }}
+
+      # Overwrites the committed module IN THIS JOB'S OWN EPHEMERAL CHECKOUT
+      # ONLY with one next/font call per manifest family (all weights, italic
+      # where shipped), so this build proves every family a client can pick
+      # resolves. This job never commits or pushes, so the repo's committed
+      # src/app/fonts.generated.ts is untouched.
+      - name: Generate an all-fonts module
+        if: ${{ hashFiles('content/.template-default') != '' }}
+        run: npx tsx scripts/generate-fonts.ts --all
+
+      - name: Build
+        if: ${{ hashFiles('content/.template-default') != '' }}
+        run: npm run build

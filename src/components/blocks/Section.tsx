@@ -42,11 +42,13 @@ export function Section({
 }: SectionProps) {
   const bgClass = BG_CLASSES[bg]
   const padClass = SPACING_CLASSES[spacing]
+  // data-c5-spacing: inert hook for the Design Studio sectionRhythm axis (src/styles/style-axes.css).
+  const spacingHook = spacing === 'none' ? undefined : spacing
 
   if (fullBleed) {
     return (
       <Tag data-block={dataBlock} className={cn(bgClass, className)}>
-        <div className={cn('max-w-7xl mx-auto px-4 sm:px-6 lg:px-8', padClass)}>
+        <div data-c5-spacing={spacingHook} className={cn('max-w-7xl mx-auto px-4 sm:px-6 lg:px-8', padClass)}>
           {children}
         </div>
       </Tag>
@@ -56,6 +58,7 @@ export function Section({
   return (
     <Tag
       data-block={dataBlock}
+      data-c5-spacing={spacingHook}
       className={cn('max-w-7xl mx-auto px-4 sm:px-6 lg:px-8', padClass, bgClass, className)}
     >
       {children}

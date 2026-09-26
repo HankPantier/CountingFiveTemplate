@@ -21,7 +21,7 @@ function renderHeading(text: string): ReactNode {
   return (
     <>
       {before}
-      <span className="font-accent" style={{ color: 'var(--color-action)' }}>
+      <span className="font-accent" data-c5="headline-accent" style={{ color: 'var(--color-action)' }}>
         {accent}
       </span>
       {after}

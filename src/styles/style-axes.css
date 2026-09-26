@@ -1,0 +1,115 @@
+/* style-axes.css — Design Studio style-axis presets (design.json "style").
+ *
+ * layout.tsx sets html[data-c5-<axis>] ONLY for non-default values, so every
+ * rule below is inert on an untouched site (R1). Every selector MUST start with
+ * html[data-c5-<axis>="<value>"] — enforced by src/lib/theme/style-axes-css.test.ts.
+ *
+ * Cascade: tailwindcss → theme.css → style-axes.css → content/design-overrides.css.
+ * These rules are unlayered, so they beat Tailwind's layered utilities, and the
+ * per-client overrides imported after still win on equal specificity.
+ * Vocabulary: src/lib/theme/style-axes.ts (docs/design/style-axes.json).
+ * Hooks: data-c5="button" | "headline-accent" | "media-grade", data-c5-spacing.
+ * Tokens are re-scoped (e.g. --color-footer on the footer) rather than
+ * restyling descendants, so every nested utility follows. */
+
+/* ---- sectionRhythm (Section's padded element: data-c5-spacing) ---------- */
+html[data-c5-section-rhythm="compact"] [data-c5-spacing="compact"] { padding-block: 2rem; }
+html[data-c5-section-rhythm="compact"] [data-c5-spacing="normal"] { padding-block: 2.5rem; }
+html[data-c5-section-rhythm="compact"] [data-c5-spacing="spacious"] { padding-block: 3.5rem; }
+html[data-c5-section-rhythm="generous"] [data-c5-spacing="compact"] { padding-block: 3rem; }
+html[data-c5-section-rhythm="generous"] [data-c5-spacing="normal"] { padding-block: 4.5rem; }
+html[data-c5-section-rhythm="generous"] [data-c5-spacing="spacious"] { padding-block: 6rem; }
+@media (min-width: 768px) {
+  html[data-c5-section-rhythm="compact"] [data-c5-spacing="compact"] { padding-block: 2.5rem; }
+  html[data-c5-section-rhythm="compact"] [data-c5-spacing="normal"] { padding-block: 3.5rem; }
+  html[data-c5-section-rhythm="compact"] [data-c5-spacing="spacious"] { padding-block: 5rem; }
+  html[data-c5-section-rhythm="generous"] [data-c5-spacing="compact"] { padding-block: 4.5rem; }
+  html[data-c5-section-rhythm="generous"] [data-c5-spacing="normal"] { padding-block: 7rem; }
+  html[data-c5-section-rhythm="generous"] [data-c5-spacing="spacious"] { padding-block: 10rem; }
+}
+
+/* ---- cards (.u-card surfaces) ------------------------------------------ */
+html[data-c5-cards="flat"] .u-card { box-shadow: none; border-color: transparent; background: var(--color-muted); }
+html[data-c5-cards="flat"] .u-card-interactive:hover { box-shadow: none; border-color: transparent; }
+html[data-c5-cards="outlined"] .u-card { box-shadow: none; border-color: color-mix(in srgb, var(--color-primary) 28%, transparent); }
+html[data-c5-cards="outlined"] .u-card-interactive:hover { box-shadow: none; border-color: var(--color-action); }
+html[data-c5-cards="elevated"] .u-card { box-shadow: var(--shadow-lg); border-color: transparent; }
+html[data-c5-cards="elevated"] .u-card-interactive:hover { box-shadow: var(--shadow-lg); transform: translateY(-4px); }
+
+/* ---- buttons (data-c5="button") ---------------------------------------- */
+html[data-c5-buttons="pill"] [data-c5="button"] { border-radius: 9999px; }
+html[data-c5-buttons="sharp"] [data-c5="button"] { border-radius: 0; }
+html[data-c5-buttons="bold"] [data-c5="button"] { text-transform: uppercase; letter-spacing: 0.08em; font-weight: 700; }
+
+/* ---- heroScale (re-scoped type tokens on the hero blocks) --------------- */
+html[data-c5-hero-scale="compact"] :is([data-block="hero"], [data-block="hero-split"], [data-block="page-header"]) {
+  --type-display: clamp(2.2rem, 1.3rem + 3vw, 3.25rem);
+  --type-h1: clamp(1.8rem, 1.2rem + 1.8vw, 2.5rem);
+}
+html[data-c5-hero-scale="dramatic"] :is([data-block="hero"], [data-block="hero-split"], [data-block="page-header"]) {
+  --type-display: clamp(3rem, 1.5rem + 5.6vw, 5.5rem);
+  --type-h1: clamp(2.4rem, 1.5rem + 3.2vw, 3.75rem);
+}
+
+/* ---- imageTreatment (.u-frame + FramedMedia's data-c5="media-grade") ---- */
+html[data-c5-image-treatment="natural"] .u-frame img { filter: none; }
+html[data-c5-image-treatment="natural"] [data-c5="media-grade"] { display: none; }
+html[data-c5-image-treatment="mono"] .u-frame img { filter: grayscale(1) contrast(1.05); }
+html[data-c5-image-treatment="mono"] [data-c5="media-grade"] { display: none; }
+html[data-c5-image-treatment="rounded"] .u-frame { border-radius: var(--radius-lg); }
+
+/* ---- nav ([data-component="navbar"]) ----------------------------------- */
+html[data-c5-nav="bordered"] [data-component="navbar"] { border-bottom: 1px solid var(--color-border); }
+html[data-c5-nav="inverted"] [data-component="navbar"] {
+  --color-background: var(--color-primary);
+  --color-foreground: var(--color-primary-foreground);
+  border-color: color-mix(in srgb, var(--color-primary-foreground) 18%, transparent);
+  color: var(--color-foreground);
+}
+/* Active top-level item: NavBar paints it text-primary, which would vanish
+ * on the primary bar. Scoped to the bar's own list (li > a|button), so links
+ * inside a dropdown keep their accent styling. */
+html[data-c5-nav="inverted"] [data-component="navbar"] nav > div > ul > li > :is(a[aria-current="page"], button[data-active]) {
+  color: var(--color-primary-foreground);
+  text-decoration-color: var(--color-action);
+}
+/* The CTA (default Button = bg-primary) would merge into the bar: invert it. */
+html[data-c5-nav="inverted"] [data-component="navbar"] a[data-c5="button"] {
+  background-color: var(--color-primary-foreground);
+  color: var(--color-primary);
+}
+html[data-c5-nav="inverted"] [data-component="navbar"] a[data-c5="button"]:hover {
+  background-color: color-mix(in srgb, var(--color-primary-foreground) 88%, transparent);
+}
+/* Dropdown panels render inside the header: hand them back the page tokens. */
+html[data-c5-nav="inverted"] [data-component="navbar"] .bg-popover {
+  --color-background: var(--color-popover);
+  --color-foreground: var(--color-popover-foreground);
+}
+
+/* ---- footer ([data-component="footer"]: re-scope the footer tokens) ---- */
+html[data-c5-footer="light"] [data-component="footer"] {
+  --color-footer: var(--color-muted);
+  --color-footer-foreground: var(--color-foreground);
+  border-top: 1px solid var(--color-border);
+}
+html[data-c5-footer="brand"] [data-component="footer"] {
+  --color-footer: var(--color-primary);
+  --color-footer-foreground: var(--color-primary-foreground);
+}
+
+/* ---- accentUsage (data-c5="headline-accent") ----------------------------
+ * The accent colour is an INLINE style (kept so existing client overrides
+ * behave exactly as before), so colour changes here need !important. */
+html[data-c5-accent-usage="subtle"] [data-c5="headline-accent"] { color: inherit !important; }
+html[data-c5-accent-usage="plain"] [data-c5="headline-accent"] { color: inherit !important; font-family: inherit; font-style: inherit; font-weight: inherit; }
+html[data-c5-accent-usage="underline"] [data-c5="headline-accent"] {
+  color: inherit !important;
+  font-family: inherit;
+  font-style: inherit;
+  font-weight: inherit;
+  text-decoration: underline;
+  text-decoration-color: var(--color-action);
+  text-decoration-thickness: 0.08em;
+  text-underline-offset: 0.14em;
+}

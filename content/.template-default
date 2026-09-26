@@ -1,0 +1,10 @@
+This file marks content/ as the TEMPLATE'S OWN default content.
+
+Specs that depend on the template's default content (e2e/zero-change.spec.ts
+pixel baselines, the content-dependent half of e2e/design-defaults.spec.ts)
+run only while this file exists; see e2e/template-default.ts.
+
+Client repos have their own content/, so this file must NOT exist in a client
+repo: fleet rollouts must not copy it, and a repo seeded from the template
+should delete it when its content/ is replaced by the client deliverable.
+If a client repo has it, delete it (the gated specs then skip).
