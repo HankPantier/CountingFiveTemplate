@@ -55,7 +55,7 @@ export function NavBar({ brand, nav }: { brand: BrandJson; nav: NavJson }) {
       )}
     >
       <div className="max-w-7xl mx-auto h-16 px-4 sm:px-6 lg:px-8 flex items-center justify-between">
-        <Link href="/" className="flex items-center gap-2" aria-label={`${brand.firm.name} home`}>
+        <Link href="/" className="flex items-center gap-2" aria-label={`${brand.firm.name} home`} data-c5="logo">
           {brand.logo.primary ? (
             <Image
               src={resolveImageSrc(brand.logo.primary)!}
@@ -78,7 +78,7 @@ export function NavBar({ brand, nav }: { brand: BrandJson; nav: NavJson }) {
                 <NavigationMenuItem key={item.url}>
                   <NavigationMenuTrigger
                     data-active={itemActive || undefined}
-                    className="data-[active]:text-primary data-[active]:underline data-[active]:underline-offset-8 data-[active]:decoration-2"
+                    className="data-[active]:text-primary data-[active]:underline data-[active]:underline-offset-8 data-[active]:decoration-2 dark:data-[active]:text-foreground dark:data-[active]:decoration-action"
                   >
                     {item.label}
                   </NavigationMenuTrigger>
@@ -128,7 +128,9 @@ export function NavBar({ brand, nav }: { brand: BrandJson; nav: NavJson }) {
                       aria-current={itemActive ? 'page' : undefined}
                       className={cn(
                         'inline-flex h-9 items-center justify-center rounded-md px-4 text-sm font-medium hover:bg-accent hover:text-accent-foreground',
-                        itemActive && 'text-primary underline underline-offset-8 decoration-2'
+                        // --color-primary is not flipped in .dark (brand stays on-brand), so
+                        // primary text on the dark bar is ~1.6:1: use foreground + action underline.
+                        itemActive && 'text-primary underline underline-offset-8 decoration-2 dark:text-foreground dark:decoration-action'
                       )}
                     >
                       {item.label}

@@ -2,6 +2,50 @@
 
 All notable changes to this template are recorded here. The format follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/) and the project loosely follows semver — though as a per-client template, "release" means "checkpoint on `main`" rather than a published package version.
 
+## [2026.09.3] — Style-axis preset fixes + export-brief retired
+
+### Fixed
+- **`footer=light` / `footer=brand`** now set the footer's `background-color`
+  and `color` directly (not only re-scoped tokens), so a client
+  `design-overrides.css` that paints the footer (e.g. bblcpa's
+  `background: var(--color-primary)`) can no longer leave light-preset text on
+  a dark surface (was 1.46:1, now 11.76:1). On the light footer, images are
+  shown as authored (the dark-footer `invert` / client whitening is dropped);
+  a dedicated `brand.logo.footer` gets a dark plate.
+- **`nav=inverted`** seats the logo on a near-white plate so dark client logos
+  (and the text wordmark) stay legible on the primary bar. Logos are never
+  filtered or recoloured.
+- **`nav=bordered`** is now clearly visible: a 2px primary rule under the bar
+  (was a 1.13:1 `--color-border` hairline) plus a tinted chip behind the
+  active item.
+- **Dark-mode current/active indicators** were 1.57:1 (`--color-primary` is
+  deliberately not flipped under `.dark`): top-nav + mobile-nav active items,
+  SideNav active section/page, the breadcrumb current item and the contact
+  drawer's active tab now use foreground text (+ action-colour
+  underline/bar) in dark mode — 15.24:1 text, 8.29:1 indicator bar. Light
+  mode is unchanged. `dark:` is now class-based (`@custom-variant dark`,
+  following next-themes' `.dark`).
+
+### Added
+- Inert hooks `data-c5="logo"` (NavBar + Footer logo links) and
+  `data-c5-variant="footer"` (footer logo when `brand.logo.footer` is set).
+- e2e WCAG contrast checks for the nav/footer presets (`e2e/contrast.ts`),
+  including on top of client-style chrome overrides.
+
+### Removed
+- **`export-brief` / `export-kit` / `design-preview`** npm scripts and
+  `scripts/export-design-brief.ts` + `scripts/design-preview.ts` — the
+  in-platform Revaltus Design Studio replaces the Claude.ai brief handoff.
+  The `design-kit/` + `design-brief.md` `.gitignore` entries and the docs
+  describing the handoff are gone too.
+
+### Rollout notes
+- Fleet sync must **delete** `scripts/export-design-brief.ts` and
+  `scripts/design-preview.ts` and drop the three npm scripts from each client
+  `package.json`. A client repo with a local `design-kit/` folder should delete
+  it (it is no longer ignored). No capability change; write
+  `c5-template.json` last as before.
+
 ## [2026.09.2] — Design Studio T2: style axes + design specimen
 
 ### Added

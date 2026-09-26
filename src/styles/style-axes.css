@@ -8,9 +8,14 @@
  * These rules are unlayered, so they beat Tailwind's layered utilities, and the
  * per-client overrides imported after still win on equal specificity.
  * Vocabulary: src/lib/theme/style-axes.ts (docs/design/style-axes.json).
- * Hooks: data-c5="button" | "headline-accent" | "media-grade", data-c5-spacing.
+ * Hooks: data-c5="button" | "headline-accent" | "media-grade" | "logo",
+ * data-c5-spacing, data-c5-variant (footer logo).
  * Tokens are re-scoped (e.g. --color-footer on the footer) rather than
- * restyling descendants, so every nested utility follows. */
+ * restyling descendants, so every nested utility follows.
+ * Specificity: the nav/footer presets deliberately out-specify typical
+ * design-overrides.css chrome rules (html[data-c5-*] [data-component] beats
+ * [data-component]), so a chosen preset stays legible; a client rule can
+ * still win with !important. */
 
 /* ---- sectionRhythm (Section's padded element: data-c5-spacing) ---------- */
 html[data-c5-section-rhythm="compact"] [data-c5-spacing="compact"] { padding-block: 2rem; }
@@ -58,13 +63,38 @@ html[data-c5-image-treatment="mono"] .u-frame img { filter: grayscale(1) contras
 html[data-c5-image-treatment="mono"] [data-c5="media-grade"] { display: none; }
 html[data-c5-image-treatment="rounded"] .u-frame { border-radius: var(--radius-lg); }
 
-/* ---- nav ([data-component="navbar"]) ----------------------------------- */
-html[data-c5-nav="bordered"] [data-component="navbar"] { border-bottom: 1px solid var(--color-border); }
+/* ---- nav ([data-component="navbar"]) -----------------------------------
+ * Paint properties are set directly as well as via re-scoped tokens: client
+ * design-overrides.css rules like [data-component="navbar"] { … } load later
+ * but carry lower specificity than these html[data-c5-*] selectors. */
+/* bordered: a solid brand rule (the --color-border hairline was ~1.1:1 —
+ * invisible) plus a tinted chip behind the active top-level item. */
+html[data-c5-nav="bordered"] [data-component="navbar"] { border-bottom: 2px solid var(--color-primary); }
+html[data-c5-nav="bordered"].dark [data-component="navbar"] {
+  border-bottom-color: color-mix(in srgb, var(--color-primary) 40%, var(--color-foreground));
+}
+html[data-c5-nav="bordered"] [data-component="navbar"] nav > div > ul > li > :is(a[aria-current="page"], button[data-active]) {
+  background-color: color-mix(in srgb, var(--color-primary) 10%, transparent);
+  text-decoration-color: var(--color-primary);
+}
+html[data-c5-nav="bordered"].dark [data-component="navbar"] nav > div > ul > li > :is(a[aria-current="page"], button[data-active]) {
+  background-color: color-mix(in srgb, var(--color-foreground) 12%, transparent);
+  text-decoration-color: var(--color-action);
+}
 html[data-c5-nav="inverted"] [data-component="navbar"] {
   --color-background: var(--color-primary);
   --color-foreground: var(--color-primary-foreground);
+  background-color: var(--color-background);
   border-color: color-mix(in srgb, var(--color-primary-foreground) 18%, transparent);
   color: var(--color-foreground);
+}
+/* Client logos are arbitrary (often dark) images: never filter them — seat
+ * the logo on a light plate so any logo, or the text wordmark, stays legible. */
+html[data-c5-nav="inverted"] [data-component="navbar"] [data-c5="logo"] {
+  background-color: var(--color-near-white);
+  color: var(--color-near-black);
+  padding: 0.25rem 0.625rem;
+  border-radius: var(--radius-md);
 }
 /* Active top-level item: NavBar paints it text-primary, which would vanish
  * on the primary bar. Scoped to the bar's own list (li > a|button), so links
@@ -87,15 +117,34 @@ html[data-c5-nav="inverted"] [data-component="navbar"] .bg-popover {
   --color-foreground: var(--color-popover-foreground);
 }
 
-/* ---- footer ([data-component="footer"]: re-scope the footer tokens) ---- */
+/* ---- footer ([data-component="footer"]: re-scope the footer tokens) ----
+ * background/color are also set directly so a client override that paints
+ * the footer (e.g. background: var(--color-primary)) can't leave light-preset
+ * text on a dark surface — that combination measured 1.54:1 in the A/B run. */
 html[data-c5-footer="light"] [data-component="footer"] {
   --color-footer: var(--color-muted);
   --color-footer-foreground: var(--color-foreground);
+  background-color: var(--color-footer);
+  color: var(--color-footer-foreground);
   border-top: 1px solid var(--color-border);
+}
+/* The footer's logo treatments assume a dark surface: the primary logo is
+ * inverted (and clients often whiten every footer image). On the light
+ * surface show images as authored; a dedicated light-on-dark footer logo
+ * (brand.logo.footer) gets a dark plate instead. In .dark the "light" footer
+ * is the dark muted surface, so the dark-footer treatments stay. */
+html[data-c5-footer="light"]:not(.dark) [data-component="footer"] img { filter: none; }
+html[data-c5-footer="light"]:not(.dark) [data-component="footer"] [data-c5="logo"] img { opacity: 1; }
+html[data-c5-footer="light"]:not(.dark) [data-component="footer"] [data-c5="logo"][data-c5-variant="footer"] {
+  background-color: var(--color-near-black);
+  padding: 0.375rem 0.75rem;
+  border-radius: var(--radius-md);
 }
 html[data-c5-footer="brand"] [data-component="footer"] {
   --color-footer: var(--color-primary);
   --color-footer-foreground: var(--color-primary-foreground);
+  background-color: var(--color-footer);
+  color: var(--color-footer-foreground);
 }
 
 /* ---- accentUsage (data-c5="headline-accent") ----------------------------

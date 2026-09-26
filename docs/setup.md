@@ -71,12 +71,10 @@ These are non-negotiable. Each exists because past agents got it wrong:
 - **Do not put API keys or secrets into chat.** When asking about Resend
   / GA4 / GTM, ask only whether the user *plans* to use the feature; they
   will populate `.env.local` themselves afterward.
-- **Do not author `content/design-overrides.css` yourself.** The design
-  handoff (Phase 6) is *mediated* through Claude.ai Design on purpose —
-  it's a specialized design model and the human is the courier. Don't
-  shortcut that by generating CSS from your own design instincts, even if
-  you have frontend-design skills available. If the human says "skip",
-  leave the placeholder in place; do NOT fill in.
+- **Do not author `content/design-overrides.css` yourself.** Design is
+  done in the Revaltus Design Studio (Phase 6), not by the setup agent —
+  even if you have frontend-design skills available. Leave the placeholder
+  in place.
 
 ---
 
@@ -285,82 +283,19 @@ npm run build          # the only gate that proves the whole pipeline composes
 
 ---
 
-## Phase 6 — Design handoff to Claude.ai Design
+## Phase 6 — Design (nothing to do locally)
 
-This is a *mediated* handoff: you (the local agent) drive the local side;
-the human is the round-trip courier to Claude.ai Design.
+Per-client visual design is done in the **Revaltus Design Studio** in the
+onboarding platform, after the site is deployed: it reads the live site and
+`/design-specimen` and writes `content/design.json` (incl. `style` axes),
+`content/design-overrides.css` and the fonts module back to the repo. The
+old `export-brief` → Claude.ai paste handoff is retired.
 
-### Step 1 — Generate the brief
+Leave the `content/design-overrides.css` placeholder as shipped and proceed
+to Phase 7. Tell the human, verbatim:
 
-```bash
-npm run export-brief
-```
-
-The script writes `design-brief.md` to the repo root. It captures the
-firm's content, brand tokens, the full CSS-variable contract, the
-22-block vocabulary with `data-block` selectors, every page's markdown,
-and the live-rendered HTML for every block + persistent chrome (navbar,
-footer, consent banner). The script starts a brief dev-server fetch
-internally — you don't need to manage that.
-
-### Step 2 — Hand off to the human
-
-Print this message to the human, verbatim:
-
-> The design brief is ready at `design-brief.md`.
->
-> 1. Open a new chat at https://claude.ai
-> 2. Attach `design-brief.md` to the message
-> 3. Send: *"Produce design-overrides.css per the brief."*
-> 4. When Claude.ai replies, copy the CSS code block (everything
->    between the ```` ```css ```` and ```` ``` ```` fences) and paste it
->    back to me as your next message.
-> 5. If Claude.ai also returns a refined `design.json` block, paste it
->    too — I'll handle both.
-> 6. If you'd rather skip the design handoff and finish setup now, just
->    reply "skip" or "later".
-
-Then **wait** for the human's next message. The pause can be long
-(minutes — they're round-tripping through another LLM session). Do NOT
-poll. Do NOT proactively continue to Phase 7.
-
-### Step 3 — Apply the design
-
-When the human replies with CSS:
-
-1. Write the CSS verbatim to `content/design-overrides.css` (replaces
-   the placeholder that ships with the template). Use `Write`, not
-   `Edit` — this file is a placeholder so old → new is a full replace.
-2. If the reply also includes a JSON block that has the shape of
-   `content/design.json` (top-level `typography`, `roundness`,
-   `spacing`, `radius`), overwrite `content/design.json` with it, then
-   regenerate the theme:
-   ```bash
-   npx tsx scripts/generate-theme.ts
-   ```
-   Confirm the script's `✓ Wrote …/theme.css` line.
-3. Re-run a focused build to verify the CSS doesn't break anything:
-   ```bash
-   npm run build
-   ```
-   Lint / tsc / test cannot be broken by CSS edits, so they don't need
-   to re-run; the build is the only check that matters. Expect exit 0.
-
-### Step 4 — Skip path
-
-If the human replies "skip", "later", "no", or anything similar (use
-judgement), leave `content/design-overrides.css` as the placeholder and
-proceed to Phase 7. Note the skip in the report.
-
-### Step 5 — If the build fails after applying CSS
-
-The most common cause is malformed CSS (missing brace, mistyped
-selector). Surface the build error and the offending CSS lines to the
-human; do NOT attempt to "fix" their CSS yourself. Suggest they paste a
-corrected version.
-
-If the build error looks unrelated to CSS, follow the regular build-
-failure path in the failure recovery playbook below.
+> Design is handled in the Revaltus Design Studio once the site is
+> deployed — nothing to do here.
 
 ---
 
@@ -377,7 +312,7 @@ Setup complete. Build green; nothing committed.
 - forms: <resend / external <url> / mailto fallback>
 - booking: <calendly <url> / iframe <url> / none>
 - analytics: <GA4 / GTM / GA4+GTM / none>
-- design: <applied via Claude.ai handoff / skipped — placeholder kept>
+- design: placeholder kept (done later in the Revaltus Design Studio)
 - CSP mode: report-only (flip to enforce after first clean Vercel deploy)
 
 ## Pending — your turn
@@ -385,7 +320,7 @@ Setup complete. Build green; nothing committed.
 - Commit when satisfied:  git add -A && git commit -m "chore: unpack initial deliverable for <client-slug>"
 - (If Resend) edit .env.local and paste RESEND_API_KEY
 - (If GA4/GTM) edit .env.local and paste the measurement ID(s)
-- (If design skipped) when ready, run `npm run export-brief`, then follow how-to-new-site.md §6
+- Design the site in the Revaltus Design Studio after deploy (how-to-new-site.md §6)
 - Push to your client GitHub remote (originally cloned from the template; you set up the new origin manually)
 - Deploy to Vercel — see docs/how-to-new-site.md step 7
 
@@ -394,12 +329,11 @@ Setup complete. Build green; nothing committed.
 - npx tsc --noEmit:        green
 - npm test:                177/177 (or whatever vitest reported)
 - npm run build:           exit 0; route table matches expectations
-- design (if applied):    rebuild after applying overrides also exit 0
 
 ## What I did NOT do
 - Did not commit (per setup.md)
 - Did not push (per setup.md)
-- Did not author design CSS myself (per setup.md — that's Claude.ai Design's job)
+- Did not author design CSS myself (per setup.md — that's the Design Studio's job)
 - Did not flip CSP to enforce (do this AFTER the first clean Vercel deploy)
 - Did not run `vercel deploy` (deploy steps live in how-to-new-site.md §7)
 - Did not paste any API keys; you'll add them to .env.local yourself
@@ -423,7 +357,6 @@ For each likely failure, here's the signature and what to do.
 | `next build` exits non-zero | Build failed for real (not the expected DYNAMIC_SERVER_USAGE info line) | Capture the last 30 lines of build output. The most common real failures are: a malformed page slug, a missing route handler, or a node version mismatch. Surface to human + suggest reading [`security-incidents.md`](./security-incidents.md) §"Vercel deploy build fails on validate". |
 | `npm install` fails | Often network or registry issue | Surface the npm error verbatim. Don't retry more than once. |
 | Port 3000 in use during a smoke check | Another dev server is running | You shouldn't be running dev anyway; if you somehow ended up here, use `kill $(lsof -ti:3000)` (with the human's permission) or just skip the smoke check. |
-| `npm run export-brief` fails | Brief script needs a dev server briefly; may fail if port conflicts or the script can't reach localhost | Surface the export-brief error. Suggest the human ensures no other dev server is running and retry. If it keeps failing, offer to skip Phase 6 and have them run it later. |
 | Build fails immediately after pasting design CSS | Malformed CSS — usually a missing brace, mistyped selector, or stray character | Surface the build error + the relevant lines from `content/design-overrides.css`. Do NOT try to fix the CSS yourself. Suggest the human go back to Claude.ai with the error and ask for a corrected version, then paste again. |
 | Human pastes something that doesn't look like CSS | Sometimes they paste the brief back instead of the CSS, or stop mid-paste | Don't write a malformed file. Surface what you received (first ~20 lines) and ask for a clarifying paste; or honor `skip` if they explicitly say so. |
 

@@ -36,6 +36,13 @@ describe('style-axis hooks', () => {
     }
     expect(readFileSync(path.join(process.cwd(), 'src/components/ui/framed-media.tsx'), 'utf-8')).toContain('data-c5="media-grade"')
   })
+  it('the NavBar and Footer logo links carry data-c5="logo"', () => {
+    const nav = readFileSync(path.join(process.cwd(), 'src/components/nav/NavBar.tsx'), 'utf-8')
+    expect(nav).toMatch(/<Link href="\/" [^>]*aria-label=\{`\$\{brand\.firm\.name\} home`\} data-c5="logo">/)
+    const footer = readFileSync(path.join(process.cwd(), 'src/components/footer/Footer.tsx'), 'utf-8')
+    expect(footer).toContain('data-c5="logo"')
+    expect(footer).toContain(`data-c5-variant={brand.logo.footer ? 'footer' : undefined}`)
+  })
   it('no stylesheet except src/styles/style-axes.css references data-c5 (R1)', () => {
     const css: string[] = []
     const walk = (dir: string) => {

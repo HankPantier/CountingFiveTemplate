@@ -254,8 +254,8 @@ the existing build cache instead of rebuilding.
 
 If you're not sure what fired or why, the path is always:
 
-1. **Function logs** (Vercel dashboard → Logs) — the `[contact]`,
-   `[next.config]`, and `[design-preview]` log prefixes make filtering easy.
+1. **Function logs** (Vercel dashboard → Logs) — the `[contact]`
+   and `[next.config]` log prefixes make filtering easy.
 2. **Browser console + Network tab** for client-side symptoms.
 3. **`git log -p` of recent template changes** if the timing correlates with
    a sync.

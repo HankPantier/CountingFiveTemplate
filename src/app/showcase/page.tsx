@@ -5,7 +5,7 @@ import { makeSampleManifest, makeSampleSection } from '@/lib/showcase/samples'
 
 /**
  * Dev-only showcase route. Renders every block in BLOCK_REGISTRY with a
- * realistic sample so designers (Claude.ai handoff included) and reviewers
+ * realistic sample so designers and reviewers
  * can see the visual vocabulary before any real content is unpacked.
  *
  * Production: hard 404 via notFound(). The route compiles but never serves.

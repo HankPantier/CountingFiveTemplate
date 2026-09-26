@@ -9,8 +9,8 @@ const ONE_YEAR_SECONDS = 60 * 60 * 24 * 365
 type ConsentBannerProps = {
   /**
    * Render with inline display:none. Used by <Analytics> for the SSR /
-   * pre-cookie-read state so the markup is present in plain SSR HTML (the
-   * design-brief script captures it by regex) without flashing at visitors
+   * pre-cookie-read state so the markup is present in plain SSR HTML
+   * without flashing at visitors
    * who already decided. Inline style (not a class) so it can't lose a
    * specificity fight with the layout classes below.
    */
@@ -21,9 +21,8 @@ type ConsentBannerProps = {
 /**
  * ConsentBanner — sticky bottom card with Accept / Decline.
  *
- * Outer element is <aside data-component="cookie-consent"> so the
- * design-brief script's chrome-capture regex picks it up the same way
- * it captures navbar + footer. Slots are exposed via data-slot so
+ * Outer element is <aside data-component="cookie-consent">, the same
+ * chrome hook as the navbar + footer. Slots are exposed via data-slot so
  * design-overrides.css can target precisely without inspecting our
  * internals.
  *

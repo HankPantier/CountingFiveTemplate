@@ -171,22 +171,17 @@ git add -A && git commit -m "chore: unpack initial deliverable for <client>"
 
 ---
 
-## 6. (Optional) Design handoff to Claude.ai
+## 6. (Optional) Design in the Revaltus Design Studio
 
-For a bespoke visual treatment beyond the default theme:
-
-```bash
-npm run export-brief                       # writes ./design-brief.md
-# Attach design-brief.md in a Claude.ai chat → "Produce design-overrides.css per the brief."
-# Save the result as content/design-overrides.css, then:
-npm run dev
-```
+For a bespoke visual treatment beyond the default theme, use the **Design Studio**
+in the onboarding platform once the site is deployed. It reads the live site plus
+`/design-specimen` and writes `content/design.json` (incl. the `style` axes),
+`content/design-overrides.css` and `src/app/fonts.generated.ts` back to the repo.
+(The old `export-brief` → Claude.ai paste handoff is retired.)
 
 `content/design-overrides.css` is committed per clone and is **not** overwritten by
-re-running `unpack`. If Claude also returns refined tokens, overwrite
-`content/design.json` and run `npx tsx scripts/generate-theme.ts`.
-
-**Tight iteration loop:** for back-and-forth design rounds, run `npm run design-preview` in a second terminal alongside `npm run dev`. The watcher re-generates `design-brief.md` automatically whenever `content/` or `site.config.ts` changes, so the next paste into Claude.ai always reflects the latest state.
+re-running `unpack`. After editing `content/design.json` by hand, run
+`npx tsx scripts/generate-theme.ts` and `npm run generate-fonts`.
 
 ---
 
@@ -242,8 +237,6 @@ Your `site.config.ts`, `content/design-overrides.css`, and source changes surviv
 | `npm run unpack <zip>` | Unpack a Phase I deliverable + regenerate theme |
 | `npm run new-client <zip>` | One-shot: install + unpack + validate + initial commit |
 | `npm run validate` | Sanity-check a deliverable (frontmatter, files, image refs) |
-| `npm run export-brief` | Generate the Claude.ai design brief |
-| `npm run design-preview` | Watch `content/` + auto-re-export the brief on change |
 | `npx tsx scripts/generate-theme.ts` | Regenerate `theme.css` from brand/design JSON |
 | `npm run lint` / `npm test` | Lint / vitest suite |
 

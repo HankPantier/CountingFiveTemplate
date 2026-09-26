@@ -4,7 +4,7 @@ import { KNOWN_CAPABILITIES, TEMPLATE_MARKER, capabilitiesMetaContent } from './
 describe('c5-template.json', () => {
   it('declares exactly the T2 capabilities (R2)', () => {
     expect(TEMPLATE_MARKER).toEqual({
-      templateVersion: '2026.09.2',
+      templateVersion: '2026.09.3',
       capabilities: ['fonts', 'style-axes', 'specimen'],
     })
   })
