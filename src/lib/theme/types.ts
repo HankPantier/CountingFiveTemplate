@@ -6,6 +6,9 @@ export type DesignJson = {
   typography: {
     headingFont: string
     bodyFont: string
+    /** Italic-serif accent role (Ink & Clay). Absent in older design.json files
+     * → the generated fonts module uses the default (Fraunces). */
+    accentFont?: string
     googleFontsUrl: string
   }
   roundness: Roundness
