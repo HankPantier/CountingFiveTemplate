@@ -55,7 +55,7 @@ export function NavBar({ brand, nav }: { brand: BrandJson; nav: NavJson }) {
       )}
     >
       <div className="max-w-7xl mx-auto h-16 px-4 sm:px-6 lg:px-8 flex items-center justify-between">
-        <Link href="/" className="flex items-center gap-2" aria-label={`${brand.firm.name} home`}>
+        <Link href="/" className="flex items-center gap-2" aria-label={`${brand.firm.name} home`} data-c5="logo">
           {brand.logo.primary ? (
             <Image
               src={resolveImageSrc(brand.logo.primary)!}

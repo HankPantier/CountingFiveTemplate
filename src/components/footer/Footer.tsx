@@ -23,7 +23,13 @@ export async function Footer() {
       {/* Main */}
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12 md:py-16 grid gap-8 md:grid-cols-4">
         <div className="md:col-span-1 space-y-3">
-          <Link href="/" className="inline-flex items-center" aria-label={`${brand.firm.name} home`}>
+          <Link
+            href="/"
+            className="inline-flex items-center"
+            aria-label={`${brand.firm.name} home`}
+            data-c5="logo"
+            data-c5-variant={brand.logo.footer ? 'footer' : undefined}
+          >
             {brand.logo.footer ? (
               <Image
                 src={resolveImageSrc(brand.logo.footer)!}
