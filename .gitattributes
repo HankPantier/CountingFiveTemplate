@@ -1,0 +1,6 @@
+# Force LF for files whose committed bytes are compared verbatim in tests
+# (fonts-generated.test.ts, font-manifest.test.ts) — a CRLF checkout
+# (e.g. Windows with core.autocrlf=true) would otherwise false-fail parity.
+*.golden.txt text eol=lf
+docs/design/*.json text eol=lf
+src/app/fonts.generated.ts text eol=lf
