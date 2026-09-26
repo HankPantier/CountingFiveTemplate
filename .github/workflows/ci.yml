@@ -55,16 +55,27 @@ jobs:
       - name: Checkout
         uses: actions/checkout@v4
 
+      # This job runs a full second `next build` and is only useful in the
+      # template repo itself (it proves every manifest font family resolves).
+      # A client repo carries no content/.template-default marker (npm run
+      # unpack removes it — see scripts/unpack-deliverable.ts), so gate every
+      # step after checkout on it, rather than the job's own `if:` — a
+      # job-level `if:` is evaluated before checkout runs, so hashFiles()
+      # would always see an empty workspace and the condition would never be
+      # true, permanently disabling the job everywhere including here.
       - name: Setup Node 20
+        if: ${{ hashFiles('content/.template-default') != '' }}
         uses: actions/setup-node@v4
         with:
           node-version: '20'
           cache: 'npm'
 
       - name: Install
+        if: ${{ hashFiles('content/.template-default') != '' }}
         run: npm ci
 
       - name: Cache Next build
+        if: ${{ hashFiles('content/.template-default') != '' }}
         uses: actions/cache@v4
         with:
           path: .next/cache
@@ -76,7 +87,9 @@ jobs:
       # resolves. This job never commits or pushes, so the repo's committed
       # src/app/fonts.generated.ts is untouched.
       - name: Generate an all-fonts module
+        if: ${{ hashFiles('content/.template-default') != '' }}
         run: npx tsx scripts/generate-fonts.ts --all
 
       - name: Build
+        if: ${{ hashFiles('content/.template-default') != '' }}
         run: npm run build
