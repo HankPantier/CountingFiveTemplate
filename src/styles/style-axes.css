@@ -63,9 +63,28 @@ html[data-c5-nav="bordered"] [data-component="navbar"] { border-bottom: 1px soli
 html[data-c5-nav="inverted"] [data-component="navbar"] {
   --color-background: var(--color-primary);
   --color-foreground: var(--color-primary-foreground);
-  --color-muted-foreground: color-mix(in srgb, var(--color-primary-foreground) 75%, transparent);
-  --color-border: color-mix(in srgb, var(--color-primary-foreground) 18%, transparent);
+  border-color: color-mix(in srgb, var(--color-primary-foreground) 18%, transparent);
   color: var(--color-foreground);
+}
+/* Active top-level item: NavBar paints it text-primary, which would vanish
+ * on the primary bar. Scoped to the bar's own list (li > a|button), so links
+ * inside a dropdown keep their accent styling. */
+html[data-c5-nav="inverted"] [data-component="navbar"] nav > div > ul > li > :is(a[aria-current="page"], button[data-active]) {
+  color: var(--color-primary-foreground);
+  text-decoration-color: var(--color-action);
+}
+/* The CTA (default Button = bg-primary) would merge into the bar: invert it. */
+html[data-c5-nav="inverted"] [data-component="navbar"] a[data-c5="button"] {
+  background-color: var(--color-primary-foreground);
+  color: var(--color-primary);
+}
+html[data-c5-nav="inverted"] [data-component="navbar"] a[data-c5="button"]:hover {
+  background-color: color-mix(in srgb, var(--color-primary-foreground) 88%, transparent);
+}
+/* Dropdown panels render inside the header: hand them back the page tokens. */
+html[data-c5-nav="inverted"] [data-component="navbar"] .bg-popover {
+  --color-background: var(--color-popover);
+  --color-foreground: var(--color-popover-foreground);
 }
 
 /* ---- footer ([data-component="footer"]: re-scope the footer tokens) ---- */

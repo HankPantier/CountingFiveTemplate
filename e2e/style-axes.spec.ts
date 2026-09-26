@@ -42,3 +42,32 @@ test('every non-default axis value changes the rendered page', async ({ page }) 
   }
   expect(Buffer.compare(baseline, await shot())).toBe(0)
 })
+
+test('nav="inverted" keeps the active item and the CTA visible on the bar', async ({ page }) => {
+  await page.setViewportSize({ width: 1280, height: 900 })
+  // An interior page whose top-level nav item is active.
+  await page.goto('/pricing-calculator')
+  await page.evaluate(() => document.documentElement.setAttribute('data-c5-nav', 'inverted'))
+  const header = page.locator('[data-component="navbar"]')
+  const active = header.locator('nav [aria-current="page"], nav button[data-active]').first()
+  await expect(active).toBeVisible()
+  // The template nav has no CTA; add one with the Button default-variant
+  // surface (bg-primary) when absent, exactly as NavBar renders it.
+  await page.evaluate(() => {
+    const bar = document.querySelector('[data-component="navbar"]')!
+    if (bar.querySelector('a[data-c5="button"]')) return
+    const a = document.createElement('a')
+    a.href = '/contact'
+    a.textContent = 'Get started'
+    a.setAttribute('data-c5', 'button')
+    a.className = 'inline-flex h-10 items-center rounded-md px-4 py-2 bg-primary text-primary-foreground'
+    bar.querySelector(':scope > div > div:last-child')!.prepend(a)
+  })
+  // The header has transition-colors: read settled values, not a mid-fade.
+  await page.evaluate(() => Promise.all(document.getAnimations().map((a) => a.finished)))
+  const bg = await header.evaluate((el) => getComputedStyle(el).backgroundColor)
+  const activeColor = await active.evaluate((el) => getComputedStyle(el).color)
+  const ctaBg = await header.locator('a[data-c5="button"]').first().evaluate((el) => getComputedStyle(el).backgroundColor)
+  expect(activeColor, 'active nav item is invisible on the inverted bar').not.toBe(bg)
+  expect(ctaBg, 'nav CTA merges into the inverted bar').not.toBe(bg)
+})
