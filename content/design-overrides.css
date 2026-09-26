@@ -6,7 +6,7 @@
  *   [data-block="hero"] { ... }
  *   [data-block="feature-grid"] h2 { ... }
  *
- * Cascade order: tailwindcss → theme.css → design-overrides.css. Use specific
+ * Cascade order: tailwindcss → theme.css → style-axes.css → design-overrides.css. Use specific
  * selectors (data-block attribute + descendant) instead of !important.
  *
  * To regenerate: run `npm run export-brief`, paste the brief into Claude.ai

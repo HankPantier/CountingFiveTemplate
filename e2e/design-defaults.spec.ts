@@ -1,4 +1,7 @@
+import { readFileSync } from 'node:fs'
+import path from 'node:path'
 import { test, expect } from '@playwright/test'
+import { styleAxisAttributes } from '../src/lib/theme/style-axes'
 import { IS_TEMPLATE_DEFAULT, NOT_TEMPLATE_DEFAULT_REASON } from './template-default'
 
 /**
@@ -9,10 +12,22 @@ import { IS_TEMPLATE_DEFAULT, NOT_TEMPLATE_DEFAULT_REASON } from './template-def
  * template's OWN content/design.json are gated on content/.template-default
  * (see e2e/template-default.ts) so they skip in client repos.
  */
-test('no data-c5-* style-axis attributes on <html> by default', async ({ page }) => {
+// Content-agnostic: <html> carries exactly the data-c5-* attributes for the
+// NON-default values in THIS repo's content/design.json "style" (none when
+// style is absent or all-default), so client repos that opt into axes pass.
+test('<html> data-c5-* style-axis attributes match design.json style (none by default)', async ({ page }) => {
+  const design = JSON.parse(readFileSync(path.resolve(__dirname, '..', 'content', 'design.json'), 'utf-8')) as {
+    style?: unknown
+  }
+  const expected = styleAxisAttributes(design.style)
   await page.goto('/')
-  const names = await page.evaluate(() => document.documentElement.getAttributeNames())
-  expect(names.filter((n) => n.startsWith('data-c5'))).toEqual([])
+  const actual = await page.evaluate(() => {
+    const el = document.documentElement
+    return Object.fromEntries(
+      el.getAttributeNames().filter((n) => n.startsWith('data-c5')).map((n) => [n, el.getAttribute(n) ?? '']),
+    )
+  })
+  expect(actual).toEqual(expected)
 })
 
 // Content-agnostic (every page ships from the shared root layout): the

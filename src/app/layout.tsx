@@ -16,6 +16,7 @@ import { getNavConfig } from '@/lib/nav/get-nav-config'
 import { getClientCenterConfig } from '@/lib/client-center/get-client-center-config'
 import { getDesignConfig } from '@/lib/theme/get-theme-vars'
 import { capabilitiesMetaContent } from '@/lib/theme/template-marker'
+import { styleAxisAttributes } from '@/lib/theme/style-axes'
 import { siteConfig } from '../../site.config'
 
 export async function generateMetadata(): Promise<Metadata> {
@@ -105,6 +106,9 @@ export default async function RootLayout({
       // off 'serif' / 'mono' — so untouched sites render exactly as before.
       data-headline={design.headlineStyle ?? 'sans'}
       data-eyebrow={design.eyebrowStyle ?? 'standard'}
+      // Design Studio style axes (design.json "style"). Only NON-default values
+      // emit an attribute, so untouched sites match no style-axes.css rule.
+      {...styleAxisAttributes(design.style)}
       style={fontAliases}
       // next-themes sets the theme class on <html> before hydration, so the
       // server/client class attributes intentionally differ on first paint.
