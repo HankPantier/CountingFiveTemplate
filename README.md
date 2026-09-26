@@ -78,6 +78,8 @@ Running theme generator...
 
 The script is **idempotent** — running it again with the same zip (or a fresh deliverable later) overwrites `content/` and regenerates the theme. Your hand-edits to `content/design-overrides.css`, your source code, and any other files in the repo stay untouched.
 
+`content/.template-default` (if present) marks the *template's own* default content — it gates the template's internal pixel-baseline and content-dependent specs so they don't run against client content. It's template-only: `npm run unpack` removes it as part of the unpack step, so it never reaches a client repo or a client's CI run.
+
 ### 4. Start the dev server
 
 ```bash
