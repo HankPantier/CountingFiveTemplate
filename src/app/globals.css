@@ -3,6 +3,10 @@
 @import "../styles/style-axes.css";
 @import "../../content/design-overrides.css";
 
+/* dark: follows next-themes' .dark class on <html> (not the OS media query),
+ * matching the .dark token block in theme.css. */
+@custom-variant dark (&:where(.dark, .dark *));
+
 @layer base {
   * {
     @apply border-border;

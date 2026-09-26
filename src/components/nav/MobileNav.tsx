@@ -32,7 +32,7 @@ export function MobileNav({ nav }: { nav: NavJson }) {
                   <AccordionTrigger
                     className={cn(
                       'px-4 py-3 hover:no-underline text-base font-medium',
-                      itemActive && 'text-primary'
+                      itemActive && 'text-primary dark:text-foreground'
                     )}
                   >
                     {item.label}
@@ -43,7 +43,7 @@ export function MobileNav({ nav }: { nav: NavJson }) {
                       aria-current={pathname === item.url ? 'page' : undefined}
                       className={cn(
                         'block py-2 text-sm text-muted-foreground hover:text-foreground',
-                        pathname === item.url && 'text-primary font-semibold'
+                        pathname === item.url && 'text-primary font-semibold dark:text-foreground'
                       )}
                       onClick={() => setOpen(false)}
                     >
@@ -58,7 +58,7 @@ export function MobileNav({ nav }: { nav: NavJson }) {
                           aria-current={childActive ? 'page' : undefined}
                           className={cn(
                             'block py-2 text-sm text-muted-foreground hover:text-foreground',
-                            childActive && 'text-primary font-semibold'
+                            childActive && 'text-primary font-semibold dark:text-foreground'
                           )}
                           onClick={() => setOpen(false)}
                         >
@@ -75,7 +75,7 @@ export function MobileNav({ nav }: { nav: NavJson }) {
                   aria-current={itemActive ? 'page' : undefined}
                   className={cn(
                     'block px-4 py-3 text-base font-medium hover:bg-accent hover:text-accent-foreground rounded-md',
-                    itemActive && 'text-primary'
+                    itemActive && 'text-primary dark:text-foreground'
                   )}
                   onClick={() => setOpen(false)}
                 >

@@ -11,4 +11,6 @@
  * Exception: when design.json "style" sets accentUsage, style-axes.css sets
  * the headline accent to `color: inherit !important`, so overriding the
  * [data-c5="headline-accent"] colour here needs !important too.
+ * Likewise the nav/footer style presets (design.json "style".nav / .footer)
+ * out-specify plain [data-component] rules here; use !important to override.
  */

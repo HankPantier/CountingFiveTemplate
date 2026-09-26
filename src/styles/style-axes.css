@@ -11,7 +11,11 @@
  * Hooks: data-c5="button" | "headline-accent" | "media-grade" | "logo",
  * data-c5-spacing, data-c5-variant (footer logo).
  * Tokens are re-scoped (e.g. --color-footer on the footer) rather than
- * restyling descendants, so every nested utility follows. */
+ * restyling descendants, so every nested utility follows.
+ * Specificity: the nav/footer presets deliberately out-specify typical
+ * design-overrides.css chrome rules (html[data-c5-*] [data-component] beats
+ * [data-component]), so a chosen preset stays legible; a client rule can
+ * still win with !important. */
 
 /* ---- sectionRhythm (Section's padded element: data-c5-spacing) ---------- */
 html[data-c5-section-rhythm="compact"] [data-c5-spacing="compact"] { padding-block: 2rem; }
@@ -72,6 +76,10 @@ html[data-c5-nav="bordered"].dark [data-component="navbar"] {
 html[data-c5-nav="bordered"] [data-component="navbar"] nav > div > ul > li > :is(a[aria-current="page"], button[data-active]) {
   background-color: color-mix(in srgb, var(--color-primary) 10%, transparent);
   text-decoration-color: var(--color-primary);
+}
+html[data-c5-nav="bordered"].dark [data-component="navbar"] nav > div > ul > li > :is(a[aria-current="page"], button[data-active]) {
+  background-color: color-mix(in srgb, var(--color-foreground) 12%, transparent);
+  text-decoration-color: var(--color-action);
 }
 html[data-c5-nav="inverted"] [data-component="navbar"] {
   --color-background: var(--color-primary);

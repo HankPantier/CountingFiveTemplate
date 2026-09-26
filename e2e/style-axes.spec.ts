@@ -97,29 +97,36 @@ const CLIENT_STYLE_OVERRIDES = `
 `
 type Page = import('@playwright/test').Page
 
-async function withAxis(page: Page, attr: string, value: string, overrides = false) {
+async function withAxis(page: Page, attr: string, value: string, overrides = false, scheme: 'light' | 'dark' = 'light') {
   await page.setViewportSize({ width: 1280, height: 900 })
+  // defaultTheme="system": next-themes puts .dark on <html> for a dark OS.
+  await page.emulateMedia({ colorScheme: scheme })
   await page.goto('/pricing-calculator')
   await page.waitForLoadState('networkidle')
+  if (scheme === 'dark') await expect(page.locator('html')).toHaveClass(/\bdark\b/)
   if (overrides) await page.addStyleTag({ content: CLIENT_STYLE_OVERRIDES })
-  await page.evaluate(([a, v]) => document.documentElement.setAttribute(a, v), [attr, value])
+  if (value !== 'default') await page.evaluate(([a, v]) => document.documentElement.setAttribute(a, v), [attr, value])
   // The header has transition-colors: read settled values, not a mid-fade.
   await page.evaluate(() => Promise.all(document.getAnimations().map((a) => a.finished)))
 }
 
-for (const value of ['bordered', 'inverted']) {
-  test(`nav="${value}": links, active item and icons meet WCAG AA on the bar`, async ({ page }) => {
-    await withAxis(page, 'data-c5-nav', value, true)
-    const links = await measureContrast(page, { selector: `${NAV} nav > div > ul > li > :is(a, button)`, bgOf: NAV })
-    expectAll(links, 4.5, 'nav links')
-    const active = await measureContrast(page, { selector: `${NAV} nav :is([aria-current="page"], button[data-active])`, bgOf: NAV })
-    expectAll(active, 4.5, 'active nav item')
-    expectAll(await measureContrast(page, { selector: `${NAV} button svg`, bgOf: NAV }), 3, 'nav icons')
-    // The logo link: a wordmark (template) or an image; text measured on its own surface.
-    await expect(page.locator(`${NAV} [data-c5="logo"]`)).toHaveCount(1)
-    const wordmark = await measureContrast(page, { selector: `${NAV} [data-c5="logo"] span` })
-    if (wordmark.length) expectAll(wordmark, 4.5, 'wordmark')
-  })
+for (const scheme of ['light', 'dark'] as const) {
+  for (const value of ['default', 'bordered', 'inverted']) {
+    test(`nav="${value}" (${scheme}): links, active item and icons meet WCAG AA on the bar`, async ({ page }) => {
+      await withAxis(page, 'data-c5-nav', value, true, scheme)
+      // Each item on its OWN stacked surface: the bordered active item sits on
+      // its tinted chip, the rest on the bar.
+      const links = await measureContrast(page, { selector: `${NAV} nav > div > ul > li > :is(a, button)` })
+      expectAll(links, 4.5, 'nav links')
+      const active = await measureContrast(page, { selector: `${NAV} nav :is([aria-current="page"], button[data-active])` })
+      expectAll(active, 4.5, 'active nav item')
+      expectAll(await measureContrast(page, { selector: `${NAV} button svg`, bgOf: NAV }), 3, 'nav icons')
+      // The logo link: a wordmark (template) or an image; text measured on its own surface.
+      await expect(page.locator(`${NAV} [data-c5="logo"]`)).toHaveCount(1)
+      const wordmark = await measureContrast(page, { selector: `${NAV} [data-c5="logo"] span` })
+      if (wordmark.length) expectAll(wordmark, 4.5, 'wordmark')
+    })
+  }
 }
 
 test('nav="inverted" puts the logo on a light plate distinct from the bar', async ({ page }) => {
