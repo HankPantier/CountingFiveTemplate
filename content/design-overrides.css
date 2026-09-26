@@ -1,4 +1,4 @@
-/* design-overrides.css — per-client CSS authored or refined by Claude.ai Design.
+/* design-overrides.css — per-client CSS authored by the Revaltus Design Studio (or by hand).
  *
  * This file is loaded AFTER src/styles/theme.css, so any rules here override
  * the default block styling. Target blocks via the data-block attribute:
@@ -11,7 +11,4 @@
  * Exception: when design.json "style" sets accentUsage, style-axes.css sets
  * the headline accent to `color: inherit !important`, so overriding the
  * [data-c5="headline-accent"] colour here needs !important too.
- *
- * To regenerate: run `npm run export-brief`, paste the brief into Claude.ai
- * Design, save the returned CSS as this file, then `npm run dev`.
  */

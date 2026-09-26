@@ -52,9 +52,8 @@ function getServerSnapshot(): Consent | null {
  *
  * SSR/flash behavior: until the client-side cookie read runs (state null),
  * the banner is rendered HIDDEN (inline display:none). This keeps its markup
- * in the plain SSR HTML — which scripts/export-design-brief.ts captures with
- * a regex and cannot execute JS for — while consented visitors never see a
- * flash. After the read: 'unset' ALWAYS reveals it (every undecided visitor
+ * in the plain SSR HTML — visible to tools that read the page without running
+ * JS — while consented visitors never see a flash. After the read: 'unset' ALWAYS reveals it (every undecided visitor
  * sees the banner even with no analytics configured — it's the right-to-consent
  * prompt and the reopen target for the footer "Cookie preferences" button),
  * 'accepted' swaps in GA/GTM (or nothing when no ID is set), 'declined' renders

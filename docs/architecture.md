@@ -135,23 +135,18 @@ store). `Analytics` re-renders immediately with the GA/GTM tag (accept) or
 nothing (decline) — pure client state, no server round-trip, no reload,
 scroll position preserved.
 
-### `_cookie-preview` escape hatch (now inert)
+### `_cookie-preview` (inert)
 
-`scripts/export-design-brief.ts` still sends `Cookie: _cookie-preview=1` on
-its chrome-capture fetch, but the cookie no longer does anything: the banner
-markup is *always* in SSR output (hidden), even with no analytics IDs
-configured, so the brief's regex capture works unconditionally. The header is
-harmless and kept for compatibility with older clones' scripts.
+The cookie no longer does anything: the banner markup is *always* in SSR
+output (hidden), even with no analytics IDs configured. It was sent by the
+retired `export-brief` script; older clones may still send it harmlessly.
 
-## Design-brief integration
+## Persistent chrome hooks
 
-The brief (`scripts/export-design-brief.ts`) captures live rendered HTML from a running dev server. Block-level samples come from `data-block="..."` attributes; persistent chrome (navbar, footer, consent banner) comes from `data-component="..."` attributes. The regex in `fetchRenderedMarkup` matches outer `<section|header|aside|footer|nav>` tags carrying either attribute.
-
-To add a new persistent chrome element that should ship in the brief:
-
-1. Give its outer element a stable `data-component="<id>"` attribute on a matching outer tag.
-2. Add `<id>` to the ordering array in `export-design-brief.ts`'s chrome-rendering block (currently `['navbar', 'footer', 'cookie-consent']`).
-3. Add a descriptive paragraph in the same file noting selectors, slots, and the token contract Claude.ai Design should respect.
+Blocks carry `data-block="..."` and persistent chrome (navbar, footer, consent
+banner) carries `data-component="..."` on its outer element. Style-axis presets
+(`src/styles/style-axes.css`) and per-client `content/design-overrides.css`
+target these; the logo links also carry the inert `data-c5="logo"` hook.
 
 To target child slots from `content/design-overrides.css`, give them `data-slot="<name>"` attributes (e.g. `<button data-slot="accept">`). Designs then target via `[data-component="..."] [data-slot="..."]`.
 
@@ -393,21 +388,17 @@ The template is designed to be cloned per client (not consumed as a shared depen
 4. Edit `site.config.ts` for `siteUrl`, `legalLinks`, `forms.*`.
 5. Set `RESEND_API_KEY` (+ optional `NEXT_PUBLIC_GA4_ID` / `NEXT_PUBLIC_GTM_ID`) in `.env.local`.
 6. `npm run dev`, verify, commit.
-7. Optionally: `npm run export-brief` → Claude.ai Design → save `content/design-overrides.css`.
+7. Optionally: design the site in the Revaltus Design Studio (writes `content/design.json` + `content/design-overrides.css`).
 
 Re-running `npm run unpack` with a fresh deliverable overwrites `content/` and regenerates `src/styles/theme.css`. Hand-edits to `content/design-overrides.css`, `site.config.ts`, and source code are preserved.
 
 ## Operator workflow tooling
 
-Three helpers that don't change visitor-facing behavior but shorten the per-client setup loop and the design-handoff loop.
+Helpers that don't change visitor-facing behavior but shorten the per-client setup loop.
 
 ### `/showcase` (dev-only)
 
-`src/app/showcase/page.tsx` renders every block in `BLOCK_REGISTRY` with realistic CPA-flavored sample content. `notFound()` in production. Useful for the Claude.ai handoff (designer sees every block exactly once) and for reviewing the visual vocabulary before any real content is unpacked. The route is at `/showcase` rather than `/__showcase` because Next treats `_`-prefixed folders as private and excludes them from routing.
-
-### `scripts/design-preview.ts`
-
-Watches `content/` + `site.config.ts` and re-runs `export-brief` (debounced 400ms, serial-queued) so `design-brief.md` stays fresh while you iterate on content. Pairs with `npm run dev` in another terminal. Next dev hot-reloads `content/design-overrides.css` automatically; this script handles the orthogonal need of keeping the *brief input* current for the next Claude.ai paste.
+`src/app/showcase/page.tsx` renders every block in `BLOCK_REGISTRY` with realistic CPA-flavored sample content. `notFound()` in production. Useful for reviewing the visual vocabulary before any real content is unpacked. The route is at `/showcase` rather than `/__showcase` because Next treats `_`-prefixed folders as private and excludes them from routing.
 
 ### `scripts/new-client.ts`
 

@@ -230,8 +230,8 @@ What the pass changes (all `src/`-only — "take template's" applies):
    reading `document.cookie`; the root layout has no `cookies()` island and
    every page prerenders fully static. Visible behavior is unchanged
    (banner → accept/decline → GA/GTM; footer "Cookie preferences" still
-   withdraws). The banner ships hidden in SSR markup so design-brief capture
-   keeps working.
+   withdraws). The banner ships hidden in SSR markup so plain-HTML capture
+   keeps working (the design-brief script it served is now retired).
 2. **Content loaders return `null` for missing files** instead of throwing
    ENOENT across the `'use cache'` boundary (`getPageMarkdown`, `getPost`);
    page/route handlers translate null into 404s.
@@ -264,8 +264,8 @@ re-triggers the 500s — that file is the bug.
     after writing the cookie it reports the decision up and `<Analytics>`
     swaps in GA/GTM (or nothing) as pure client state.
   - **Keep the `hidden` prop wired to an inline `display:none`.** It is what
-    keeps the banner in SSR markup (the design-brief script captures it from
-    plain HTML) without flashing at visitors who already decided. Don't
+    keeps the banner in SSR markup (plain-HTML readers — originally the
+    since-retired design-brief script — see it) without flashing at visitors who already decided. Don't
     replace it with a CSS class — utility-class specificity fights make that
     unreliable — and don't render `null` instead, or the brief capture
     breaks.
