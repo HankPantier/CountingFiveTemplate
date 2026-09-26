@@ -18,6 +18,9 @@ export default defineConfig({
   retries: process.env.CI ? 1 : 0,
   workers: process.env.CI ? 2 : undefined,
   reporter: process.env.CI ? 'github' : 'list',
+  // @visual tests compare against screenshots captured on a developer machine
+  // (font rasterisation differs per OS), so they are a local R1 gate only.
+  grepInvert: process.env.CI ? /@visual/ : undefined,
 
   use: {
     baseURL: process.env.E2E_BASE_URL ?? 'http://localhost:3000',
