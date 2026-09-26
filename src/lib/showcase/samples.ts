@@ -38,27 +38,27 @@ export const SAMPLE_CONTENT: Record<string, string> = {
     'Foundations, 501(c)(3)s, and member organizations.',
   ].join('\n'),
   'team-grid': [
-    '### Jane Korbey',
+    '### Alex Rivera',
     '',
-    '_Managing Partner, CPA_',
+    '_Managing Partner_',
     '',
-    'Forty years of public-accounting practice. Specializes in succession planning and complex partnerships.',
+    'Placeholder bio — years of practice experience. Specializes in succession planning and complex partnerships.',
     '',
-    '### Tom Lague',
+    '### Jordan Blake',
     '',
-    '_Partner, CPA, MST_',
+    '_Partner_',
     '',
-    'Tax strategy, multistate filings, and trust + estate work.',
+    'Placeholder bio — strategy, multistate filings, and trust + estate work.',
   ].join('\n'),
   'testimonials': [
-    '> "Korbey Lague turned around our quarterly close from a three-week scramble into a four-day process."',
-    '> — Sarah Chen, COO at Northstar Manufacturing',
+    '> "Placeholder testimonial — describe the result the client experienced in their own words."',
+    '> — Client name, Title, Company',
     '',
-    '> "Best CPA experience we\'ve had — actual phone calls returned the same day."',
-    '> — Marcus Patel, Owner, Patel & Sons',
+    '> "Another placeholder testimonial — a second example quote."',
+    '> — Client name, Title, Company',
   ].join('\n'),
   'stats-bar': [
-    '- **50+** years serving the Merrimack Valley',
+    '- **50+** years serving the region',
     '- **200+** active business clients',
     '- **$2B+** in payroll processed annually',
   ].join('\n'),
@@ -125,7 +125,7 @@ export const SAMPLE_CONTENT: Record<string, string> = {
 }
 
 export const SAMPLE_FAQ: FaqItem[] = [
-  { question: 'Do you serve clients outside Massachusetts?', answer: 'Yes — we work with clients across New England and beyond.' },
+  { question: 'Do you serve clients outside the local area?', answer: 'Yes — we work with clients regionally and beyond.' },
   { question: 'Do you offer fixed-fee engagements?', answer: 'For most recurring work, yes. We scope every engagement up front.' },
 ]
 
