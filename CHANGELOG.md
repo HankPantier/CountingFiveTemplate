@@ -2,6 +2,21 @@
 
 All notable changes to this template are recorded here. The format follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/) and the project loosely follows semver — though as a per-client template, "release" means "checkpoint on `main`" rather than a published package version.
 
+## [2026.09.2] — Design Studio T2: style axes + design specimen
+
+### Added
+- **Style axes.** `design.json.style` (sectionRhythm, cards, buttons, heroScale,
+  imageTreatment, nav, footer, accentUsage — see `src/lib/theme/style-axes.ts`,
+  mirrored at `docs/design/style-axes.json`) → `<html data-c5-*>` → presets in
+  `src/styles/style-axes.css` (imported between theme.css and the overrides).
+  `default` / absent emits nothing: untouched sites are unchanged.
+- Inert hooks: `data-c5="button"`, `data-c5="headline-accent"`,
+  `data-c5="media-grade"`, `data-c5-spacing`.
+- **`/design-specimen`** — every block once (first real instance from the site's
+  pages, else the showcase sample). noindex + `X-Robots-Tag`, not in the sitemap,
+  unlinked. Samples now live in `src/lib/showcase/samples.ts`.
+- `c5-template.json` capabilities: `fonts`, `style-axes`, `specimen`.
+
 ## [2026.09.1] — Design Studio T1: live fonts + capability marker
 
 ### Added

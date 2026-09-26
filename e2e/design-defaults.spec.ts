@@ -2,6 +2,7 @@ import { readFileSync } from 'node:fs'
 import path from 'node:path'
 import { test, expect } from '@playwright/test'
 import { styleAxisAttributes } from '../src/lib/theme/style-axes'
+import { capabilitiesMetaContent, TEMPLATE_MARKER } from '../src/lib/theme/template-marker'
 import { IS_TEMPLATE_DEFAULT, NOT_TEMPLATE_DEFAULT_REASON } from './template-default'
 
 /**
@@ -32,11 +33,14 @@ test('<html> data-c5-* style-axis attributes match design.json style (none by de
 
 // Content-agnostic (every page ships from the shared root layout): the
 // Revaltus Design Studio reads this to know which levers the deployed site
-// supports (see src/lib/theme/template-marker.ts).
+// supports (see src/lib/theme/template-marker.ts). Derived from
+// c5-template.json (not hard-coded) so this stays correct in client repos
+// at any template version.
+const expectedCapabilitiesMeta = capabilitiesMetaContent(TEMPLATE_MARKER)
 for (const path of ['/', '/privacy-policy']) {
   test(`${path} advertises the template capabilities`, async ({ page }) => {
     await page.goto(path)
-    await expect(page.locator('meta[name="c5-capabilities"]')).toHaveAttribute('content', 'fonts')
+    await expect(page.locator('meta[name="c5-capabilities"]')).toHaveAttribute('content', expectedCapabilitiesMeta)
   })
 }
 
