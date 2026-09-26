@@ -18,6 +18,13 @@ All notable changes to this template are recorded here. The format follows [Keep
 - **`nav=bordered`** is now clearly visible: a 2px primary rule under the bar
   (was a 1.13:1 `--color-border` hairline) plus a tinted chip behind the
   active item.
+- **Dark-mode current/active indicators** were 1.57:1 (`--color-primary` is
+  deliberately not flipped under `.dark`): top-nav + mobile-nav active items,
+  SideNav active section/page, the breadcrumb current item and the contact
+  drawer's active tab now use foreground text (+ action-colour
+  underline/bar) in dark mode — 15.24:1 text, 8.29:1 indicator bar. Light
+  mode is unchanged. `dark:` is now class-based (`@custom-variant dark`,
+  following next-themes' `.dark`).
 
 ### Added
 - Inert hooks `data-c5="logo"` (NavBar + Footer logo links) and

@@ -25,7 +25,7 @@ export function Breadcrumb({ crumbs }: { crumbs: Crumb[] }) {
                 </span>
               )}
               {isLast ? (
-                <span aria-current="page" className="font-medium text-primary">
+                <span aria-current="page" className="font-medium text-primary dark:text-foreground">
                   {crumb.label}
                 </span>
               ) : (

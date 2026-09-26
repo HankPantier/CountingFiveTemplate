@@ -118,7 +118,7 @@ function Tab({
       onClick={onClick}
       className={cn(
         'flex items-center justify-center gap-2 border-b-2 px-4 py-4 font-heading text-sm font-semibold transition-colors',
-        active ? 'border-primary text-primary' : 'border-transparent text-muted-foreground hover:text-foreground'
+        active ? 'border-primary text-primary dark:border-action dark:text-foreground' : 'border-transparent text-muted-foreground hover:text-foreground'
       )}
     >
       {icon}

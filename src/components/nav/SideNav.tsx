@@ -34,7 +34,7 @@ export function SideNav({
               className={cn(
                 'block border-l-2 pl-3 py-1 text-sm font-heading font-semibold uppercase tracking-wide transition-colors',
                 sectionActive
-                  ? 'border-primary text-primary'
+                  ? 'border-primary text-primary dark:border-action dark:text-foreground'
                   : 'border-transparent text-foreground hover:text-primary'
               )}
             >
@@ -52,7 +52,7 @@ export function SideNav({
                         className={cn(
                           'block border-l-2 pl-6 py-1 text-sm font-body transition-colors',
                           tertiaryCurrent
-                            ? 'border-primary text-primary font-semibold'
+                            ? 'border-primary text-primary font-semibold dark:border-action dark:text-foreground'
                             : 'border-transparent text-muted-foreground hover:text-foreground'
                         )}
                       >
