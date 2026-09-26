@@ -126,6 +126,13 @@ describe('fontsModuleKind', () => {
     // A header line must match whole, not as a prefix of something else.
     expect(fontsModuleKind(`${SYNCED_HEADER[0]} (edited)\n`)).toBeNull()
   })
+
+  it('tolerates CRLF line endings (a Windows checkout with autocrlf)', () => {
+    const crlf = (s: string) => s.replace(/\n/g, '\r\n')
+    expect(fontsModuleKind(crlf(generateFontsModule().source))).toBe('default')
+    expect(fontsModuleKind(crlf(generateFontsModule({}).source))).toBe('synced')
+    expect(fontsModuleKind(`${SYNCED_HEADER[0]}\r`)).toBe('synced')
+  })
 })
 
 describe('generateAllFontsModule', () => {

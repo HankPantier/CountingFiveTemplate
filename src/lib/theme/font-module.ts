@@ -53,9 +53,12 @@ const ALL_FONTS_HEADER_LINES = [
   '// It loads every manifest font once. Never commit it.',
 ]
 
-/** Which kind of generated module `source` is, by its first line; null if neither. */
+/**
+ * Which kind of generated module `source` is, by its first line; null if neither.
+ * A trailing \r is ignored so a CRLF checkout (git autocrlf) still classifies.
+ */
 export function fontsModuleKind(source: string): FontsModuleKind | null {
-  const first = source.split('\n', 1)[0]
+  const first = source.split('\n', 1)[0].replace(/\r$/, '')
   if (first === FONTS_MODULE_HEADERS.default[0]) return 'default'
   if (first === FONTS_MODULE_HEADERS.synced[0]) return 'synced'
   return null
