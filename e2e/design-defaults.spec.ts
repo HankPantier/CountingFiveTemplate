@@ -15,6 +15,16 @@ test('no data-c5-* style-axis attributes on <html> by default', async ({ page })
   expect(names.filter((n) => n.startsWith('data-c5'))).toEqual([])
 })
 
+// Content-agnostic (every page ships from the shared root layout): the
+// Revaltus Design Studio reads this to know which levers the deployed site
+// supports (see src/lib/theme/template-marker.ts).
+for (const path of ['/', '/privacy-policy']) {
+  test(`${path} advertises the template capabilities`, async ({ page }) => {
+    await page.goto(path)
+    await expect(page.locator('meta[name="c5-capabilities"]')).toHaveAttribute('content', 'fonts')
+  })
+}
+
 test.describe('template default content', () => {
   test.skip(!IS_TEMPLATE_DEFAULT, NOT_TEMPLATE_DEFAULT_REASON)
 

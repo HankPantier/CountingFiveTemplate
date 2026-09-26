@@ -15,6 +15,7 @@ import { getBrandConfig } from '@/lib/brand/get-brand-config'
 import { getNavConfig } from '@/lib/nav/get-nav-config'
 import { getClientCenterConfig } from '@/lib/client-center/get-client-center-config'
 import { getDesignConfig } from '@/lib/theme/get-theme-vars'
+import { capabilitiesMetaContent } from '@/lib/theme/template-marker'
 import { siteConfig } from '../../site.config'
 
 export async function generateMetadata(): Promise<Metadata> {
@@ -27,6 +28,9 @@ export async function generateMetadata(): Promise<Metadata> {
     },
     description:
       brand.firm.tagline ?? `${brand.firm.name} — accounting & advisory services`,
+    // Design Studio capability handshake (see src/lib/theme/template-marker.ts).
+    // Pages don't set `other`, so every page inherits it.
+    other: { 'c5-capabilities': capabilitiesMetaContent() },
   }
 }
 
