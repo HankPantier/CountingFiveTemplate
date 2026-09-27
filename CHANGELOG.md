@@ -2,6 +2,40 @@
 
 All notable changes to this template are recorded here. The format follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/) and the project loosely follows semver — though as a per-client template, "release" means "checkpoint on `main`" rather than a published package version.
 
+## [2026.09.4] — Auto-corrected action colour for small text
+
+### Added
+- **Small-text action tokens** in theme.css (from `scripts/generate-theme.ts`
+  via `src/lib/theme/action-text-contrast.ts`), each the action colour moved in
+  OKLCH lightness only (hue held, chroma reduced only to stay in sRGB) to the
+  smallest step reaching 4.5:1 against the surfaces it RENDERS on — the
+  `hsl()` values theme.css emits (whole-percent rounding), not the palette hex:
+  - `--color-action-text` / `--color-action-text-canvas`: canvas background,
+    muted (flat cards) and card;
+  - `--color-action-text-tint`: the 10% / 15% action-tint badges on a card;
+  - `--color-action-on-primary` / `--color-action-on-ink`: bg-primary and
+    Section bg="ink";
+  - `.dark` re-derives `-text`, `-text-canvas` and `-text-tint` on the dark
+    background, muted and card.
+  A raw action that already passes is emitted verbatim. House default
+  #00C1DE on #F7F5F2 was 1.99:1; the canvas token is now #007a8d.
+
+### Changed
+- Small action-coloured text reads the corrected tokens, always with a
+  `var(…, var(--color-action))` fallback so a site whose theme.css predates the
+  tokens renders exactly as before: `.t-kicker` (hero / section kickers, card
+  dates, page-header kicker), the tertiary button label, and (tint token) the
+  pricing-plans "Save n%" pill and Article / Case study badges.
+- `.bg-primary` and the new Section ink hook `.u-surface-ink` re-scope
+  `--color-action-text` to their variant; a light card inside them
+  (`.u-card`, `.bg-card`, `.bg-background`) gets `-text-canvas` back. Token
+  re-scopes, so client `design-overrides.css` kicker rules still win.
+- Large display accents (headline accent word, stat figures, calculator
+  estimate), icons, stars, rules and fills keep the raw brand action.
+- R1 baselines: the home @visual baselines were re-captured deliberately — the
+  template default's own palette fails on the canvas, so the statement-hero
+  kicker darkens. The other six baselines are unchanged.
+
 ## [2026.09.3] — Style-axis preset fixes + export-brief retired
 
 ### Fixed
