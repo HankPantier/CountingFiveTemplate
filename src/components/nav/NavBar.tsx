@@ -21,6 +21,25 @@ import { isUrlActive, orderedPrimaryNav } from '@/lib/nav/nav-tree'
 import type { BrandJson } from '@/lib/brand/types'
 import type { NavJson } from '@/lib/nav/types'
 
+/** Labels longer than this are clamped with an ellipsis (full text in the tooltip). */
+const NAV_LABEL_MAX_CH = 24
+
+/**
+ * Top-level label. A page-title-length label ("About Berg Advisors | Trusted
+ * CPA…") is clamped so it can't push the bar past the viewport; the full text
+ * stays in the DOM (accessible name) and the tooltip. Shorter labels render
+ * as plain text — the clamp's overflow:hidden would clip the active item's
+ * underline-offset-8 underline.
+ */
+function NavLabel({ label }: { label: string }) {
+  if (label.length <= NAV_LABEL_MAX_CH) return <>{label}</>
+  return (
+    <span className="inline-block max-w-[24ch] truncate pb-3 -mb-3 align-bottom [text-decoration:inherit]" title={label}>
+      {label}
+    </span>
+  )
+}
+
 export function NavBar({ brand, nav }: { brand: BrandJson; nav: NavJson }) {
   const pathname = usePathname() ?? '/'
   const [scrolled, setScrolled] = useState(false)
@@ -72,7 +91,7 @@ export function NavBar({ brand, nav }: { brand: BrandJson; nav: NavJson }) {
 
         <NavigationMenu className="hidden md:flex">
           <NavigationMenuList>
-            {orderedPrimaryNav(nav.primary).map(item => {
+            {orderedPrimaryNav(nav.primary, nav.cta).map(item => {
               const itemActive = isUrlActive(pathname, item.url)
               return item.children?.length ? (
                 <NavigationMenuItem key={item.url}>
@@ -80,7 +99,7 @@ export function NavBar({ brand, nav }: { brand: BrandJson; nav: NavJson }) {
                     data-active={itemActive || undefined}
                     className="data-[active]:text-primary data-[active]:underline data-[active]:underline-offset-8 data-[active]:decoration-2 dark:data-[active]:text-foreground dark:data-[active]:decoration-action"
                   >
-                    {item.label}
+                    <NavLabel label={item.label} />
                   </NavigationMenuTrigger>
                   <NavigationMenuContent>
                     <ul className="grid gap-1 p-2">
@@ -133,7 +152,7 @@ export function NavBar({ brand, nav }: { brand: BrandJson; nav: NavJson }) {
                         itemActive && 'text-primary underline underline-offset-8 decoration-2 dark:text-foreground dark:decoration-action'
                       )}
                     >
-                      {item.label}
+                      <NavLabel label={item.label} />
                     </Link>
                   </NavigationMenuLink>
                 </NavigationMenuItem>

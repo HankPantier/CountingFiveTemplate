@@ -23,13 +23,26 @@ export function isContactNavItem(item: NavItem): boolean {
   return /\/contact\/?$/i.test((item.url ?? '').trim())
 }
 
+const navPath = (url: string): string => {
+  const p = (url ?? '').trim().replace(/^https?:\/\/[^/]+/i, '').split(/[?#]/)[0].replace(/\/+$/, '')
+  return p === '' ? '/' : p.toLowerCase()
+}
+
 /**
  * The primary nav as rendered: drop the home item (the logo is the sole home
  * link) and pin the Contact item last so it's always rightmost, regardless of
  * the order in nav.json. Order is otherwise preserved (stable).
+ * With the header `cta` button showing, a childless item pointing at the same
+ * page (typically "Contact" when the CTA goes to /contact) is dropped — the
+ * button replaces it. Items with a dropdown are always kept.
  */
-export function orderedPrimaryNav(items: NavItem[]): NavItem[] {
-  const visible = items.filter((item) => !isHomeNavItem(item))
+export function orderedPrimaryNav(items: NavItem[], cta?: NavJson['cta']): NavItem[] {
+  const ctaPath = cta?.url?.trim() && cta.label?.trim() ? navPath(cta.url) : null
+  const visible = items.filter(
+    (item) =>
+      !isHomeNavItem(item) &&
+      !(ctaPath !== null && !item.children?.length && navPath(item.url) === ctaPath)
+  )
   const contact = visible.filter(isContactNavItem)
   const rest = visible.filter((item) => !isContactNavItem(item))
   return [...rest, ...contact]

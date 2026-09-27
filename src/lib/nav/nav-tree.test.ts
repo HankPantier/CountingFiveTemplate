@@ -3,6 +3,7 @@ import {
   findActivePrimary,
   isUrlActive,
   nodeContainsUrl,
+  orderedPrimaryNav,
   primaryHasTertiary,
   resolveSideNav,
 } from './nav-tree'
@@ -101,5 +102,33 @@ describe('resolveSideNav', () => {
 
   it('hides for an unknown page', () => {
     expect(resolveSideNav(nav, '/nowhere')).toBeNull()
+  })
+})
+
+describe('orderedPrimaryNav with a header cta', () => {
+  const labels = (items: { label: string }[]) => items.map((i) => i.label)
+  it('keeps Contact (pinned last) when there is no cta', () => {
+    expect(labels(orderedPrimaryNav(nav.primary))).toEqual(['Services', 'About', 'Contact'])
+  })
+  it('drops the childless item the cta button replaces (same page, any url form)', () => {
+    expect(labels(orderedPrimaryNav(nav.primary, { label: 'Schedule a consultation', url: '/contact' }))).toEqual([
+      'Services',
+      'About',
+    ])
+    expect(
+      labels(orderedPrimaryNav(nav.primary, { label: 'Book', url: 'https://firm.com/Contact/?src=nav' })),
+    ).toEqual(['Services', 'About'])
+  })
+  it('never drops an item with a dropdown, and ignores a blank cta', () => {
+    expect(labels(orderedPrimaryNav(nav.primary, { label: 'About us', url: '/about' }))).toEqual([
+      'Services',
+      'About',
+      'Contact',
+    ])
+    expect(labels(orderedPrimaryNav(nav.primary, { label: '', url: '/contact' }))).toEqual([
+      'Services',
+      'About',
+      'Contact',
+    ])
   })
 })
