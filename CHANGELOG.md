@@ -13,7 +13,10 @@ headings, and the fixes below.
   button (they never did: `cta_primary` was hard-coded `undefined`). First
   match wins: frontmatter `hero_cta_label` + `hero_cta_url` → the platform's
   per-page `cta_text` + `cta_url` → `nav.json` `cta` → "Schedule a
-  consultation" → `/contact`. Omitted when it would link the page to itself.
+  consultation" → the site's contact destination: the nav's childless
+  Contact item (e.g. Accord `/locations`, Berg `/contact-us`), else `/contact`
+  only when `content/pages/contact.md` exists, else NO button (never a link
+  to a 404). Omitted when it would link the page to itself.
 - **Header CTA de-duplication.** With `nav.cta` set (the platform now turns
   it on by default), a childless primary item pointing at the same page
   (typically "Contact") is dropped from the desktop and mobile menus.
@@ -27,36 +30,52 @@ headings, and the fixes below.
 - `c5-template.json` **`syncedFrom`**: the template commit SHA a client repo
   was synced from (null in the template itself). Read by the platform fleet
   tool as the 3-way gate's OLD.
-- e2e `polish.spec.ts` (content-agnostic); unit tests for every item; a
-  template-only lockfile check (`src/lib/lockfile-platforms.test.ts`).
+- **Large action text reads the surface-corrected token.** The headline
+  accent word (Hero, HeroSplit, PageHeader, IntroText), primary-band StatsBar
+  figures and the pricing-calculator estimate use
+  `var(--color-action-text, var(--color-action))`
+  (`src/lib/theme/accent-color.ts`), which globals.css rebinds to the
+  on-primary / on-ink / canvas value per surface. Raw action was unreadable
+  on primary with real palettes (Accord crimson on charcoal 1.50:1, Pryor
+  1.26, Aurora 2.08, Abramson 2.19, bblcpa 2.58). Where the raw action
+  already passes, the token equals it (no change).
+- e2e `polish.spec.ts` (content-agnostic except the hero-button check;
+  includes a failing-palette page-header accent ≥ 3:1 check); unit tests for
+  every item; a template-only lockfile check
+  (`src/lib/lockfile-platforms.test.ts`).
 
 ### Changed
 - `.t-display` / `.t-h1` / `.t-h2`: `text-wrap: balance`.
 - A page ending on the full-bleed `cta-banner` drops the footer's `mt-16`.
 - Centred IntroText with a body over 600 characters: heading stays centred,
   body left-aligns in a 65ch column.
-- StatsBar: when any value is phrase-length (> 8 chars) or has no digit, the
-  bar uses an upright `t-h3` value style instead of display numerals.
+- StatsBar: each value is judged on its own — true figures (digits with
+  `$ , . / % + x K M B`) keep the display numerals; a phrase value is set as
+  an upright `t-h3` in the heading colour.
 - NavBar top-level labels over 24 characters truncate with a tooltip.
-- Pricing-calculator estimate figure reads `--color-action-on-primary`
-  (falls back to `--color-action`).
 
 ### Fixed
 - process-steps parses `### Title` + paragraph steps (rendered heading only).
 - Feature lists parse `Icon: **Title:** desc` / `Icon: Title: desc` (icon
-  names showed up in card titles).
+  names showed up in card titles) and `Icon: **Title** - desc`; the leading
+  word is an icon only when it is one of the Icon component's names
+  (`src/lib/assembly/icon-names.ts`) — "Bookkeeping: Monthly close: …" is
+  Title: description.
 - FeatureGrid, ServiceCards, IndustryCards, TeamGrid, ChecklistSection,
   ProcessSteps, Pricing, ContentCards, ContentTable render nothing when no
   item parsed and there is no intro.
 - **CI**: `package-lock.json` listed only darwin-arm64 native bindings
   (npm/cli#4828), so `npm ci` on ubuntu died at the Test step ("Cannot find
   module '@rolldown/binding-linux-x64-gnu'") on every run since 2026-09-02.
-  The rolldown, @tailwindcss/oxide, lightningcss, esbuild and unrs-resolver
-  entries were re-resolved so every platform's binding is listed.
+  The rolldown, @tailwindcss/oxide, lightningcss, esbuild, unrs-resolver
+  and next → sharp (`@img/sharp-*`, used by `next start` image optimisation
+  in CI e2e) entries were re-resolved so every platform's binding is listed.
 
 ### R1 / baselines
 - `@visual` desktop-home + mobile-home re-captured deliberately (hero button;
-  headings re-break under balance). privacy-policy, pricing-calculator and
+  headings re-break under balance; the statement-hero accent word "answer"
+  now reads the canvas-corrected action, #007a8d instead of raw #00C1DE,
+  because the template default action fails on the canvas). privacy-policy, pricing-calculator and
   404 baselines unchanged (the nav label clamp only applies to labels over
   24 characters, so the active underline is untouched).
 - theme.css and `scripts/generate-theme.ts` are unchanged (byte parity with
@@ -67,15 +86,17 @@ Ship in ONE commit, `c5-template.json` last.
 - **Overwrite (M):** `src/app/design-specimen/page.tsx`,
   `src/app/globals.css`, `src/app/layout.tsx`, `src/app/page.tsx`,
   `src/components/assembly/GeneratedMarkdownPage.tsx`,
-  `src/components/blocks/{ChecklistSection,ContentCards,ContentTable,FeatureGrid,IndustryCards,IntroText,Pricing,PricingCalculatorClient,ProcessSteps,ServiceCards,StatsBar,TeamGrid}.tsx`,
+  `src/components/blocks/{ChecklistSection,ContentCards,ContentTable,FeatureGrid,Hero,HeroSplit,Icon,IndustryCards,IntroText,PageHeader,Pricing,PricingCalculatorClient,ProcessSteps,ServiceCards,StatsBar,TeamGrid}.tsx`,
   `src/components/nav/{MobileNav,NavBar}.tsx`,
   `src/components/ui/framed-media.tsx`,
   `src/lib/assembly/{extract-block-props,extract-block-props.test,md-utils,md-utils.test,page-frontmatter-schema,parse-page-md}.ts`,
   `src/lib/nav/{nav-tree,nav-tree.test}.ts`,
-  `src/lib/theme/{template-marker,template-marker.test}.ts`, `README.md`,
+  `src/lib/theme/{hooks.test,template-marker,template-marker.test}.ts`, `README.md`,
   `CHANGELOG.md`.
 - **Add (A):** `e2e/polish.spec.ts`,
-  `src/components/blocks/empty-blocks.test.ts`,
+  `src/components/blocks/{empty-blocks,accent-color,icon-names}.test.ts`,
+  `src/lib/assembly/icon-names.ts`, `src/lib/nav/hero-cta-site.ts`,
+  `src/lib/theme/accent-color.ts`,
   `src/lib/lockfile-platforms.test.ts` (skips in client repos).
 - **Delete (D):** none.
 - **Skip:** `package-lock.json` (client-owned; see the CI recipe below),
@@ -92,20 +113,26 @@ Ship in ONE commit, `c5-template.json` last.
 - **Gate:** 3-way per file — client vs OLD (the client's `syncedFrom`, else
   d97c04b for the 2026.09.4 fleet) vs NEW; a client edit to any overwritten
   file is a stop-and-look.
-- **Visible per site:** hero button on every hero/hero-split page; header
+- **Visible per site:** hero button on every hero/hero-split page that has a
+  contact destination (nav Contact item or a contact page) or a page/nav CTA;
+  accent words / primary-band stat figures on palettes whose raw action
+  fails their surface get the corrected action; header
   CTA only once the platform writes `nav.cta` (new packages) or an operator
   adds one in the NavEditor; ink bands change only where design.json has
   `darkSections: true`.
 - **Client CI recipe** (korbey today; any repo before it gets `ci.yml`), on
   the client repo with no other changes pending:
   ```sh
-  node -e "const f='package-lock.json',l=require('./'+f);for(const k of Object.keys(l.packages))if(/(^|\/)node_modules\/(rolldown|@rolldown\/binding-|lightningcss|@tailwindcss\/oxide|esbuild|@esbuild\/|unrs-resolver|@unrs\/resolver-binding-)/.test(k))delete l.packages[k];require('fs').writeFileSync(f,JSON.stringify(l,null,2)+'\n')"
+  node -e "const f='package-lock.json',l=require('./'+f);for(const k of Object.keys(l.packages))if(k==='node_modules/next'||/(^|\/)node_modules\/(rolldown|@rolldown\/binding-|lightningcss|@tailwindcss\/oxide|esbuild|@esbuild\/|unrs-resolver|@unrs\/resolver-binding-|sharp|@img\/)/.test(k))delete l.packages[k];require('fs').writeFileSync(f,JSON.stringify(l,null,2)+'\n')"
   npm install --package-lock-only --ignore-scripts
-  grep -c '"node_modules/@rolldown/binding-linux-x64-gnu"' package-lock.json   # expect 1
+  grep -c '"node_modules/@rolldown/binding-linux-x64-gnu"\|"node_modules/@img/sharp-linux-x64"' package-lock.json   # expect 2
   npm ci && npm test && npm run build
   ```
-  Commit `package-lock.json` alone ("fix(ci): lockfile keeps every platform's
-  native bindings").
+  (`node_modules/next` is removed too: npm only re-adds next's optional
+  `sharp` when it re-resolves next; the pinned next version does not move.)
+  Check the lock diff changes no top-level versions beyond patch bumps, then
+  commit `package-lock.json` alone ("fix(ci): lockfile keeps every
+  platform's native bindings").
 
 ## [2026.09.4] — Auto-corrected action colour for small text
 
