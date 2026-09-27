@@ -58,8 +58,14 @@ white → black on dark). Sites whose logo is not flagged light are unchanged.
   FAQ dump, citation note) and `---` + `## Structured Data — paste into
   \`<head>\`` (a JSON-LD code block). New pure
   `src/lib/content/strip-generator-notes.ts`, whose detection mirrors the
-  platform's `lib/content/strip-generator-notes.ts` (same regexes, same
-  real Accord fixtures under `src/lib/content/__fixtures__/`):
+  platform's `lib/content/strip-generator-notes.ts`: the anchors are
+  byte-mirrored through `src/lib/content/__fixtures__/generator-trailer.template.json`
+  (copied from the platform) and `strip-generator-notes.parity.test.ts`
+  checks them and runs every vector there (canonical JSON; cut, keep and
+  refuse cases). Same behaviour as the platform: CRLF files, a heading-less
+  label run bounded by a following Structured Data trailer, and NO cut
+  (content renders as-is) when a foreign heading follows the trailer. Plus
+  the same real Accord fixtures:
   - post bodies (`get-post.ts`) drop the trailer — a page relocated into
     `content/posts/` rendered all of it (35 posts live);
   - `parse-page-md.ts` also cuts at an orphaned Structured Data rule when
@@ -86,7 +92,8 @@ Ship in ONE commit, `c5-template.json` last.
 - **Add (A):** `src/styles/logo-tone.css`,
   `src/lib/brand/{logo-tone,logo-tone.test}.ts`, `e2e/logo-tone.spec.ts`,
   `e2e/site-pages.ts`,
-  `src/lib/content/{strip-generator-notes,strip-generator-notes.test}.ts`,
+  `src/lib/content/{strip-generator-notes,strip-generator-notes.test,strip-generator-notes.parity.test}.ts`,
+  `src/lib/content/__fixtures__/generator-trailer.template.json`,
   `src/lib/content/__fixtures__/leaked-generator-notes/{accord-services.orphan-structured.page,accord-year-end-cheer.post}.md`.
 - **Delete (D):** none.
 - **Skip:** `package-lock.json` (unchanged), `content/**`.

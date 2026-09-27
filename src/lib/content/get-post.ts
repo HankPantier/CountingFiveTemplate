@@ -77,7 +77,7 @@ export async function getPost(slug: string): Promise<Post | null> {
     // A page relocated into content/posts/ still carries the platform's
     // "## SEO & AIO Metadata" / "## Structured Data" review trailer — never
     // render it (strip-generator-notes.ts).
-    body: stripGeneratorNotesFromBody(parsed.content),
+    body: stripGeneratorNotesFromBody(parsed.content).body,
   }
 }
 

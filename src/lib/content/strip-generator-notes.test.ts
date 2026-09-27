@@ -69,17 +69,17 @@ describe('stripGeneratorNotesFromBody — negatives (reader content survives)', 
       '- [Tax planning](/services/tax)',
       '',
     ].join('\n')
-    expect(stripGeneratorNotesFromBody(body)).toBe(body)
+    expect(stripGeneratorNotesFromBody(body).body).toBe(body)
   })
 
   it('a single bold label in prose, or a heading that merely mentions SEO, is not a trailer', () => {
     const body = 'We build **Internal Links:**\n\nbetween pages.\n\n## SEO & AIO Metadata explained\n\nText.\n'
-    expect(stripGeneratorNotesFromBody(body)).toBe(body)
+    expect(stripGeneratorNotesFromBody(body).body).toBe(body)
   })
 
   it('cuts a heading-less label run at the very end (the model echoing its plan)', () => {
     const body = 'Real prose.\n\n---\n\n**Answer Block:**\nx\n\n**Internal Links:**\n- a → /b — c\n'
-    expect(stripGeneratorNotesFromBody(body)).toBe('Real prose.\n')
+    expect(stripGeneratorNotesFromBody(body).body).toBe('Real prose.\n')
   })
 })
 
