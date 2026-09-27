@@ -231,15 +231,34 @@ export type IntroTextProps = {
   heading: string
   body: string  // raw markdown — render via react-markdown
   cta?: { label: string; url: string }
+  /** Centred variant only: the body is long enough that centring every line
+   * reads as a "wall of text" — keep the heading centred, left-align the body
+   * in a readable measure. */
+  long_body?: boolean
+}
+
+/** Body text length (markdown syntax stripped) above which a centred intro
+ * left-aligns its body. About four lines of centred t-body-lg at 2xl width. */
+export const INTRO_CENTER_MAX_CHARS = 600
+
+export function isLongIntroBody(body: string): boolean {
+  const text = body
+    .replace(/!?\[([^\]]*)\]\([^)]*\)/g, '$1')
+    .replace(/[*_`#>]/g, '')
+    .replace(/\s+/g, ' ')
+    .trim()
+  return text.length > INTRO_CENTER_MAX_CHARS
 }
 
 export function extractIntroTextProps(section: PageSection): IntroTextProps {
   const { body, cta } = extractTrailingCta(section.content)
+  const variant = (section.variant as IntroTextProps['variant']) ?? 'centered'
   return {
-    variant: (section.variant as IntroTextProps['variant']) ?? 'centered',
+    variant,
     heading: section.heading,
     body,
     cta,
+    long_body: variant !== 'left-aligned' && isLongIntroBody(body),
   }
 }
 

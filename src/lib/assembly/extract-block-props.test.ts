@@ -8,6 +8,8 @@ import {
   resolveHeroCta,
   DEFAULT_HERO_CTA,
   extractProcessStepsProps,
+  extractIntroTextProps,
+  isLongIntroBody,
 } from './extract-block-props'
 import { parsePageMd, type PageSection, type PageManifest } from './parse-page-md'
 
@@ -212,5 +214,20 @@ describe('extractProcessStepsProps ### steps', () => {
     expect(p.intro).toBe('How it works.')
     expect(p.steps.map((s) => s.title)).toEqual(['Call', 'Plan'])
     expect(p.cta).toEqual({ label: 'Start', url: '/contact' })
+  })
+})
+
+describe('IntroText long centred bodies', () => {
+  it('flags a centred body over ~600 chars (markdown stripped) as long', () => {
+    expect(isLongIntroBody('Short intro.')).toBe(false)
+    expect(isLongIntroBody('word '.repeat(130))).toBe(true)
+    expect(isLongIntroBody(`[${'x'.repeat(590)}](https://example.com/${'y'.repeat(100)})`)).toBe(false)
+  })
+  it('only the centred variant gets long_body', () => {
+    const long = 'word '.repeat(130)
+    expect(extractIntroTextProps(section({ blockId: 'intro-text', content: long })).long_body).toBe(true)
+    expect(
+      extractIntroTextProps(section({ blockId: 'intro-text', variant: 'left-aligned', content: long })).long_body,
+    ).toBe(false)
   })
 })

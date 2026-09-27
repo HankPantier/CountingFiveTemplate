@@ -29,8 +29,10 @@ function renderHeading(text: string): ReactNode {
   )
 }
 
-export function IntroText({ variant, heading, body, cta }: IntroTextProps) {
+export function IntroText({ variant, heading, body, cta, long_body }: IntroTextProps) {
   const isCentered = variant !== 'left-aligned'
+  // A long centred body left-aligns in a readable measure (heading stays centred).
+  const leftBody = isCentered && Boolean(long_body)
 
   return (
     <Section dataBlock="intro-text">
@@ -38,7 +40,7 @@ export function IntroText({ variant, heading, body, cta }: IntroTextProps) {
         className={cn(
           'mx-auto',
           isCentered
-            ? 'max-w-2xl text-center'
+            ? cn(leftBody ? 'max-w-3xl' : 'max-w-2xl', 'text-center')
             : 'max-w-3xl text-left'
         )}
       >
@@ -47,11 +49,16 @@ export function IntroText({ variant, heading, body, cta }: IntroTextProps) {
             {renderHeading(heading)}
           </h2>
         )}
-        <div className="prose prose-neutral mt-6 max-w-none t-body-lg text-foreground/70">
+        <div
+          className={cn(
+            'prose prose-neutral mt-6 t-body-lg text-foreground/70',
+            leftBody ? 'mx-auto max-w-[65ch] text-left' : 'max-w-none'
+          )}
+        >
           <ReactMarkdown remarkPlugins={[remarkGfm]} components={MD_LINK_COMPONENTS}>{body}</ReactMarkdown>
         </div>
         {cta && (
-          <div className={cn('mt-6', isCentered && 'flex justify-center')}>
+          <div className={cn('mt-6', isCentered && !leftBody && 'flex justify-center', leftBody && 'mx-auto max-w-[65ch]')}>
             <Button asChild variant="link" className="px-0">
               <Link href={cta.url}>{cta.label} &rarr;</Link>
             </Button>
