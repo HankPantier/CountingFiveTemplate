@@ -107,6 +107,29 @@ describe('derive*ActionTextTokens', () => {
     }
   })
 
+  it('tint token clears the tints over the page BACKGROUND too, not only the card (post header, pricing toggle)', () => {
+    // A light background darker than the card: the card-only tint (old rule) fails it.
+    const s = { background: '#e4e1dc', muted: '#e4e1dc', card: '#ffffff', primary: NAVY, ink: '#131c2a' }
+    const t = deriveLightActionTextTokens('#00C1DE', s)
+    for (const under of [s.background, s.card])
+      for (const a of [0.1, 0.15])
+        expect(chroma.contrast(t.actionTextTint, chroma.mix(under, '#00C1DE', a, 'rgb').hex()), `${under} ${a}`).toBeGreaterThanOrEqual(4.5)
+    const cardOnly = ensureTextContrast('#00C1DE', [0.1, 0.15].map((a) => chroma.mix(s.card, '#00C1DE', a, 'rgb').hex()))
+    expect(chroma.contrast(cardOnly, chroma.mix(s.background, '#00C1DE', 0.15, 'rgb').hex())).toBeLessThan(4.5)
+  })
+
+  it('dark tint token clears the tints over the dark BACKGROUND as well as the dark card', () => {
+    // A .dark block whose background is LIGHTER than its card (a client file can
+    // ship that): the card-only tint (old rule) lands under 4.5 on the background.
+    const dark = { background: '#2c2f33', muted: '#2c2f33', card: '#16181a' }
+    const t = deriveDarkActionTextTokens('#C45300', dark)
+    for (const under of [dark.background, dark.card])
+      for (const a of [0.1, 0.15])
+        expect(chroma.contrast(t.actionTextTint, chroma.mix(under, '#C45300', a, 'rgb').hex()), `${under} ${a}`).toBeGreaterThanOrEqual(4.5)
+    const cardOnly = ensureTextContrast('#C45300', [0.1, 0.15].map((a) => chroma.mix(dark.card, '#C45300', a, 'rgb').hex()))
+    expect(chroma.contrast(cardOnly, chroma.mix(dark.background, '#C45300', 0.15, 'rgb').hex())).toBeLessThan(4.5)
+  })
+
   it('dark: verbatim when the raw action passes; lightened past 4.5 on every dark neutral otherwise', () => {
     const dark = { background: '#151719', muted: '#282b2e', card: '#1f2123' }
     expect(deriveDarkActionTextTokens('#00C1DE', dark).actionText).toBe('#00C1DE')
@@ -171,6 +194,12 @@ describe('generate-theme.ts action-text tokens', () => {
     expect(chroma.contrast(row.light.actionOnInk, tok(root_, '--color-ink'))).toBeGreaterThanOrEqual(4.5)
     for (const s of ['--color-background', '--color-muted', '--color-card'])
       expect(chroma.contrast(row.dark.actionText, renderedTok(dark, s)), `.dark ${s}`).toBeGreaterThanOrEqual(4.5)
+    // Tint badges: the 10% / 15% action tint over the page background AND the card, both themes.
+    const action = row.palette.action
+    for (const [blk, tint, label] of [[root_, row.light.actionTextTint, ''], [dark, row.dark.actionTextTint, '.dark ']] as const)
+      for (const s of ['--color-background', '--color-card'])
+        for (const a of [0.1, 0.15])
+          expect(chroma.contrast(tint, chroma.mix(renderedTok(blk, s), action, a, 'rgb').hex()), `${label}tint ${a} over ${s}`).toBeGreaterThanOrEqual(4.5)
   }, 30_000)
 
   it('Accord: on-primary clears the RENDERED primary (#1f3a60), not only the hex #1F3A5F', () => {

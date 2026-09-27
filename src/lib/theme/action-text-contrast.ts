@@ -12,10 +12,13 @@ import chroma from 'chroma-js'
  * percents — see toHslTokens — so the rendered colour, not the palette hex, is
  * what the text must clear):
  *   --color-action-text / -text-canvas  canvas: background, muted (flat cards), card
- *   --color-action-text-tint            the 10% / 15% action-tint badges on a card
+ *   --color-action-text-tint            the 10% / 15% action-tint badges, over both
+ *                                       surfaces they sit on: the page background (post
+ *                                       header, pricing toggle) and the card (resource cards)
  *   --color-action-on-primary           bg-primary sections / cards
  *   --color-action-on-ink               Section bg="ink"
- *   .dark: -text / -text-canvas / -text-tint re-derived on the dark neutrals.
+ *   .dark: -text / -text-canvas / -text-tint re-derived on the dark neutrals
+ *   (-text-tint, like light mode, clears the tint over the background AND the card).
  * Brand fills (buttons, rules, icons, large display accents) keep the raw
  * --color-action.
  *
@@ -113,6 +116,11 @@ function tintOver(under: string, action: string, alpha: number): string {
 
 const TINT_ALPHAS = [0.1, 0.15]
 
+/** Every tint the badges paint: each alpha over each canvas surface they can sit on. */
+function tintSurfaces(action: string, unders: string[]): string[] {
+  return unders.flatMap((u) => TINT_ALPHAS.map((a) => tintOver(u, action, a)))
+}
+
 /** RENDERED light-mode surfaces (hex of what the browser paints). */
 export type LightSurfaces = { background: string; muted: string; card: string; primary: string; ink: string }
 /** RENDERED .dark neutral surfaces. */
@@ -124,7 +132,7 @@ export type DarkActionTextTokens = { actionText: string; actionTextTint: string 
 export function deriveLightActionTextTokens(action: string, s: LightSurfaces): LightActionTextTokens {
   return {
     actionText: ensureTextContrast(action, [s.background, s.muted, s.card]),
-    actionTextTint: ensureTextContrast(action, TINT_ALPHAS.map((a) => tintOver(s.card, action, a))),
+    actionTextTint: ensureTextContrast(action, tintSurfaces(action, [s.background, s.card])),
     actionOnPrimary: ensureTextContrast(action, s.primary),
     actionOnInk: ensureTextContrast(action, s.ink),
   }
@@ -133,6 +141,6 @@ export function deriveLightActionTextTokens(action: string, s: LightSurfaces): L
 export function deriveDarkActionTextTokens(action: string, s: DarkSurfaces): DarkActionTextTokens {
   return {
     actionText: ensureTextContrast(action, [s.background, s.muted, s.card]),
-    actionTextTint: ensureTextContrast(action, TINT_ALPHAS.map((a) => tintOver(s.card, action, a))),
+    actionTextTint: ensureTextContrast(action, tintSurfaces(action, [s.background, s.card])),
   }
 }
