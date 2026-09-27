@@ -93,7 +93,7 @@ export function PricingPlansClient({ config }: { config: PricingPlansConfig }) {
             {config.billing.annualLabel}
           </span>
           {config.billing.annualDiscountPct > 0 && (
-            <span className="ml-1 rounded-full bg-[color:var(--color-action,theme(colors.cyan.500))]/10 px-2.5 py-0.5 text-xs font-semibold text-[color:var(--color-action-text,var(--color-action,theme(colors.cyan.600)))]">
+            <span className="ml-1 rounded-full bg-[color:var(--color-action,theme(colors.cyan.500))]/10 px-2.5 py-0.5 text-xs font-semibold text-[color:var(--color-action-text-tint,var(--color-action,theme(colors.cyan.600)))]">
               Save {config.billing.annualDiscountPct}%
             </span>
           )}

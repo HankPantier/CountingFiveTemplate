@@ -235,12 +235,18 @@
  * action colour on sites whose theme.css predates that token. */
 .t-kicker { font-size: var(--type-caption); letter-spacing: 0.16em; text-transform: uppercase; font-weight: 600; color: var(--color-action-text, var(--color-action)); }
 
-/* Primary surfaces (page header, full-bleed hero, ink index bands, the featured
- * pricing card): re-scope the small-text action token to the variant corrected
- * against the primary, so every small action text inside follows. A token
- * re-scope rather than a descendant colour rule keeps .t-kicker's specificity
- * unchanged — client design-overrides.css kicker rules still win as before. */
+/* Primary / ink surfaces (page header, full-bleed hero, ink index bands, the
+ * featured pricing card, Section bg="ink"): re-scope the small-text action
+ * token to the variant corrected against that surface, so every small action
+ * text inside follows; a light card inside one gets the canvas value back. A
+ * token re-scope rather than a descendant colour rule keeps .t-kicker's
+ * specificity unchanged — client design-overrides.css kicker rules still win
+ * as before. Every fallback is the raw action (sites without the tokens). */
 .bg-primary { --color-action-text: var(--color-action-on-primary, var(--color-action)); }
+.u-surface-ink { --color-action-text: var(--color-action-on-ink, var(--color-action)); }
+:is(.bg-primary, .u-surface-ink) :is(.u-card, .bg-card, .bg-background) {
+  --color-action-text: var(--color-action-text-canvas, var(--color-action));
+}
 
 /* Italic-serif accent role for the emphasised word in a statement headline. */
 .font-accent { font-family: var(--font-accent); font-style: italic; font-weight: 400; }

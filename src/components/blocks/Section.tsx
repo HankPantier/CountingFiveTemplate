@@ -21,7 +21,8 @@ const BG_CLASSES: Record<NonNullable<SectionProps['bg']>, string> = {
   card: 'bg-card text-card-foreground',
   // Deep brand-tinted near-black for the opt-in dark section rhythm. Falls back
   // to --color-near-black for repos whose theme.css predates the --color-ink token.
-  ink: 'bg-[color:var(--color-ink,var(--color-near-black))] text-[color:var(--color-ink-foreground,var(--color-near-white))]',
+  // u-surface-ink: hook that re-scopes --color-action-text (globals.css).
+  ink: 'u-surface-ink bg-[color:var(--color-ink,var(--color-near-black))] text-[color:var(--color-ink-foreground,var(--color-near-white))]',
 }
 
 const SPACING_CLASSES: Record<NonNullable<SectionProps['spacing']>, string> = {

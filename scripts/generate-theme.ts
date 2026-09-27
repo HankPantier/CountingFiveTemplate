@@ -4,24 +4,12 @@ import path from 'node:path'
 import chroma from 'chroma-js'
 import type { BrandJson } from '../src/lib/brand/types'
 import type { DesignJson } from '../src/lib/theme/types'
-import { deriveActionTextColors } from '../src/lib/theme/action-text-contrast'
-
-/**
- * Helper: Convert a hex color to HSL space-separated token (e.g., "220 75% 50%")
- * without the hsl() wrapper.
- */
-function toHslTokens(hex: string, fallback = '220 10% 50%'): string {
-  try {
-    const [h, s, l] = chroma(hex).hsl()
-    if (isNaN(h)) {
-      // Achromatic color (grayscale) — use hue=0, keep saturation/lightness
-      return `0 0% ${(l * 100).toFixed(0)}%`
-    }
-    return `${Math.round(h)} ${Math.round(s * 100)}% ${Math.round(l * 100)}%`
-  } catch {
-    return fallback
-  }
-}
+import {
+  deriveDarkActionTextTokens,
+  deriveLightActionTextTokens,
+  renderedHex,
+  toHslTokens,
+} from '../src/lib/theme/action-text-contrast'
 
 /**
  * Helper: Pick foreground color (near-white or near-black) with WCAG contrast ratio >= 4.5
@@ -189,15 +177,22 @@ async function main() {
     const darkMutedForeground = ensureContrast(setLightness(palette.nearWhite, 60), darkMuted)
     const darkBorder = setLightness(palette.nearBlack, 24)
 
-    // Small-text action colours, auto-corrected to AA (4.5:1) against the one
-    // surface each is used on — see src/lib/theme/action-text-contrast.ts.
-    // Exactly palette.action whenever the raw colour already passes.
-    const { actionText, actionOnPrimary, darkActionText } = deriveActionTextColors(
-      palette.action,
-      palette.nearWhite,
-      primaryBg,
-      darkCard
-    )
+    // Small-text action colours, auto-corrected to AA (4.5:1) against the
+    // RENDERED surfaces each is used on (hsl(toHslTokens(...)) rounds to whole
+    // percents) — see src/lib/theme/action-text-contrast.ts. Exactly
+    // palette.action whenever the raw colour already passes.
+    const lightAction = deriveLightActionTextTokens(palette.action, {
+      background: renderedHex(palette.nearWhite),
+      muted: renderedHex(muted),
+      card: renderedHex(palette.nearWhite),
+      primary: renderedHex(primaryBg),
+      ink,
+    })
+    const darkAction = deriveDarkActionTextTokens(palette.action, {
+      background: renderedHex(darkBackground),
+      muted: renderedHex(darkMuted),
+      card: renderedHex(darkCard),
+    })
 
     // Elevation: tint shadows with the brand primary (low alpha) instead of
     // generic black, so cards/popovers read as part of the palette. Drives both
@@ -237,10 +232,16 @@ async function main() {
   --color-action: ${palette.action};
   --color-action-foreground: ${palette.nearWhite};
   /* Action colour for SMALL text, AA-corrected (lightness only) against the
-   * page background / the primary surface. Equal to --color-action when the
-   * raw colour already passes. */
-  --color-action-text: ${actionText};
-  --color-action-on-primary: ${actionOnPrimary};
+   * rendered surfaces it sits on: -text on the canvas (background, muted,
+   * card), -text-tint on the 10-15% action-tint badges, -on-primary / -on-ink
+   * in those sections (globals.css re-scopes -text there; -text-canvas keeps
+   * the canvas value for light cards inside them). Each equals --color-action
+   * when the raw colour already passes. */
+  --color-action-text: ${lightAction.actionText};
+  --color-action-text-canvas: ${lightAction.actionText};
+  --color-action-text-tint: ${lightAction.actionTextTint};
+  --color-action-on-primary: ${lightAction.actionOnPrimary};
+  --color-action-on-ink: ${lightAction.actionOnInk};
   --color-primary-hex: ${palette.primary};
   --color-near-black: ${palette.nearBlack};
   --color-near-white: ${palette.nearWhite};
@@ -319,10 +320,16 @@ async function main() {
   --color-action: ${palette.action};
   --color-action-foreground: ${palette.nearWhite};
   /* Action colour for SMALL text, AA-corrected (lightness only) against the
-   * page background / the primary surface. Equal to --color-action when the
-   * raw colour already passes. */
-  --color-action-text: ${actionText};
-  --color-action-on-primary: ${actionOnPrimary};
+   * rendered surfaces it sits on: -text on the canvas (background, muted,
+   * card), -text-tint on the 10-15% action-tint badges, -on-primary / -on-ink
+   * in those sections (globals.css re-scopes -text there; -text-canvas keeps
+   * the canvas value for light cards inside them). Each equals --color-action
+   * when the raw colour already passes. */
+  --color-action-text: ${lightAction.actionText};
+  --color-action-text-canvas: ${lightAction.actionText};
+  --color-action-text-tint: ${lightAction.actionTextTint};
+  --color-action-on-primary: ${lightAction.actionOnPrimary};
+  --color-action-on-ink: ${lightAction.actionOnInk};
   --color-primary-hex: ${palette.primary};
   --color-near-black: ${palette.nearBlack};
   --color-near-white: ${palette.nearWhite};
@@ -378,7 +385,9 @@ async function main() {
   --color-border: hsl(${toHslTokens(darkBorder)});
   --color-input: hsl(${toHslTokens(darkBorder)});
   /* Small action text re-corrected for the dark neutral surfaces. */
-  --color-action-text: ${darkActionText};
+  --color-action-text: ${darkAction.actionText};
+  --color-action-text-canvas: ${darkAction.actionText};
+  --color-action-text-tint: ${darkAction.actionTextTint};
 }
 `
 
