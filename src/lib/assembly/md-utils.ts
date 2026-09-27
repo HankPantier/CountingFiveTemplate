@@ -4,6 +4,8 @@
  * All functions are pure and never throw.
  */
 
+import { isIconName } from './icon-names'
+
 /**
  * Promote standalone bold lines to H3 headings.
  *
@@ -118,9 +120,9 @@ export function parseIconTitleDescriptionList(
     .filter(line => /^\s*[-*]\s+/.test(line))
     .map(line => {
       const cleaned = line.replace(/^\s*[-*]\s+/, '')
-      // Primary pattern: IconName: **Title** [—|–|--] Description
+      // Primary pattern: IconName: **Title** [—|–|--| - ] Description
       const match = cleaned.match(
-        /^(\w+):\s+\*\*(.+?)\*\*\s*(?:—|–|--)\s*(.+)$/
+        /^(\w+):\s+\*\*(.+?)\*\*\s*(?:—|–|--|-(?=\s))\s*(.+)$/
       )
       if (match) {
         return { icon: match[1], title: match[2].trim(), description: match[3].trim() }
@@ -130,22 +132,28 @@ export function parseIconTitleDescriptionList(
       //   Calculator: **Outsourced Accounting**: Accurate books…
       //   Calculator: Outsourced Accounting: Accurate books…
       // (Slachta's feature-grid rendered "Calculator: Outsourced Accounting: …"
-      // as the card title.) The unbolded form needs a PascalCase icon word.
+      // as the card title.) The leading word counts as an icon only when it IS
+      // one (isIconName) — "Bookkeeping: Monthly close: …" is Title: description.
       const boldColon = cleaned.match(/^(\w+):\s+\*\*(.+?):?\*\*:?\s*(.*)$/)
-      if (boldColon) {
+      if (boldColon && isIconName(boldColon[1])) {
         return { icon: boldColon[1], title: boldColon[2].trim(), description: boldColon[3].trim() }
       }
       const plainColon = cleaned.match(/^([A-Z][A-Za-z0-9]*):\s+([^:*]+?):\s+(.+)$/)
-      if (plainColon) {
+      if (plainColon && isIconName(plainColon[1])) {
         return { icon: plainColon[1], title: plainColon[2].trim(), description: plainColon[3].trim() }
       }
       // Fallback: no icon — treat as **Title** [—|–|--] Description or plain text
-      const fallback = cleaned.match(/^(?:\*\*(.+?)\*\*\s*(?:—|–|--)\s*(.+)|(.+)(?:—|–|--)(.+))$/)
+      const fallback = cleaned.match(/^(?:\*\*(.+?)\*\*\s*(?:—|–|--|-(?=\s))\s*(.+)|(.+)(?:—|–|--)(.+))$/)
       if (fallback) {
         if (fallback[1]) {
           return { icon: 'CheckCircle', title: fallback[1].trim(), description: fallback[2].trim() }
         }
         return { icon: 'CheckCircle', title: fallback[3].trim(), description: fallback[4].trim() }
+      }
+      // "Title: description" (bold or not) with no icon word in front.
+      const titleColon = cleaned.match(/^\*{0,2}([^:*]{2,80}?)(?::\*\*|\*\*:|:)\s+(.+)$/)
+      if (titleColon) {
+        return { icon: 'CheckCircle', title: titleColon[1].trim(), description: titleColon[2].replace(/\*\*/g, '').trim() }
       }
       return { icon: 'CheckCircle', title: cleaned.replace(/\*\*/g, '').trim(), description: '' }
     })

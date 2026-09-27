@@ -974,3 +974,27 @@ describe('WS-D parser fixes', () => {
     ])
   })
 })
+
+describe('parseIconTitleDescriptionList edge cases (WS-D fix round 1)', () => {
+  it('accepts a spaced single hyphen as the separator', () => {
+    expect(parseIconTitleDescriptionList('- Calculator: **Tax** - Year-round planning.')).toEqual([
+      { icon: 'Calculator', title: 'Tax', description: 'Year-round planning.' },
+    ])
+    // an in-word hyphen is not a separator
+    expect(parseIconTitleDescriptionList('- **Year-end close**')[0].title).toBe('Year-end close')
+  })
+  it('only treats a KNOWN icon name as the icon prefix', () => {
+    expect(parseIconTitleDescriptionList('- Bookkeeping: Monthly close: Reconciled every month.')).toEqual([
+      { icon: 'CheckCircle', title: 'Bookkeeping', description: 'Monthly close: Reconciled every month.' },
+    ])
+    expect(parseIconTitleDescriptionList('- Bookkeeping: **Monthly close:** Reconciled.')).toEqual([
+      { icon: 'CheckCircle', title: 'Bookkeeping', description: 'Monthly close: Reconciled.' },
+    ])
+  })
+  it('reads a plain or bold "Title: description" with no icon', () => {
+    expect(parseIconTitleDescriptionList('- **Payroll:** Timely payroll.\n- Advisory: Guidance.')).toEqual([
+      { icon: 'CheckCircle', title: 'Payroll', description: 'Timely payroll.' },
+      { icon: 'CheckCircle', title: 'Advisory', description: 'Guidance.' },
+    ])
+  })
+})
