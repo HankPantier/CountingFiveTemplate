@@ -3,8 +3,10 @@ import {
   findActivePrimary,
   isUrlActive,
   nodeContainsUrl,
+  comparablePath,
   orderedPrimaryNav,
   primaryHasTertiary,
+  siteContactUrl,
   resolveSideNav,
 } from './nav-tree'
 import type { NavJson } from './types'
@@ -130,5 +132,34 @@ describe('orderedPrimaryNav with a header cta', () => {
       'About',
       'Contact',
     ])
+  })
+})
+
+describe('siteContactUrl — where the hero CTA may point', () => {
+  it('prefers the nav Contact item url, at any depth (Accord → /locations)', () => {
+    expect(siteContactUrl({ primary: [{ label: 'Contact', url: '/locations' }] }, [])).toBe('/locations')
+    expect(
+      siteContactUrl(
+        { primary: [{ label: 'About', url: '/about', children: [{ label: 'Contact us', url: '/about/contact-us' }] }] },
+        ['contact'],
+      ),
+    ).toBe('/about/contact-us')
+  })
+  it('falls back to /contact only when content/pages has it, else undefined', () => {
+    expect(siteContactUrl({ primary: [{ label: 'About', url: '/about' }] }, ['about', 'contact'])).toBe('/contact')
+    expect(siteContactUrl({ primary: [{ label: 'About', url: '/about' }] }, ['about'])).toBeUndefined()
+  })
+  it('skips a Contact item that has a dropdown', () => {
+    expect(
+      siteContactUrl({ primary: [{ label: 'Contact', url: '/contact', children: [{ label: 'Offices', url: '/offices' }] }] }, []),
+    ).toBeUndefined()
+  })
+})
+
+describe('comparablePath', () => {
+  it('drops host, query, hash and trailing slashes and lower-cases', () => {
+    expect(comparablePath('https://Firm.com/Contact/?x=1#f')).toBe('/contact')
+    expect(comparablePath('')).toBe('/')
+    expect(comparablePath('/')).toBe('/')
   })
 })

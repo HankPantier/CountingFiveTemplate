@@ -26,6 +26,7 @@ import {
   stepsFromTitleChunks,
 } from './md-utils'
 import type { PricingTier } from './md-utils'
+import { comparablePath } from '../nav/nav-tree'
 
 export type { PricingTier }
 
@@ -47,13 +48,15 @@ export type HeroProps = {
 
 export type HeroCta = { label: string; url: string }
 
-/** Last-resort hero CTA when neither the page nor nav.json names one. */
-export const DEFAULT_HERO_CTA: HeroCta = { label: 'Schedule a consultation', url: '/contact' }
+/**
+ * What the hero CTA may fall back to on this site: nav.json's `cta`, and the
+ * site's contact destination (siteContactUrl — the nav's Contact item, else
+ * /contact only when that page exists). See getHeroCtaSite().
+ */
+export type HeroCtaSite = { navCta?: HeroCta; contactUrl?: string }
 
-const pathOnly = (url: string): string => {
-  const p = url.replace(/^https?:\/\/[^/]+/i, '').split(/[?#]/)[0].replace(/\/+$/, '')
-  return p === '' ? '/' : p
-}
+/** Label of the last-resort hero CTA (to the site's contact destination). */
+export const DEFAULT_HERO_CTA_LABEL = 'Schedule a consultation'
 
 const pair = (label?: string, url?: string): HeroCta | undefined => {
   const l = label?.trim()
@@ -66,17 +69,19 @@ const pair = (label?: string, url?: string): HeroCta | undefined => {
  *   1. the page's `hero_cta_label` + `hero_cta_url` frontmatter;
  *   2. the page's outline CTA (`cta_text` + `cta_url`, emitted by the platform);
  *   3. the site-wide `nav.cta`;
- *   4. "Schedule a consultation" → /contact.
+ *   4. "Schedule a consultation" → the site's contact destination
+ *      (`site.contactUrl`); with none, no CTA — never a link to a 404.
  * Omitted when it would link the page to itself (the contact page's hero
  * never says "contact us").
  */
-export function resolveHeroCta(manifest: PageManifest, navCta?: HeroCta): HeroCta | undefined {
+export function resolveHeroCta(manifest: PageManifest, site: HeroCtaSite = {}): HeroCta | undefined {
   const cta =
     pair(manifest.hero_cta_label, manifest.hero_cta_url) ??
     pair(manifest.cta_text, manifest.cta_url) ??
-    pair(navCta?.label, navCta?.url) ??
-    DEFAULT_HERO_CTA
-  if (pathOnly(cta.url) === pathOnly(manifest.url || '/')) return undefined
+    pair(site.navCta?.label, site.navCta?.url) ??
+    pair(DEFAULT_HERO_CTA_LABEL, site.contactUrl)
+  if (!cta) return undefined
+  if (comparablePath(cta.url) === comparablePath(manifest.url || '/')) return undefined
   return cta
 }
 
@@ -84,9 +89,9 @@ export function resolveHeroCta(manifest: PageManifest, navCta?: HeroCta): HeroCt
  * Hero is page-level: sourced from frontmatter.
  * Prefer hero_subhead (benefit-led, written for on-page); fall back to
  * meta_description for older deliverables that predate the dedicated field.
- * `navCta` is nav.json's `cta` (see resolveHeroCta).
+ * `site` carries nav.cta + the contact destination (see resolveHeroCta).
  */
-export function extractHeroProps(manifest: PageManifest, navCta?: HeroCta): HeroProps {
+export function extractHeroProps(manifest: PageManifest, site?: HeroCtaSite): HeroProps {
   return {
     variant: (manifest.hero_variant as HeroProps['variant']) ?? 'image',
     image: manifest.hero_image,
@@ -96,7 +101,7 @@ export function extractHeroProps(manifest: PageManifest, navCta?: HeroCta): Hero
     headline: heroHeadline(manifest),
     subheadline: manifest.hero_subhead ?? manifest.meta_description,
     eyebrow: manifest.hero_eyebrow,
-    cta_primary: resolveHeroCta(manifest, navCta),
+    cta_primary: resolveHeroCta(manifest, site),
   }
 }
 
@@ -597,13 +602,13 @@ export type HeroSplitProps = {
  * HeroSplit is page-level — sourced from the manifest, same pattern as Hero
  * and PageHeader. M4.D wires it into PageLayout via manifest.hero_block.
  */
-export function extractHeroSplitProps(manifest: PageManifest, navCta?: HeroCta): HeroSplitProps {
+export function extractHeroSplitProps(manifest: PageManifest, site?: HeroCtaSite): HeroSplitProps {
   const headline = heroHeadline(manifest)
   return {
     variant: (manifest.hero_variant as HeroSplitProps['variant']) ?? 'image-right',
     headline,
     subheadline: manifest.hero_subhead ?? manifest.meta_description,
-    cta_primary: resolveHeroCta(manifest, navCta),
+    cta_primary: resolveHeroCta(manifest, site),
     cta_secondary: undefined,
     image: manifest.hero_image ?? '',
     image_alt: manifest.hero_image_alt ?? headline,

@@ -6,7 +6,7 @@ import {
   extractHeroSplitProps,
   extractHeroProps,
   resolveHeroCta,
-  DEFAULT_HERO_CTA,
+  DEFAULT_HERO_CTA_LABEL,
   extractIntroTextProps,
   extractProcessStepsProps,
   isLongIntroBody,
@@ -151,38 +151,47 @@ describe('extractHeroSplitProps', () => {
 describe('hero CTA (resolveHeroCta)', () => {
   const home = { title: 'Acme', url: '/', meta_description: 'd' } as unknown as PageManifest
   const nav = { label: 'Book a call', url: '/book' }
+  const contact = { label: DEFAULT_HERO_CTA_LABEL, url: '/contact' }
+  const site = { navCta: nav, contactUrl: '/contact' }
 
   it('prefers the page hero_cta_label + hero_cta_url', () => {
     const m = { ...home, hero_cta_label: 'Get a quote', hero_cta_url: '/quote', cta_text: 'X', cta_url: '/x' }
-    expect(resolveHeroCta(m, nav)).toEqual({ label: 'Get a quote', url: '/quote' })
+    expect(resolveHeroCta(m, site)).toEqual({ label: 'Get a quote', url: '/quote' })
   })
 
-  it('falls back to the outline cta_text + cta_url, then nav.cta, then /contact', () => {
-    expect(resolveHeroCta({ ...home, cta_text: 'Talk to us', cta_url: '/talk' }, nav)).toEqual({
+  it('falls back to the outline cta_text + cta_url, then nav.cta, then the site contact destination', () => {
+    expect(resolveHeroCta({ ...home, cta_text: 'Talk to us', cta_url: '/talk' }, site)).toEqual({
       label: 'Talk to us',
       url: '/talk',
     })
-    expect(resolveHeroCta(home, nav)).toEqual(nav)
-    expect(resolveHeroCta(home)).toEqual(DEFAULT_HERO_CTA)
-    expect(DEFAULT_HERO_CTA).toEqual({ label: 'Schedule a consultation', url: '/contact' })
+    expect(resolveHeroCta(home, site)).toEqual(nav)
+    expect(resolveHeroCta(home, { contactUrl: '/contact' })).toEqual(contact)
+    expect(DEFAULT_HERO_CTA_LABEL).toBe('Schedule a consultation')
   })
 
-  it('ignores half-set pairs and blank nav.cta', () => {
-    expect(resolveHeroCta({ ...home, hero_cta_label: 'Only a label' }, { label: ' ', url: '/x' })).toEqual(
-      DEFAULT_HERO_CTA
-    )
+  it('uses the nav Contact item url (Accord /locations, Berg /contact-us), and omits the CTA with no safe target', () => {
+    expect(resolveHeroCta(home, { contactUrl: '/locations' })).toEqual({ label: DEFAULT_HERO_CTA_LABEL, url: '/locations' })
+    expect(resolveHeroCta(home, { contactUrl: '/contact-us' })?.url).toBe('/contact-us')
+    expect(resolveHeroCta(home, {})).toBeUndefined()
+    expect(resolveHeroCta(home)).toBeUndefined()
   })
 
-  it('omits a CTA that would link the page to itself', () => {
-    const contact = { ...home, url: '/contact' }
-    expect(resolveHeroCta(contact)).toBeUndefined()
-    expect(resolveHeroCta(contact, { label: 'Contact', url: 'https://acme.com/contact/' })).toBeUndefined()
-    expect(resolveHeroCta({ ...home, url: '/about' })).toEqual(DEFAULT_HERO_CTA)
+  it('ignores half-set pairs and a blank nav.cta', () => {
+    expect(
+      resolveHeroCta({ ...home, hero_cta_label: 'Only a label' }, { navCta: { label: ' ', url: '/x' }, contactUrl: '/contact' }),
+    ).toEqual(contact)
+  })
+
+  it('omits a CTA that would link the page to itself (case / host / slash insensitive)', () => {
+    const contactPage = { ...home, url: '/contact' }
+    expect(resolveHeroCta(contactPage, { contactUrl: '/contact' })).toBeUndefined()
+    expect(resolveHeroCta(contactPage, { navCta: { label: 'Contact', url: 'https://acme.com/Contact/' } })).toBeUndefined()
+    expect(resolveHeroCta({ ...home, url: '/about' }, { contactUrl: '/contact' })).toEqual(contact)
   })
 
   it('is wired into both page-level heroes (no longer hard-coded undefined)', () => {
-    expect(extractHeroProps(home, nav).cta_primary).toEqual(nav)
-    expect(extractHeroSplitProps(home).cta_primary).toEqual(DEFAULT_HERO_CTA)
+    expect(extractHeroProps(home, site).cta_primary).toEqual(nav)
+    expect(extractHeroSplitProps(home, { contactUrl: '/contact' }).cta_primary).toEqual(contact)
     expect(extractHeroSplitProps(home).cta_secondary).toBeUndefined()
   })
 

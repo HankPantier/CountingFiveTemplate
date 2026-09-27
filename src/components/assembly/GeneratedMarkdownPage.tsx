@@ -4,6 +4,7 @@ import { getPageMarkdown } from '@/lib/content/get-page'
 import { parsePageMd } from '@/lib/assembly/parse-page-md'
 import { getBrandConfig } from '@/lib/brand/get-brand-config'
 import { getNavConfig } from '@/lib/nav/get-nav-config'
+import { getHeroCtaSite } from '@/lib/nav/hero-cta-site'
 import { resolveSideNav } from '@/lib/nav/nav-tree'
 import { buildBreadcrumbTrail } from '@/lib/nav/breadcrumbs'
 import { SideNav } from '@/components/nav/SideNav'
@@ -21,7 +22,7 @@ import {
   extractHeroProps,
   extractHeroSplitProps,
   extractPageHeaderProps,
-  type HeroCta,
+  type HeroCtaSite,
 } from '@/lib/assembly/extract-block-props'
 
 /**
@@ -31,12 +32,12 @@ import {
  * would otherwise be shadowed by the more-specific post route.
  */
 
-function renderHeroBlock(manifest: ReturnType<typeof parsePageMd>, navCta?: HeroCta): ReactNode {
+function renderHeroBlock(manifest: ReturnType<typeof parsePageMd>, site: HeroCtaSite): ReactNode {
   switch (manifest.hero_block) {
     case 'hero':
-      return <Hero {...extractHeroProps(manifest, navCta)} />
+      return <Hero {...extractHeroProps(manifest, site)} />
     case 'hero-split':
-      return <HeroSplit {...extractHeroSplitProps(manifest, navCta)} />
+      return <HeroSplit {...extractHeroSplitProps(manifest, site)} />
     case 'page-header':
       return <PageHeader {...extractPageHeaderProps(manifest)} />
     default:
@@ -58,7 +59,7 @@ export async function renderGeneratedPage(url: string): Promise<ReactNode | null
     console.error('[page] Failed to parse:', err)
     return null
   }
-  const [brand, nav] = await Promise.all([getBrandConfig(), getNavConfig()])
+  const [brand, nav, heroSite] = await Promise.all([getBrandConfig(), getNavConfig(), getHeroCtaSite()])
 
   // Show the section side-nav only on secondary/tertiary pages of a primary
   // that has tertiary items (see resolveSideNav). Otherwise render full-width.
@@ -71,7 +72,7 @@ export async function renderGeneratedPage(url: string): Promise<ReactNode | null
     <>
       <SchemaScript manifest={manifest} brand={brand} />
       <PageLayout
-        hero={renderHeroBlock(manifest, nav.cta)}
+        hero={renderHeroBlock(manifest, heroSite)}
         breadcrumb={<Breadcrumb crumbs={crumbs} />}
         sideNav={sidePrimary ? <SideNav primary={sidePrimary} currentUrl={url} /> : undefined}
       >
