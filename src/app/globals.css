@@ -248,6 +248,18 @@
   --color-action-text: var(--color-action-text-canvas, var(--color-action));
 }
 
+/* design.json darkSections → <html data-dark-sections="on">: the "ink" bands
+ * (ServiceCards / FeatureGrid / IndustryCards with theme: ink, marked
+ * .u-band-ink) move from the primary surface onto the deep --color-ink
+ * surface. Their text reads --color-primary-foreground, so it is re-scoped to
+ * the ink foreground; small action text takes the ink-corrected token. Light
+ * cards inside keep the canvas token (rule above). Inert when the flag is off. */
+html[data-dark-sections="on"] .u-band-ink {
+  background-color: var(--color-ink, var(--color-near-black));
+  --color-primary-foreground: var(--color-ink-foreground, var(--color-near-white));
+  --color-action-text: var(--color-action-on-ink, var(--color-action));
+}
+
 /* Italic-serif accent role for the emphasised word in a statement headline. */
 .font-accent { font-family: var(--font-accent); font-style: italic; font-weight: 400; }
 

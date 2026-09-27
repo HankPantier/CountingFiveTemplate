@@ -18,7 +18,7 @@ export function FeatureGrid({ variant, theme, heading, intro, items }: FeatureGr
   // ---- Ink band: index register on the primary surface ----
   if (theme === 'ink') {
     return (
-      <Section fullBleed bg="primary" spacing="spacious" dataBlock="feature-grid">
+      <Section fullBleed bg="primary" spacing="spacious" dataBlock="feature-grid" className="u-band-ink">
         <header className="max-w-2xl mx-auto text-center">
           <h2 className="t-h2 text-primary-foreground">{heading}</h2>
           {intro && (

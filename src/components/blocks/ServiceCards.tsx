@@ -79,7 +79,7 @@ export function ServiceCards({ variant, theme, heading, intro, cards }: ServiceC
 
   if (isInk) {
     return (
-      <Section fullBleed bg="primary" spacing="spacious" dataBlock="service-cards">
+      <Section fullBleed bg="primary" spacing="spacious" dataBlock="service-cards" className="u-band-ink">
         {grid}
       </Section>
     )
