@@ -230,8 +230,17 @@
 .t-body-lg { font-size: var(--type-body-lg); line-height: 1.6; }
 .t-small { font-size: var(--type-small); line-height: 1.5; }
 
-/* Small-caps kicker / eyebrow in the action colour. */
-.t-kicker { font-size: var(--type-caption); letter-spacing: 0.16em; text-transform: uppercase; font-weight: 600; color: var(--color-action); }
+/* Small-caps kicker / eyebrow in the action colour. 12px text needs 4.5:1, so it
+ * reads the AA-corrected --color-action-text (theme.css), falling back to the raw
+ * action colour on sites whose theme.css predates that token. */
+.t-kicker { font-size: var(--type-caption); letter-spacing: 0.16em; text-transform: uppercase; font-weight: 600; color: var(--color-action-text, var(--color-action)); }
+
+/* Primary surfaces (page header, full-bleed hero, ink index bands, the featured
+ * pricing card): re-scope the small-text action token to the variant corrected
+ * against the primary, so every small action text inside follows. A token
+ * re-scope rather than a descendant colour rule keeps .t-kicker's specificity
+ * unchanged — client design-overrides.css kicker rules still win as before. */
+.bg-primary { --color-action-text: var(--color-action-on-primary, var(--color-action)); }
 
 /* Italic-serif accent role for the emphasised word in a statement headline. */
 .font-accent { font-family: var(--font-accent); font-style: italic; font-weight: 400; }

@@ -26,7 +26,7 @@ export const CONTENT_TYPE_META: Record<PostContentType, ContentTypeMeta> = {
   article: {
     value: 'article',
     label: 'Article',
-    badgeClass: 'bg-[color:var(--color-action)]/10 text-[color:var(--color-action)]',
+    badgeClass: 'bg-[color:var(--color-action)]/10 text-[color:var(--color-action-text,var(--color-action))]',
   },
   'thought-leadership': {
     value: 'thought-leadership',
@@ -36,7 +36,7 @@ export const CONTENT_TYPE_META: Record<PostContentType, ContentTypeMeta> = {
   'case-study': {
     value: 'case-study',
     label: 'Case study',
-    badgeClass: 'bg-[color:var(--color-action)]/15 text-[color:var(--color-action)]',
+    badgeClass: 'bg-[color:var(--color-action)]/15 text-[color:var(--color-action-text,var(--color-action))]',
   },
 }
 

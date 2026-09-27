@@ -24,7 +24,7 @@ const buttonVariants = cva(
         // Ink & Clay outlined tertiary — action-colour hairline, transparent
         // ground, filling to a faint action wash on hover.
         tertiary:
-          "border border-[color:var(--color-action)] text-[color:var(--color-action)] bg-transparent hover:bg-[color:var(--color-action)]/10",
+          "border border-[color:var(--color-action)] text-[color:var(--color-action-text,var(--color-action))] bg-transparent hover:bg-[color:var(--color-action)]/10",
         ghost: "hover:bg-accent hover:text-accent-foreground active:bg-accent/90",
         link: "text-primary underline-offset-4 hover:underline",
       },

@@ -2,6 +2,32 @@
 
 All notable changes to this template are recorded here. The format follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/) and the project loosely follows semver — though as a per-client template, "release" means "checkpoint on `main`" rather than a published package version.
 
+## [2026.09.4] — Auto-corrected action colour for small text
+
+### Added
+- **`--color-action-text` / `--color-action-on-primary`** (theme.css, from
+  `scripts/generate-theme.ts` via `src/lib/theme/action-text-contrast.ts`): the
+  action colour moved in OKLCH lightness only (hue held, chroma reduced only to
+  stay in sRGB) to the smallest step that reaches 4.5:1 against the page
+  background (`palette.nearWhite`) and the AA-corrected primary surface. A
+  raw action that already passes is emitted verbatim. `.dark` re-derives
+  `--color-action-text` against the dark card surface. One action colour
+  cannot pass both surfaces on a dark-primary site (house default #00C1DE on
+  #F7F5F2 was 1.99:1; now #007c90, 4.50:1).
+
+### Changed
+- Small action-coloured text reads the corrected tokens, always with a
+  `var(…, var(--color-action))` fallback so a site whose theme.css predates the
+  tokens renders exactly as before: `.t-kicker` (hero / section kickers, card
+  dates, page-header kicker), the pricing-plans "Save n%" badge, the Article /
+  Case study resource badges, and the `tertiary` button label. `.bg-primary`
+  re-scopes `--color-action-text` to the on-primary variant (a token re-scope,
+  so client `design-overrides.css` kicker rules still win as before).
+- Large display accents (headline accent word, stat figures, calculator
+  estimate), icons, stars, rules and fills keep the raw brand action.
+- R1 baselines re-captured deliberately: the template default's own palette
+  fails on the canvas, so its canvas kickers darken to #007c90.
+
 ## [2026.09.3] — Style-axis preset fixes + export-brief retired
 
 ### Fixed

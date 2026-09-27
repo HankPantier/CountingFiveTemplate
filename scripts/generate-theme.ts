@@ -4,6 +4,7 @@ import path from 'node:path'
 import chroma from 'chroma-js'
 import type { BrandJson } from '../src/lib/brand/types'
 import type { DesignJson } from '../src/lib/theme/types'
+import { deriveActionTextColors } from '../src/lib/theme/action-text-contrast'
 
 /**
  * Helper: Convert a hex color to HSL space-separated token (e.g., "220 75% 50%")
@@ -188,6 +189,16 @@ async function main() {
     const darkMutedForeground = ensureContrast(setLightness(palette.nearWhite, 60), darkMuted)
     const darkBorder = setLightness(palette.nearBlack, 24)
 
+    // Small-text action colours, auto-corrected to AA (4.5:1) against the one
+    // surface each is used on — see src/lib/theme/action-text-contrast.ts.
+    // Exactly palette.action whenever the raw colour already passes.
+    const { actionText, actionOnPrimary, darkActionText } = deriveActionTextColors(
+      palette.action,
+      palette.nearWhite,
+      primaryBg,
+      darkCard
+    )
+
     // Elevation: tint shadows with the brand primary (low alpha) instead of
     // generic black, so cards/popovers read as part of the palette. Drives both
     // the --shadow-card token the block cards reference and the Tailwind
@@ -225,6 +236,11 @@ async function main() {
   /* Custom brand tokens — used directly by block components via var() */
   --color-action: ${palette.action};
   --color-action-foreground: ${palette.nearWhite};
+  /* Action colour for SMALL text, AA-corrected (lightness only) against the
+   * page background / the primary surface. Equal to --color-action when the
+   * raw colour already passes. */
+  --color-action-text: ${actionText};
+  --color-action-on-primary: ${actionOnPrimary};
   --color-primary-hex: ${palette.primary};
   --color-near-black: ${palette.nearBlack};
   --color-near-white: ${palette.nearWhite};
@@ -302,6 +318,11 @@ async function main() {
   /* Custom brand tokens */
   --color-action: ${palette.action};
   --color-action-foreground: ${palette.nearWhite};
+  /* Action colour for SMALL text, AA-corrected (lightness only) against the
+   * page background / the primary surface. Equal to --color-action when the
+   * raw colour already passes. */
+  --color-action-text: ${actionText};
+  --color-action-on-primary: ${actionOnPrimary};
   --color-primary-hex: ${palette.primary};
   --color-near-black: ${palette.nearBlack};
   --color-near-white: ${palette.nearWhite};
@@ -356,6 +377,8 @@ async function main() {
   --color-muted-foreground: hsl(${toHslTokens(darkMutedForeground)});
   --color-border: hsl(${toHslTokens(darkBorder)});
   --color-input: hsl(${toHslTokens(darkBorder)});
+  /* Small action text re-corrected for the dark neutral surfaces. */
+  --color-action-text: ${darkActionText};
 }
 `
 
