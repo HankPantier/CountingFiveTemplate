@@ -63,15 +63,15 @@ export function FramedMedia({
         )}
       />
       {grade === 'duotone' && (
+        // Grade strength and fill are tokens, not inline styles, so a site's
+        // design-overrides.css (or a Design Studio concept) can raise the
+        // grade: --c5-media-grade-opacity (default .24) and
+        // --c5-media-grade-fill (default primary → action wash). Utilities
+        // are layered, so an unlayered [data-c5="media-grade"] rule wins too.
         <span
           aria-hidden
           data-c5="media-grade"
-          className="pointer-events-none absolute inset-0 mix-blend-multiply"
-          style={{
-            background:
-              'linear-gradient(150deg, var(--color-primary) 0%, var(--color-action) 130%)',
-            opacity: 0.24,
-          }}
+          className="pointer-events-none absolute inset-0 mix-blend-multiply opacity-[var(--c5-media-grade-opacity,0.24)] [background:var(--c5-media-grade-fill,linear-gradient(150deg,var(--color-primary)_0%,var(--color-action)_130%))]"
         />
       )}
     </div>

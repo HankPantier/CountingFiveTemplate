@@ -357,7 +357,7 @@ export function PricingCalculatorClient({ config }: { config: PricingCalculatorC
         <div className="overflow-hidden rounded-2xl bg-primary p-7 text-primary-foreground shadow-[var(--shadow-lg)]">
           <p className="text-xs font-body font-semibold uppercase tracking-[0.14em] text-primary-foreground/60">Estimated cost</p>
           {estimateLabel ? (
-            <p className="mt-2 font-heading text-4xl font-bold leading-none text-[color:var(--color-action,theme(colors.cyan.400))]">
+            <p className="mt-2 font-heading text-4xl font-bold leading-none text-[color:var(--color-action-on-primary,var(--color-action,theme(colors.cyan.400)))]">
               ~{estimateLabel}
               <span className="ml-1 align-baseline text-lg font-semibold text-primary-foreground/70">/{period}</span>
             </p>
