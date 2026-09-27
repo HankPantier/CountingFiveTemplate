@@ -1,4 +1,5 @@
 import { test, expect } from '@playwright/test'
+import { contactFormPageUrl } from './site-pages'
 
 /**
  * Browser-level contact-form coverage. The route logic (spam layers, Resend,
@@ -6,12 +7,15 @@ import { test, expect } from '@playwright/test'
  * those can't: the rendered form, client-side validation feedback, and the
  * browser → /api/contact wiring.
  *
- * Runs against the template's demo home page, which carries a
- * `form | variant: contact` block.
+ * Runs against whichever page carries the `form | variant: contact` block:
+ * the template's demo home page, or a client site's contact page. A site with
+ * no form page skips.
  */
+const FORM_PAGE = contactFormPageUrl()
+test.skip(FORM_PAGE === null, 'no content/pages/*.md carries a form block')
 
 test('contact form shows inline validation errors on empty submit', async ({ page }) => {
-  await page.goto('/')
+  await page.goto(FORM_PAGE!)
   const form = page.locator('#f-name').locator('xpath=ancestor::form')
   await form.scrollIntoViewIfNeeded()
   await form.getByRole('button', { name: /send|submit|get in touch/i }).click()
@@ -20,7 +24,7 @@ test('contact form shows inline validation errors on empty submit', async ({ pag
 })
 
 test('filled contact form submits to /api/contact (mailto fallback without Resend)', async ({ page }) => {
-  await page.goto('/')
+  await page.goto(FORM_PAGE!)
   await page.locator('#f-name').fill('Playwright Tester')
   await page.locator('#f-email').fill('delivered@resend.dev')
   await page.locator('#f-message').fill('End-to-end form wiring check — not a real inquiry.')

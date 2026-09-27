@@ -41,6 +41,19 @@ white → black on dark). Sites whose logo is not flagged light are unchanged.
 - `hooks.test.ts`: logo-tone.css is the second stylesheet allowed to
   reference `data-c5` hooks. `template-marker.test.ts`: 2026.09.6.
 
+### Fixed
+- **e2e on client content** (korbey CI, sha 3ff75d7): three specs assumed
+  the template's demo content.
+  - `form.spec.ts` ran on `/`. It now runs on the page that carries the
+    `form` block (`e2e/site-pages.ts`: home, then contact, then any page) and
+    skips when no page has one.
+  - `smoke.spec.ts`'s blog-index check hard-coded `/resources` and
+    `/resources/i` (4 matching headings on korbey, whose `/resources` is a
+    real page). It now reads `content/blog.json` (`readBlogConfigFile`) and
+    expects the index's h1 to be exactly the blog title at the blog path.
+  The template's own run still exercises all three (home form,
+  `/resources` "Resources").
+
 ### R1 / baselines
 - No `@visual` baseline re-captured: the template's brand.json has no
   `logo.tone`, so no rule applies (all 8 zero-change screenshots pass
@@ -50,9 +63,11 @@ white → black on dark). Sites whose logo is not flagged light are unchanged.
 Ship in ONE commit, `c5-template.json` last.
 - **Overwrite (M):** `src/app/globals.css`, `src/app/layout.tsx`,
   `src/lib/brand/types.ts`,
-  `src/lib/theme/{hooks.test,template-marker.test}.ts`, `CHANGELOG.md`.
+  `src/lib/theme/{hooks.test,template-marker.test}.ts`,
+  `e2e/{form,smoke}.spec.ts`, `CHANGELOG.md`.
 - **Add (A):** `src/styles/logo-tone.css`,
-  `src/lib/brand/{logo-tone,logo-tone.test}.ts`, `e2e/logo-tone.spec.ts`.
+  `src/lib/brand/{logo-tone,logo-tone.test}.ts`, `e2e/logo-tone.spec.ts`,
+  `e2e/site-pages.ts`.
 - **Delete (D):** none.
 - **Skip:** `package-lock.json` (unchanged), `content/**`.
 - **Write last:** `c5-template.json` = `{"templateVersion": "2026.09.6",

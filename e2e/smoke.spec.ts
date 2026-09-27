@@ -1,4 +1,6 @@
 import { test, expect } from '@playwright/test'
+import path from 'node:path'
+import { readBlogConfigFile } from '../src/lib/content/blog-config'
 
 /**
  * Smoke tests against the production build. Covers the surfaces that have
@@ -54,10 +56,13 @@ test('/api/og returns a 1200x630 PNG share card', async ({ request }) => {
   expect(res.headers()['content-type']).toMatch(/image\/png/)
 })
 
-test('/resources renders the index (empty state in fresh-clone)', async ({ page }) => {
-  const res = await page.goto('/resources')
+test('the blog index renders (empty state in fresh-clone)', async ({ page }) => {
+  // content/blog.json names and places the section (default /resources,
+  // "Resources"); a client may remap it (korbey: /insights, "Insights").
+  const blog = await readBlogConfigFile(path.resolve(__dirname, '..'))
+  const res = await page.goto(blog.path)
   expect(res?.status()).toBe(200)
-  await expect(page.getByRole('heading', { name: /resources/i })).toBeVisible()
+  await expect(page.getByRole('heading', { level: 1, name: blog.title, exact: true })).toBeVisible()
 })
 
 test('/.well-known/agent.json returns a structured A2A card', async ({ request }) => {
