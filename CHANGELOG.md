@@ -2,6 +2,111 @@
 
 All notable changes to this template are recorded here. The format follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/) and the project loosely follows semver — though as a per-client template, "release" means "checkpoint on `main`" rather than a published package version.
 
+## [2026.09.5] — Hero + header CTA, block polish, green CI
+
+Approved visible changes (production-ready styling review, WS-D). Sites
+that don't opt in to darkSections see: a hero button, balanced display
+headings, and the fixes below.
+
+### Added
+- **Hero call to action.** `hero` / `hero-split` heroes render a primary
+  button (they never did: `cta_primary` was hard-coded `undefined`). First
+  match wins: frontmatter `hero_cta_label` + `hero_cta_url` → the platform's
+  per-page `cta_text` + `cta_url` → `nav.json` `cta` → "Schedule a
+  consultation" → `/contact`. Omitted when it would link the page to itself.
+- **Header CTA de-duplication.** With `nav.cta` set (the platform now turns
+  it on by default), a childless primary item pointing at the same page
+  (typically "Contact") is dropped from the desktop and mobile menus.
+- **`design.json` `darkSections`** now does something: `<html
+  data-dark-sections="on">` moves the ink bands (ServiceCards / FeatureGrid /
+  IndustryCards `theme: ink`, marked `.u-band-ink`) from `--color-primary`
+  onto `--color-ink`, with the ink foreground and on-ink action token.
+- **Image grade tokens** `--c5-media-grade-opacity` (default .24) and
+  `--c5-media-grade-fill` (default primary → action gradient) on FramedMedia's
+  duotone wash (was an inline style CSS couldn't raise).
+- `c5-template.json` **`syncedFrom`**: the template commit SHA a client repo
+  was synced from (null in the template itself). Read by the platform fleet
+  tool as the 3-way gate's OLD.
+- e2e `polish.spec.ts` (content-agnostic); unit tests for every item; a
+  template-only lockfile check (`src/lib/lockfile-platforms.test.ts`).
+
+### Changed
+- `.t-display` / `.t-h1` / `.t-h2`: `text-wrap: balance`.
+- A page ending on the full-bleed `cta-banner` drops the footer's `mt-16`.
+- Centred IntroText with a body over 600 characters: heading stays centred,
+  body left-aligns in a 65ch column.
+- StatsBar: when any value is phrase-length (> 8 chars) or has no digit, the
+  bar uses an upright `t-h3` value style instead of display numerals.
+- NavBar top-level labels over 24 characters truncate with a tooltip.
+- Pricing-calculator estimate figure reads `--color-action-on-primary`
+  (falls back to `--color-action`).
+
+### Fixed
+- process-steps parses `### Title` + paragraph steps (rendered heading only).
+- Feature lists parse `Icon: **Title:** desc` / `Icon: Title: desc` (icon
+  names showed up in card titles).
+- FeatureGrid, ServiceCards, IndustryCards, TeamGrid, ChecklistSection,
+  ProcessSteps, Pricing, ContentCards, ContentTable render nothing when no
+  item parsed and there is no intro.
+- **CI**: `package-lock.json` listed only darwin-arm64 native bindings
+  (npm/cli#4828), so `npm ci` on ubuntu died at the Test step ("Cannot find
+  module '@rolldown/binding-linux-x64-gnu'") on every run since 2026-09-02.
+  The rolldown, @tailwindcss/oxide, lightningcss, esbuild and unrs-resolver
+  entries were re-resolved so every platform's binding is listed.
+
+### R1 / baselines
+- `@visual` desktop-home + mobile-home re-captured deliberately (hero button;
+  headings re-break under balance). privacy-policy, pricing-calculator and
+  404 baselines unchanged (the nav label clamp only applies to labels over
+  24 characters, so the active underline is untouched).
+- theme.css and `scripts/generate-theme.ts` are unchanged (byte parity with
+  the platform generator is unaffected).
+
+### Rollout notes (template 964ceb4 → 2026.09.5)
+Ship in ONE commit, `c5-template.json` last.
+- **Overwrite (M):** `src/app/design-specimen/page.tsx`,
+  `src/app/globals.css`, `src/app/layout.tsx`, `src/app/page.tsx`,
+  `src/components/assembly/GeneratedMarkdownPage.tsx`,
+  `src/components/blocks/{ChecklistSection,ContentCards,ContentTable,FeatureGrid,IndustryCards,IntroText,Pricing,PricingCalculatorClient,ProcessSteps,ServiceCards,StatsBar,TeamGrid}.tsx`,
+  `src/components/nav/{MobileNav,NavBar}.tsx`,
+  `src/components/ui/framed-media.tsx`,
+  `src/lib/assembly/{extract-block-props,extract-block-props.test,md-utils,md-utils.test,page-frontmatter-schema,parse-page-md}.ts`,
+  `src/lib/nav/{nav-tree,nav-tree.test}.ts`,
+  `src/lib/theme/{template-marker,template-marker.test}.ts`, `README.md`,
+  `CHANGELOG.md`.
+- **Add (A):** `e2e/polish.spec.ts`,
+  `src/components/blocks/empty-blocks.test.ts`,
+  `src/lib/lockfile-platforms.test.ts` (skips in client repos).
+- **Delete (D):** none.
+- **Skip:** `package-lock.json` (client-owned; see the CI recipe below),
+  `e2e/zero-change.spec.ts-snapshots/*` (template-content baselines, gated on
+  `content/.template-default`), `content/**`.
+- **Write last:** `c5-template.json` = `{"templateVersion": "2026.09.5",
+  "capabilities": ["fonts", "style-axes", "specimen"], "syncedFrom":
+  "<the template main SHA being rolled out>"}`.
+- **Also carried (fleet on rollout 3 = d97c04b):** 964ceb4 changed
+  `src/lib/theme/{action-text-contrast,action-text-contrast.test}.ts` after
+  rollout 3 (tint-badge text vs the page background, fb02628). Overwrite them
+  too unless the client already matches 964ceb4. theme.css is not rewritten
+  by this release.
+- **Gate:** 3-way per file — client vs OLD (the client's `syncedFrom`, else
+  d97c04b for the 2026.09.4 fleet) vs NEW; a client edit to any overwritten
+  file is a stop-and-look.
+- **Visible per site:** hero button on every hero/hero-split page; header
+  CTA only once the platform writes `nav.cta` (new packages) or an operator
+  adds one in the NavEditor; ink bands change only where design.json has
+  `darkSections: true`.
+- **Client CI recipe** (korbey today; any repo before it gets `ci.yml`), on
+  the client repo with no other changes pending:
+  ```sh
+  node -e "const f='package-lock.json',l=require('./'+f);for(const k of Object.keys(l.packages))if(/(^|\/)node_modules\/(rolldown|@rolldown\/binding-|lightningcss|@tailwindcss\/oxide|esbuild|@esbuild\/|unrs-resolver|@unrs\/resolver-binding-)/.test(k))delete l.packages[k];require('fs').writeFileSync(f,JSON.stringify(l,null,2)+'\n')"
+  npm install --package-lock-only --ignore-scripts
+  grep -c '"node_modules/@rolldown/binding-linux-x64-gnu"' package-lock.json   # expect 1
+  npm ci && npm test && npm run build
+  ```
+  Commit `package-lock.json` alone ("fix(ci): lockfile keeps every platform's
+  native bindings").
+
 ## [2026.09.4] — Auto-corrected action colour for small text
 
 ### Added
