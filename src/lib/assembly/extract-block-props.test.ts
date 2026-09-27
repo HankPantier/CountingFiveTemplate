@@ -229,10 +229,32 @@ describe('IntroText long centred bodies', () => {
 })
 
 describe('StatsBar figures', () => {
-  it('short values with a digit are figures; phrases are not', () => {
-    for (const v of ['25+', '$1.2M', '98%', '24/7', '3 CPAs']) expect(isStatFigure(v), v).toBe(true)
-    for (const v of ['', 'Trusted', 'Woodard Top 50 Client Accounting Services Award firm (2023)', 'Since 1972!!'])
+  it('true figures (digits, %, +, x, K/M/B, currency) are figures — however long; phrases are not', () => {
+    for (const v of ['25+', '$1.2M', '$1,200,000+', '98%', '24/7', '10x', '~40', '1972', '500 K+', '€3.5B'])
+      expect(isStatFigure(v), v).toBe(true)
+    for (const v of ['', 'Trusted', 'Woodard Top 50 Client Accounting Services Award firm (2023)', 'Top 50', '3 CPAs', 'Since 1972'])
       expect(isStatFigure(v), v).toBe(false)
+  })
+
+  it('StatsBar sets each value by itself: a phrase does not demote the figures beside it', async () => {
+    const { StatsBar } = await import('@/components/blocks/StatsBar')
+    const { isValidElement } = await import('react')
+    const el = StatsBar({
+      variant: '3-up',
+      stats: [
+        { value: '25+', label: 'years' },
+        { value: 'Woodard Top 50 award firm', label: '' },
+      ],
+    })
+    const dds: Array<{ className?: string }> = []
+    const walk = (n: unknown): void => {
+      if (Array.isArray(n)) return n.forEach(walk)
+      if (!isValidElement<{ children?: unknown; className?: string }>(n)) return
+      if (n.type === 'dd') dds.push(n.props)
+      walk(n.props.children)
+    }
+    walk(el)
+    expect(dds.map((d) => d.className?.startsWith('t-display'))).toEqual([true, false])
   })
 })
 

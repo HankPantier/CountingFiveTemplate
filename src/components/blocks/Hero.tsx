@@ -6,6 +6,7 @@ import Link from 'next/link'
 import type { ReactNode } from 'react'
 import { resolveImageSrc } from '@/lib/assembly/resolve-image'
 import { HeroSlides } from './HeroSlides'
+import { ACTION_DISPLAY_COLOR } from '@/lib/theme/accent-color'
 
 export type HeroProps = {
   variant: 'image' | 'video' | 'slider' | 'image-right' | 'image-left' | 'statement'
@@ -33,7 +34,7 @@ function renderHeadline(text: string): ReactNode {
   return (
     <>
       {before}
-      <span className="font-accent" data-c5="headline-accent" style={{ color: 'var(--color-action)' }}>
+      <span className="font-accent" data-c5="headline-accent" style={{ color: ACTION_DISPLAY_COLOR }}>
         {accent}
       </span>
       {after}

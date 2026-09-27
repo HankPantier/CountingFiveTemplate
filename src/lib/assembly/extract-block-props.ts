@@ -383,17 +383,16 @@ export type StatsBarProps = {
 }
 
 /**
- * True when a stat value reads as a figure ("25+", "$1.2M", "98%", "24/7",
- * "3 CPAs"): short and carrying a digit. Phrases ("Woodard Top 50 Client
- * Accounting Services Award firm (2023)") are not — StatsBar sets a bar that
- * has any of those in a smaller, upright text style instead of the display
- * numeral style.
+ * True when a stat value is a figure — digits with the usual figure
+ * punctuation and suffixes: "25+", "$1.2M", "$1,200,000+", "98%", "24/7",
+ * "10x", "~40", "1972". Anything else ("Woodard Top 50 Client Accounting
+ * Services Award firm (2023)", "Family-owned") is a phrase: StatsBar sets
+ * that value in an upright h3 text style; figures keep the display numerals.
  */
-export const STAT_FIGURE_MAX_CHARS = 8
+const STAT_FIGURE_RE = /^[~≈<>]?\s?[$€£]?\d[\d.,/:]*\s?(?:%|[xX×]|[kKmMbB]|\+)*$/
 
 export function isStatFigure(value: string): boolean {
-  const v = value.trim()
-  return v.length > 0 && v.length <= STAT_FIGURE_MAX_CHARS && /\d/.test(v)
+  return STAT_FIGURE_RE.test(value.trim())
 }
 
 export function extractStatsBarProps(section: PageSection): StatsBarProps {

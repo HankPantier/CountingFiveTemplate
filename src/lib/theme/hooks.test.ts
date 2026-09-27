@@ -32,7 +32,7 @@ describe('style-axis hooks', () => {
   it('every headline accent span and the media grade carry their hook', () => {
     for (const f of ['Hero', 'HeroSplit', 'PageHeader', 'IntroText']) {
       const src = readFileSync(path.join(process.cwd(), `src/components/blocks/${f}.tsx`), 'utf-8')
-      expect(src, f).toContain(`<span className="font-accent" data-c5="headline-accent" style={{ color: 'var(--color-action)' }}>`)
+      expect(src, f).toContain(`<span className="font-accent" data-c5="headline-accent" style={{ color: ACTION_DISPLAY_COLOR }}>`)
     }
     expect(readFileSync(path.join(process.cwd(), 'src/components/ui/framed-media.tsx'), 'utf-8')).toContain('data-c5="media-grade"')
   })

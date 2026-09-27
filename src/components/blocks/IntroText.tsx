@@ -7,6 +7,7 @@ import { MD_LINK_COMPONENTS } from '@/lib/markdown-components'
 import { cn } from '@/lib/utils'
 import type { ReactNode } from 'react'
 import type { IntroTextProps } from '@/lib/assembly/extract-block-props'
+import { ACTION_DISPLAY_COLOR } from '@/lib/theme/accent-color'
 
 export type { IntroTextProps }
 
@@ -21,7 +22,7 @@ function renderHeading(text: string): ReactNode {
   return (
     <>
       {before}
-      <span className="font-accent" data-c5="headline-accent" style={{ color: 'var(--color-action)' }}>
+      <span className="font-accent" data-c5="headline-accent" style={{ color: ACTION_DISPLAY_COLOR }}>
         {accent}
       </span>
       {after}

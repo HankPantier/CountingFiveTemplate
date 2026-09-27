@@ -1,5 +1,6 @@
 import { Section } from './Section'
 import { cn } from '@/lib/utils'
+import { ACTION_DISPLAY_COLOR } from '@/lib/theme/accent-color'
 import { isStatFigure, type StatsBarProps } from '@/lib/assembly/extract-block-props'
 
 export type { StatsBarProps }
@@ -20,11 +21,9 @@ export function StatsBar({ variant, theme, heading, stats }: StatsBarProps) {
     ? 'md:border-l md:border-[color:var(--color-border)] md:pl-8'
     : 'md:border-l md:border-[color:var(--color-primary-foreground)]/15 md:pl-8'
 
-  // Any phrase-length or non-numeric value switches the whole bar (so the row
-  // stays consistent) from display numerals to an upright h3 text style.
-  const figures = stats.every((s) => isStatFigure(s.value))
-
-  const valueColor = isLight ? 'var(--color-primary)' : 'var(--color-action)'
+  // On the primary band the figures take the on-primary-corrected action
+  // (ACTION_DISPLAY_COLOR; the raw action when it already passes).
+  const valueColor = isLight ? 'var(--color-primary)' : ACTION_DISPLAY_COLOR
   const headingClass = isLight ? 'text-foreground' : 'text-primary-foreground'
   // .t-kicker hardcodes the action colour; override it via inline style so the
   // label reads as a muted caption on both surfaces rather than a second accent.
@@ -44,21 +43,26 @@ export function StatsBar({ variant, theme, heading, stats }: StatsBarProps) {
         <h2 className={cn('t-h2 mb-12 text-center', headingClass)}>{heading}</h2>
       )}
       <dl className={cn('grid gap-y-10 gap-x-8', colsClass)}>
-        {stats.map((stat, i) => (
-          <div key={i} className={i > 0 ? dividerClass : undefined}>
-            <dd
-              className={figures ? 't-display font-accent leading-none' : cn('t-h3 text-balance', headingClass)}
-              style={figures ? { fontVariantNumeric: 'tabular-nums', color: valueColor } : undefined}
-            >
-              {stat.value}
-            </dd>
-            {stat.label && (
-              <dt className="t-kicker mt-4" style={{ color: labelColor }}>
-                {stat.label}
-              </dt>
-            )}
-          </div>
-        ))}
+        {stats.map((stat, i) => {
+          // True figures keep the display numerals; a phrase value (Berg's
+          // award sentence) is set upright at h3 in the heading colour.
+          const figure = isStatFigure(stat.value)
+          return (
+            <div key={i} className={i > 0 ? dividerClass : undefined}>
+              <dd
+                className={figure ? 't-display font-accent leading-none' : cn('t-h3 text-balance', headingClass)}
+                style={figure ? { fontVariantNumeric: 'tabular-nums', color: valueColor } : undefined}
+              >
+                {stat.value}
+              </dd>
+              {stat.label && (
+                <dt className="t-kicker mt-4" style={{ color: labelColor }}>
+                  {stat.label}
+                </dt>
+              )}
+            </div>
+          )
+        })}
       </dl>
     </Section>
   )
