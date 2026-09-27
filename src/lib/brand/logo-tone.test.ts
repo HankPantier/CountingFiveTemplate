@@ -1,7 +1,11 @@
-import { readFileSync } from 'node:fs'
+import { existsSync, readFileSync } from 'node:fs'
 import path from 'node:path'
 import { describe, expect, it } from 'vitest'
 import { LOGO_TONE_ATTRIBUTE, logoToneAttributes } from './logo-tone'
+
+// Template-only (see e2e/template-default.ts): a client's own brand.json may
+// legitimately set logo.tone (Berg), so this default-content check skips there.
+const IS_TEMPLATE_DEFAULT = existsSync(path.join(process.cwd(), 'content', '.template-default'))
 
 describe('logoToneAttributes', () => {
   it('emits the attribute only for an explicit light logo image', () => {
@@ -18,7 +22,7 @@ describe('logoToneAttributes', () => {
     expect(logoToneAttributes({ logo: { primary: '', alt: 'x', tone: 'light' } })).toEqual({})
   })
 
-  it('the template default brand.json emits nothing', () => {
+  it.skipIf(!IS_TEMPLATE_DEFAULT)('the template default brand.json emits nothing', () => {
     const brand = JSON.parse(readFileSync(path.join(process.cwd(), 'content/brand.json'), 'utf-8'))
     expect(logoToneAttributes(brand)).toEqual({})
   })
