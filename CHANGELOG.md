@@ -2,6 +2,111 @@
 
 All notable changes to this template are recorded here. The format follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/) and the project loosely follows semver — though as a per-client template, "release" means "checkpoint on `main`" rather than a published package version.
 
+## [2026.09.6] — Light (white) logos stay visible
+
+A white wordmark on transparent (Berg) was invisible everywhere: on the
+default header (light bar), on the inverted nav (the logo sat on a
+near-white plate), and in the dark footer (the primary logo is inverted,
+white → black on dark). Sites whose logo is not flagged light are unchanged.
+
+### Added
+- **`brand.json` `logo.tone`** (`"light" | "dark"`, optional). Only
+  `"light"` with a logo image emits `<html data-c5-logo-tone="light">`
+  (`src/lib/brand/logo-tone.ts`); absent / `"dark"` / a text wordmark emit
+  nothing, so every other site renders exactly as before. The platform's
+  logo preflight writes `"light"` on a first deploy when the uploaded logo
+  is mostly light (the same check that already defaults `style.nav` to
+  `inverted`); on a live site set it by hand in brand.json.
+- **`src/styles/logo-tone.css`** (imported after style-axes.css, before the
+  client overrides), every rule gated on the attribute:
+  - inverted nav: no plate — the primary bar is the dark surface;
+  - default / bordered nav in light mode: a `--color-near-black` plate
+    (in `.dark` the bar is already dark, so no plate);
+  - dark footer: the primary logo's `invert` is dropped;
+  - `footer="light"` in light mode: a `--color-near-black` plate.
+  Why a dark plate rather than CSS recolouring (e.g. `brightness(0)`) on the
+  light nav: the template never filters a client logo (a light logo with a
+  coloured accent would flatten to a black silhouette, and `invert` shifts
+  hues); the plate shows the mark as authored, its contrast does not depend
+  on the palette, and it matches the existing dark plate for a light
+  `logo.footer` on the light footer.
+- e2e `logo-tone.spec.ts`: a Berg-like white-wordmark fixture measured from
+  rendered pixels — ≥ 3:1 against its backdrop on every nav and footer
+  preset, and in dark mode for the default, inverted and bordered nav and the
+  default and light footer; no plate on the inverted nav; and a control that
+  reproduces the invisible logo without the flag. Content-agnostic; the
+  screenshot is decoded on a canvas in the page (no image library needed).
+- Unit tests: attribute gating, every logo-tone.css selector gated on the
+  attribute, no recolouring filter, import order.
+
+### Changed
+- `hooks.test.ts`: logo-tone.css is the second stylesheet allowed to
+  reference `data-c5` hooks. `template-marker.test.ts`: 2026.09.6.
+
+### Fixed
+- **e2e on client content** (korbey CI, sha 3ff75d7): three specs assumed
+  the template's demo content.
+  - `form.spec.ts` ran on `/`. It now runs on the page that carries the
+    `form` block (`e2e/site-pages.ts`: home, then contact, then any page) and
+    skips when no page has one.
+  - `smoke.spec.ts`'s blog-index check hard-coded `/resources` and
+    `/resources/i` (4 matching headings on korbey, whose `/resources` is a
+    real page). It now reads `content/blog.json` (`readBlogConfigFile`) and
+    expects the index's h1 to be exactly the blog title at the blog path.
+  The template's own run still exercises all three (home form,
+  `/resources` "Resources").
+- **The page files' review trailer never renders.** Page .md files end in
+  `---` + `## SEO & AIO Metadata` (answer block, E-E-A-T, internal links,
+  FAQ dump, citation note) and `---` + `## Structured Data — paste into
+  \`<head>\`` (a JSON-LD code block). New pure
+  `src/lib/content/strip-generator-notes.ts`, whose detection mirrors the
+  platform's `lib/content/strip-generator-notes.ts`: the anchors are
+  byte-mirrored through `src/lib/content/__fixtures__/generator-trailer.template.json`
+  (copied from the platform) and `strip-generator-notes.parity.test.ts`
+  checks them and runs every vector there (canonical JSON; cut, keep and
+  refuse cases). Same behaviour as the platform: CRLF files, a heading-less
+  label run bounded by a following Structured Data trailer, and NO cut
+  (content renders as-is) when a foreign heading follows the trailer. Plus
+  the same real Accord fixtures:
+  - post bodies (`get-post.ts`) drop the trailer — a page relocated into
+    `content/posts/` rendered all of it (35 posts live);
+  - `parse-page-md.ts` also cuts at an orphaned Structured Data rule when
+    the SEO heading is missing, including the dash-scrubbed "Structured
+    Data, paste into `<head>`" (Accord /services); the JSON-LD is still
+    extracted;
+  - `/api/md/[[...slug]]` serves frontmatter + body only.
+  Anchored on the `---` rule plus the exact heading, so a post's own
+  "## FAQ" section (tested) or prose that mentions SEO is never cut.
+
+### R1 / baselines
+- No `@visual` baseline re-captured: the template's brand.json has no
+  `logo.tone`, so no rule applies (all 8 zero-change screenshots pass
+  unchanged).
+
+### Rollout notes (template 2026.09.5 → 2026.09.6)
+Ship in ONE commit, `c5-template.json` last.
+- **Overwrite (M):** `src/app/globals.css`, `src/app/layout.tsx`,
+  `src/lib/brand/types.ts`,
+  `src/lib/theme/{hooks.test,template-marker.test}.ts`,
+  `e2e/{form,smoke}.spec.ts`, `src/lib/content/get-post.ts`,
+  `src/lib/assembly/parse-page-md.ts`,
+  `src/app/api/md/[[...slug]]/{route,route.test}.ts`, `CHANGELOG.md`.
+- **Add (A):** `src/styles/logo-tone.css`,
+  `src/lib/brand/{logo-tone,logo-tone.test}.ts`, `e2e/logo-tone.spec.ts`,
+  `e2e/site-pages.ts`,
+  `src/lib/content/{strip-generator-notes,strip-generator-notes.test,strip-generator-notes.parity.test}.ts`,
+  `src/lib/content/__fixtures__/generator-trailer.template.json`,
+  `src/lib/content/__fixtures__/leaked-generator-notes/{accord-services.orphan-structured.page,accord-year-end-cheer.post}.md`.
+- **Delete (D):** none.
+- **Skip:** `package-lock.json` (unchanged), `content/**`.
+- **Write last:** `c5-template.json` = `{"templateVersion": "2026.09.6",
+  "capabilities": ["fonts", "style-axes", "specimen"], "syncedFrom":
+  "<the template main SHA being rolled out>"}`.
+- theme.css is not rewritten by this release; no package.json change.
+- **Visible per site:** none until a site's brand.json has
+  `"logo": { …, "tone": "light" }`. Berg needs that edit (its white
+  wordmark), made in the site's own repo as a content change.
+
 ## [2026.09.5] — Hero + header CTA, block polish, green CI
 
 Approved visible changes (production-ready styling review, WS-D). Sites

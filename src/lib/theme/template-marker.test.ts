@@ -4,7 +4,7 @@ import { KNOWN_CAPABILITIES, SYNCED_FROM, TEMPLATE_MARKER, capabilitiesMetaConte
 describe('c5-template.json', () => {
   it('declares exactly the T2 capabilities (R2)', () => {
     expect(TEMPLATE_MARKER).toEqual({
-      templateVersion: '2026.09.5',
+      templateVersion: '2026.09.6',
       capabilities: ['fonts', 'style-axes', 'specimen'],
     })
   })

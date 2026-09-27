@@ -55,6 +55,15 @@ export type BrandJson = {
      */
     footer?: string
     /**
+     * `"light"` when the primary logo is white/light on transparent (it needs
+     * a dark surface). Drives `<html data-c5-logo-tone="light">`
+     * (src/lib/brand/logo-tone.ts): no light plate on the inverted nav, a dark
+     * plate on a light nav, and no invert filter in the dark footer. Written by
+     * the platform's logo preflight on a first deploy; absent = dark logo, the
+     * pre-2026.09.6 behaviour.
+     */
+    tone?: 'light' | 'dark'
+    /**
      * Standalone mark / icon (no wordmark) for tight spaces. Used by the
      * favicon generator at `src/app/icon.tsx` when present; falls back to
      * `primary`, then to a brand-colored initial when neither is set.

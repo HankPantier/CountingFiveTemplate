@@ -1,0 +1,33 @@
+/* logo-tone.css — light (white) logos. brand.json logo.tone = "light" →
+ * html[data-c5-logo-tone="light"] (src/lib/brand/logo-tone.ts, layout.tsx).
+ *
+ * A white wordmark on transparent (Berg) vanishes on the light header, on the
+ * inverted nav's light plate, and in the dark footer (which inverts the
+ * primary logo). layout.tsx only emits the attribute for an explicit light
+ * logo image, so these rules are inert on every other site (R1). Client logos
+ * are never recoloured (no filter added): the logo shows as authored, on a
+ * surface dark enough for it. Specificity beats the style-axes.css nav plate
+ * and footer rules, and typical design-overrides.css chrome rules. */
+/* Inverted nav: the primary bar is already the dark surface — no plate. */
+html[data-c5-logo-tone="light"][data-c5-nav="inverted"] [data-component="navbar"] [data-c5="logo"] {
+  background-color: transparent;
+  padding: 0;
+  border-radius: 0;
+}
+/* Light nav (default / bordered bar, light mode): a dark plate. In .dark the
+ * bar itself is dark, so the logo sits on it directly. */
+html[data-c5-logo-tone="light"]:not([data-c5-nav="inverted"]):not(.dark) [data-component="navbar"] [data-c5="logo"] {
+  background-color: var(--color-near-black);
+  padding: 0.25rem 0.625rem;
+  border-radius: var(--radius-md);
+}
+/* Dark footer: drop the invert meant for dark logos (white → black on dark). */
+html[data-c5-logo-tone="light"] [data-component="footer"] [data-c5="logo"]:not([data-c5-variant]) img {
+  filter: none;
+}
+/* footer="light" preset in light mode: the surface is light — dark plate. */
+html[data-c5-logo-tone="light"][data-c5-footer="light"]:not(.dark) [data-component="footer"] [data-c5="logo"] {
+  background-color: var(--color-near-black);
+  padding: 0.375rem 0.75rem;
+  border-radius: var(--radius-md);
+}

@@ -6,6 +6,7 @@
 
 import matter from 'gray-matter'
 import { PageFrontmatterSchema } from './page-frontmatter-schema'
+import { pageTrailerStart } from '../content/strip-generator-notes'
 
 export type PageSection = {
   blockId: string
@@ -81,9 +82,14 @@ export type PageManifest = {
  */
 const ASSEMBLY_END_MARKER = /\n---\n##\s+SEO\s*&(?:amp;)?\s*AIO Metadata\b/i
 
+// Also cut at an orphaned "## Structured Data — paste into `<head>`" rule when
+// the SEO heading was edited away (Accord /services, dash-scrubbed to "…Data,
+// paste into…"); otherwise that block rendered as a live code dump. Detection
+// is shared with the post renderer and the platform (strip-generator-notes.ts).
 function trimMetadataTrailer(body: string): string {
   const m = body.match(ASSEMBLY_END_MARKER)
-  return m && m.index !== undefined ? body.slice(0, m.index) : body
+  const starts = [m && m.index !== undefined ? m.index : -1, pageTrailerStart(body)].filter((i) => i >= 0)
+  return starts.length ? body.slice(0, Math.min(...starts)) : body
 }
 
 /**

@@ -3,6 +3,7 @@ import path from 'node:path'
 import matter from 'gray-matter'
 import { cacheLife } from 'next/cache'
 import { PostFrontmatterSchema, type PostFrontmatter } from './post-frontmatter-schema'
+import { stripGeneratorNotesFromBody } from './strip-generator-notes'
 
 const POSTS_DIR = () => path.join(process.cwd(), 'content', 'posts')
 
@@ -73,7 +74,10 @@ export async function getPost(slug: string): Promise<Post | null> {
   return {
     slug: frontmatter.slug || slug,
     frontmatter,
-    body: parsed.content,
+    // A page relocated into content/posts/ still carries the platform's
+    // "## SEO & AIO Metadata" / "## Structured Data" review trailer — never
+    // render it (strip-generator-notes.ts).
+    body: stripGeneratorNotesFromBody(parsed.content).body,
   }
 }
 
