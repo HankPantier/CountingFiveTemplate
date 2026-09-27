@@ -1,13 +1,15 @@
 import { NextResponse } from 'next/server'
 import { getPageMarkdown } from '@/lib/content/get-page'
 import { stripBlockAnnotations } from '@/lib/content/strip-block-annotations'
+import { stripGeneratorNotesFromMarkdown } from '@/lib/content/strip-generator-notes'
 
 /**
  * Markdown endpoint for agents / LLM crawlers. Reached via the public-facing
  * `<page>.md` URLs (`/index.md`, `/services/virtual-cfo.md`, …) that
  * `src/proxy.ts` rewrites to this handler. Returns the raw `.md` source with
- * frontmatter preserved (machine-readable metadata) and block annotations
- * stripped (HTML comments that are noise to a reader).
+ * frontmatter preserved (machine-readable metadata), block annotations
+ * stripped (HTML comments that are noise to a reader) and the platform's
+ * review trailer removed (strip-generator-notes.ts).
  *
  * Optional catch-all so a single handler serves both the home page (no slug)
  * and any subpage. Data fetch goes through `getPageMarkdown`, which is
@@ -27,7 +29,9 @@ export async function GET(
         headers: { 'Content-Type': 'text/plain; charset=utf-8' },
       })
     }
-    return new NextResponse(stripBlockAnnotations(md), {
+    // The page's review trailer (SEO & AIO Metadata / Structured Data) is not
+    // page content: agents get the frontmatter + body only.
+    return new NextResponse(stripBlockAnnotations(stripGeneratorNotesFromMarkdown(md)), {
       status: 200,
       headers: {
         'Content-Type': 'text/markdown; charset=utf-8',

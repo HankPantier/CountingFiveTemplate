@@ -22,6 +22,16 @@ vi.mock('@/lib/content/get-page', () => ({
     // New loader contract: a missing page is a cacheable null, NOT a thrown
     // ENOENT (throws across the 'use cache' boundary escalate 404s to 500s
     // under cacheComponents — see get-page.ts).
+    // Real-shaped page file: body + the platform's review trailer.
+    if (url === '/services') {
+      return (await import('node:fs')).readFileSync(
+        (await import('node:path')).join(
+          process.cwd(),
+          'src/lib/content/__fixtures__/leaked-generator-notes/accord-year-end-cheer.post.md'
+        ),
+        'utf8'
+      )
+    }
     if (url === '/explodes') {
       throw new Error('disk on fire') // non-ENOENT: genuine unexpected error
     }
@@ -59,6 +69,18 @@ describe('GET /api/md/[[...slug]] — agent-facing markdown endpoint', () => {
     const res = await call(['nope', 'does-not-exist'])
     expect(res.status).toBe(404)
     expect(res.headers.get('Content-Type')).toContain('text/plain')
+  })
+
+  it('does not serve the SEO & AIO Metadata / Structured Data trailer', async () => {
+    const res = await call(['services'])
+    expect(res.status).toBe(200)
+    const body = await res.text()
+    expect(body).toMatch(/^meta_title:/m)
+    expect(body).toContain('## Frequently Asked Questions About Year end cheer')
+    expect(body.trimEnd().endsWith('a pile of receipts.')).toBe(true)
+    for (const s of ['SEO & AIO Metadata', '**Answer Block:**', 'Structured Data', 'application/ld+json']) {
+      expect(body).not.toContain(s)
+    }
   })
 
   it('returns 404 when the loader throws an unexpected error', async () => {

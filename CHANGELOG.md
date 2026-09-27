@@ -53,6 +53,22 @@ white → black on dark). Sites whose logo is not flagged light are unchanged.
     expects the index's h1 to be exactly the blog title at the blog path.
   The template's own run still exercises all three (home form,
   `/resources` "Resources").
+- **The page files' review trailer never renders.** Page .md files end in
+  `---` + `## SEO & AIO Metadata` (answer block, E-E-A-T, internal links,
+  FAQ dump, citation note) and `---` + `## Structured Data — paste into
+  \`<head>\`` (a JSON-LD code block). New pure
+  `src/lib/content/strip-generator-notes.ts`, whose detection mirrors the
+  platform's `lib/content/strip-generator-notes.ts` (same regexes, same
+  real Accord fixtures under `src/lib/content/__fixtures__/`):
+  - post bodies (`get-post.ts`) drop the trailer — a page relocated into
+    `content/posts/` rendered all of it (35 posts live);
+  - `parse-page-md.ts` also cuts at an orphaned Structured Data rule when
+    the SEO heading is missing, including the dash-scrubbed "Structured
+    Data, paste into `<head>`" (Accord /services); the JSON-LD is still
+    extracted;
+  - `/api/md/[[...slug]]` serves frontmatter + body only.
+  Anchored on the `---` rule plus the exact heading, so a post's own
+  "## FAQ" section (tested) or prose that mentions SEO is never cut.
 
 ### R1 / baselines
 - No `@visual` baseline re-captured: the template's brand.json has no
@@ -64,10 +80,14 @@ Ship in ONE commit, `c5-template.json` last.
 - **Overwrite (M):** `src/app/globals.css`, `src/app/layout.tsx`,
   `src/lib/brand/types.ts`,
   `src/lib/theme/{hooks.test,template-marker.test}.ts`,
-  `e2e/{form,smoke}.spec.ts`, `CHANGELOG.md`.
+  `e2e/{form,smoke}.spec.ts`, `src/lib/content/get-post.ts`,
+  `src/lib/assembly/parse-page-md.ts`,
+  `src/app/api/md/[[...slug]]/{route,route.test}.ts`, `CHANGELOG.md`.
 - **Add (A):** `src/styles/logo-tone.css`,
   `src/lib/brand/{logo-tone,logo-tone.test}.ts`, `e2e/logo-tone.spec.ts`,
-  `e2e/site-pages.ts`.
+  `e2e/site-pages.ts`,
+  `src/lib/content/{strip-generator-notes,strip-generator-notes.test}.ts`,
+  `src/lib/content/__fixtures__/leaked-generator-notes/{accord-services.orphan-structured.page,accord-year-end-cheer.post}.md`.
 - **Delete (D):** none.
 - **Skip:** `package-lock.json` (unchanged), `content/**`.
 - **Write last:** `c5-template.json` = `{"templateVersion": "2026.09.6",
