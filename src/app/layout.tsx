@@ -17,6 +17,7 @@ import { getClientCenterConfig } from '@/lib/client-center/get-client-center-con
 import { getDesignConfig } from '@/lib/theme/get-theme-vars'
 import { capabilitiesMetaContent } from '@/lib/theme/template-marker'
 import { styleAxisAttributes } from '@/lib/theme/style-axes'
+import { logoToneAttributes } from '@/lib/brand/logo-tone'
 import { siteConfig } from '../../site.config'
 
 export async function generateMetadata(): Promise<Metadata> {
@@ -112,6 +113,9 @@ export default async function RootLayout({
       // Design Studio style axes (design.json "style"). Only NON-default values
       // emit an attribute, so untouched sites match no style-axes.css rule.
       {...styleAxisAttributes(design.style)}
+      // brand.json logo.tone "light" (white logo): logo plates/filters in
+      // globals.css. Absent for every dark or unset logo.
+      {...logoToneAttributes(brand)}
       style={fontAliases}
       // next-themes sets the theme class on <html> before hydration, so the
       // server/client class attributes intentionally differ on first paint.
