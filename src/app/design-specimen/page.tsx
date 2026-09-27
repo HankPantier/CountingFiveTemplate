@@ -5,7 +5,13 @@ import { BLOCK_REGISTRY, KNOWN_BLOCK_IDS } from '@/components/assembly/block-reg
 import { Hero } from '@/components/blocks/Hero'
 import { HeroSplit } from '@/components/blocks/HeroSplit'
 import { PageHeader } from '@/components/blocks/PageHeader'
-import { extractHeroProps, extractHeroSplitProps, extractPageHeaderProps } from '@/lib/assembly/extract-block-props'
+import {
+  extractHeroProps,
+  extractHeroSplitProps,
+  extractPageHeaderProps,
+  type HeroCtaSite,
+} from '@/lib/assembly/extract-block-props'
+import { getHeroCtaSite } from '@/lib/nav/hero-cta-site'
 import { loadSpecimenPages } from '@/lib/specimen/load-pages'
 import { pickSpecimenInstances, type SpecimenHero } from '@/lib/specimen/pick-instances'
 
@@ -24,9 +30,9 @@ export const metadata: Metadata = {
   robots: { index: false, follow: false, nocache: true, googleBot: { index: false, follow: false } },
 }
 
-function renderHero(h: SpecimenHero): ReactNode {
-  if (h.kind === 'hero') return <Hero {...extractHeroProps(h.manifest)} />
-  if (h.kind === 'hero-split') return <HeroSplit {...extractHeroSplitProps(h.manifest)} />
+function renderHero(h: SpecimenHero, site: HeroCtaSite): ReactNode {
+  if (h.kind === 'hero') return <Hero {...extractHeroProps(h.manifest, site)} />
+  if (h.kind === 'hero-split') return <HeroSplit {...extractHeroSplitProps(h.manifest, site)} />
   return <PageHeader {...extractPageHeaderProps(h.manifest)} />
 }
 
@@ -41,14 +47,14 @@ function Label({ id, source, pageUrl }: { id: string; source: 'page' | 'sample';
 }
 
 export default async function DesignSpecimen() {
-  const pages = await loadSpecimenPages()
+  const [pages, heroSite] = await Promise.all([loadSpecimenPages(), getHeroCtaSite()])
   const { heroes, blocks } = pickSpecimenInstances(pages, KNOWN_BLOCK_IDS)
   return (
     <main id="main-content" className="flex-1" data-specimen>
       {heroes.map((h) => (
         <div key={h.kind} data-specimen-hero={h.kind} data-specimen-source={h.source}>
           <Label id={h.kind} source={h.source} pageUrl={h.pageUrl} />
-          {renderHero(h)}
+          {renderHero(h, heroSite)}
         </div>
       ))}
       {blocks.map((b) => {

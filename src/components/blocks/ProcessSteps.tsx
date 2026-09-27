@@ -11,6 +11,9 @@ import type { ProcessStepsProps } from '@/lib/assembly/extract-block-props'
 export type { ProcessStepsProps }
 
 export function ProcessSteps({ variant, heading, intro, steps, cta }: ProcessStepsProps) {
+  // Nothing parsed (and no intro to show): render nothing rather than an
+  // empty heading shell.
+  if (!steps?.length && !intro?.trim()) return null
   if (variant === 'horizontal') {
     return (
       <Section dataBlock="process-steps">

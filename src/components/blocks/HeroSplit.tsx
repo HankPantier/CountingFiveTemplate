@@ -5,6 +5,7 @@ import type { ReactNode } from 'react'
 import { FramedMedia } from '@/components/ui/framed-media'
 import type { HeroSplitProps } from '@/lib/assembly/extract-block-props'
 import { resolveImageSrc } from '@/lib/assembly/resolve-image'
+import { ACTION_DISPLAY_COLOR } from '@/lib/theme/accent-color'
 
 export type { HeroSplitProps }
 
@@ -20,7 +21,7 @@ function renderHeadline(text: string): ReactNode {
   return (
     <>
       {before}
-      <span className="font-accent" data-c5="headline-accent" style={{ color: 'var(--color-action)' }}>
+      <span className="font-accent" data-c5="headline-accent" style={{ color: ACTION_DISPLAY_COLOR }}>
         {accent}
       </span>
       {after}

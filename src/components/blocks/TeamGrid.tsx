@@ -12,6 +12,9 @@ import type { TeamGridProps } from '@/lib/assembly/extract-block-props'
 export type { TeamGridProps }
 
 export function TeamGrid({ variant, heading, intro, members }: TeamGridProps) {
+  // Nothing parsed (and no intro to show): render nothing rather than an
+  // empty heading shell.
+  if (!members?.length && !intro?.trim()) return null
   const colsClass =
     variant === '4-col'
       ? 'sm:grid-cols-2 lg:grid-cols-4'

@@ -4,6 +4,13 @@ import {
   extractChecklistSectionProps,
   extractCtaBannerProps,
   extractHeroSplitProps,
+  extractHeroProps,
+  resolveHeroCta,
+  DEFAULT_HERO_CTA_LABEL,
+  extractIntroTextProps,
+  extractProcessStepsProps,
+  isLongIntroBody,
+  isStatFigure,
 } from './extract-block-props'
 import { parsePageMd, type PageSection, type PageManifest } from './parse-page-md'
 
@@ -138,5 +145,129 @@ describe('extractHeroSplitProps', () => {
     } as unknown as PageManifest
     expect(extractHeroSplitProps({ ...base, hero_image_alt: 'A photo' }).image_alt).toBe('A photo')
     expect(extractHeroSplitProps(base).image_alt).toBe('Acme')
+  })
+})
+
+describe('hero CTA (resolveHeroCta)', () => {
+  const home = { title: 'Acme', url: '/', meta_description: 'd' } as unknown as PageManifest
+  const nav = { label: 'Book a call', url: '/book' }
+  const contact = { label: DEFAULT_HERO_CTA_LABEL, url: '/contact' }
+  const site = { navCta: nav, contactUrl: '/contact' }
+
+  it('prefers the page hero_cta_label + hero_cta_url', () => {
+    const m = { ...home, hero_cta_label: 'Get a quote', hero_cta_url: '/quote', cta_text: 'X', cta_url: '/x' }
+    expect(resolveHeroCta(m, site)).toEqual({ label: 'Get a quote', url: '/quote' })
+  })
+
+  it('falls back to the outline cta_text + cta_url, then nav.cta, then the site contact destination', () => {
+    expect(resolveHeroCta({ ...home, cta_text: 'Talk to us', cta_url: '/talk' }, site)).toEqual({
+      label: 'Talk to us',
+      url: '/talk',
+    })
+    expect(resolveHeroCta(home, site)).toEqual(nav)
+    expect(resolveHeroCta(home, { contactUrl: '/contact' })).toEqual(contact)
+    expect(DEFAULT_HERO_CTA_LABEL).toBe('Schedule a consultation')
+  })
+
+  it('uses the nav Contact item url (Accord /locations, Berg /contact-us), and omits the CTA with no safe target', () => {
+    expect(resolveHeroCta(home, { contactUrl: '/locations' })).toEqual({ label: DEFAULT_HERO_CTA_LABEL, url: '/locations' })
+    expect(resolveHeroCta(home, { contactUrl: '/contact-us' })?.url).toBe('/contact-us')
+    expect(resolveHeroCta(home, {})).toBeUndefined()
+    expect(resolveHeroCta(home)).toBeUndefined()
+  })
+
+  it('ignores half-set pairs and a blank nav.cta', () => {
+    expect(
+      resolveHeroCta({ ...home, hero_cta_label: 'Only a label' }, { navCta: { label: ' ', url: '/x' }, contactUrl: '/contact' }),
+    ).toEqual(contact)
+  })
+
+  it('omits a CTA that would link the page to itself (case / host / slash insensitive)', () => {
+    const contactPage = { ...home, url: '/contact' }
+    expect(resolveHeroCta(contactPage, { contactUrl: '/contact' })).toBeUndefined()
+    expect(resolveHeroCta(contactPage, { navCta: { label: 'Contact', url: 'https://acme.com/Contact/' } })).toBeUndefined()
+    expect(resolveHeroCta({ ...home, url: '/about' }, { contactUrl: '/contact' })).toEqual(contact)
+  })
+
+  it('is wired into both page-level heroes (no longer hard-coded undefined)', () => {
+    expect(extractHeroProps(home, site).cta_primary).toEqual(nav)
+    expect(extractHeroSplitProps(home, { contactUrl: '/contact' }).cta_primary).toEqual(contact)
+    expect(extractHeroSplitProps(home).cta_secondary).toBeUndefined()
+  })
+
+  it('parses hero_cta_* and cta_* from frontmatter', () => {
+    const md = `---
+title: T
+url: /x
+hero: hero
+hero_cta_label: "Start here"
+hero_cta_url: /start
+cta_text: Other
+cta_url: /other
+---
+`
+    const m = parsePageMd(md)
+    expect(m.hero_cta_label).toBe('Start here')
+    expect(m.cta_url).toBe('/other')
+    expect(extractHeroProps(m).cta_primary).toEqual({ label: 'Start here', url: '/start' })
+  })
+})
+
+describe('IntroText long centred bodies', () => {
+  it('flags a centred body over ~600 chars (markdown stripped) as long', () => {
+    expect(isLongIntroBody('Short intro.')).toBe(false)
+    expect(isLongIntroBody('word '.repeat(130))).toBe(true)
+    expect(isLongIntroBody(`[${'x'.repeat(590)}](https://example.com/${'y'.repeat(100)})`)).toBe(false)
+  })
+  it('only the centred variant gets long_body', () => {
+    const long = 'word '.repeat(130)
+    expect(extractIntroTextProps(section({ blockId: 'intro-text', content: long })).long_body).toBe(true)
+    expect(
+      extractIntroTextProps(section({ blockId: 'intro-text', variant: 'left-aligned', content: long })).long_body,
+    ).toBe(false)
+  })
+})
+
+describe('StatsBar figures', () => {
+  it('true figures (digits, %, +, x, K/M/B, currency) are figures — however long; phrases are not', () => {
+    for (const v of ['25+', '$1.2M', '$1,200,000+', '98%', '24/7', '10x', '~40', '1972', '500 K+', '€3.5B'])
+      expect(isStatFigure(v), v).toBe(true)
+    for (const v of ['', 'Trusted', 'Woodard Top 50 Client Accounting Services Award firm (2023)', 'Top 50', '3 CPAs', 'Since 1972'])
+      expect(isStatFigure(v), v).toBe(false)
+  })
+
+  it('StatsBar sets each value by itself: a phrase does not demote the figures beside it', async () => {
+    const { StatsBar } = await import('@/components/blocks/StatsBar')
+    const { isValidElement } = await import('react')
+    const el = StatsBar({
+      variant: '3-up',
+      stats: [
+        { value: '25+', label: 'years' },
+        { value: 'Woodard Top 50 award firm', label: '' },
+      ],
+    })
+    const dds: Array<{ className?: string }> = []
+    const walk = (n: unknown): void => {
+      if (Array.isArray(n)) return n.forEach(walk)
+      if (!isValidElement<{ children?: unknown; className?: string }>(n)) return
+      if (n.type === 'dd') dds.push(n.props)
+      walk(n.props.children)
+    }
+    walk(el)
+    expect(dds.map((d) => d.className?.startsWith('t-display'))).toEqual([true, false])
+  })
+})
+
+describe('extractProcessStepsProps ### steps', () => {
+  it('keeps an intro above the first ### step and ignores bullets inside a step', () => {
+    const p = extractProcessStepsProps(
+      section({
+        blockId: 'process-steps',
+        content: 'How it works.\n\n### Call\nWe listen.\n- a detail\n\n### Plan\nWe plan.\n\n[Start](/contact)',
+      }),
+    )
+    expect(p.intro).toBe('How it works.')
+    expect(p.steps.map((s) => s.title)).toEqual(['Call', 'Plan'])
+    expect(p.cta).toEqual({ label: 'Start', url: '/contact' })
   })
 })

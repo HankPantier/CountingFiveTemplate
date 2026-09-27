@@ -16,6 +16,7 @@ import {
   parseContentCardList,
   splitOnSidebarMarker,
   extractLeadingImage,
+  stepsFromTitleChunks,
 } from './md-utils'
 
 // ---------------------------------------------------------------------------
@@ -929,5 +930,71 @@ describe('extractLeadingImage', () => {
     const r = extractLeadingImage('See our ![workflow](diagram.png) in action.\n\nMore.')
     expect(r.src).toBeUndefined()
     expect(r.body).toBe('See our ![workflow](diagram.png) in action.\n\nMore.')
+  })
+})
+
+describe('WS-D parser fixes', () => {
+  it('parseStepsList accepts ### Title + paragraph steps', () => {
+    const steps = parseStepsList('### Pull your file\nWe request a transcript.\n\n### Build a plan\nWe meet.\nThen decide.')
+    expect(steps).toEqual([
+      { number: '01', title: 'Pull your file', description: 'We request a transcript.' },
+      { number: '02', title: 'Build a plan', description: 'We meet. Then decide.' },
+    ])
+  })
+
+  it('stepsFromTitleChunks strips "Step 2 —" / "3." prefixes', () => {
+    expect(
+      stepsFromTitleChunks([
+        { title: 'Step 1 — Call us', body: 'a' },
+        { title: '2. Meet', body: '' },
+      ]).map((s) => s.title),
+    ).toEqual(['Call us', 'Meet'])
+  })
+
+  it('parseIconTitleDescriptionList reads Icon: **Title:** desc (Slachta)', () => {
+    expect(
+      parseIconTitleDescriptionList(
+        '- Calculator: **Outsourced Accounting:** Accurate, reliable bookkeeping.\n- Briefcase: **Payroll Services**: Timely payroll.',
+      ),
+    ).toEqual([
+      { icon: 'Calculator', title: 'Outsourced Accounting', description: 'Accurate, reliable bookkeeping.' },
+      { icon: 'Briefcase', title: 'Payroll Services', description: 'Timely payroll.' },
+    ])
+  })
+
+  it('parseIconTitleDescriptionList reads unbolded Icon: Title: desc', () => {
+    expect(parseIconTitleDescriptionList('- ChartLine: Tax Services: Strategic planning.')).toEqual([
+      { icon: 'ChartLine', title: 'Tax Services', description: 'Strategic planning.' },
+    ])
+  })
+
+  it('still reads the dash form unchanged', () => {
+    expect(parseIconTitleDescriptionList('- Calculator: **Tax** — Year-round.')).toEqual([
+      { icon: 'Calculator', title: 'Tax', description: 'Year-round.' },
+    ])
+  })
+})
+
+describe('parseIconTitleDescriptionList edge cases (WS-D fix round 1)', () => {
+  it('accepts a spaced single hyphen as the separator', () => {
+    expect(parseIconTitleDescriptionList('- Calculator: **Tax** - Year-round planning.')).toEqual([
+      { icon: 'Calculator', title: 'Tax', description: 'Year-round planning.' },
+    ])
+    // an in-word hyphen is not a separator
+    expect(parseIconTitleDescriptionList('- **Year-end close**')[0].title).toBe('Year-end close')
+  })
+  it('only treats a KNOWN icon name as the icon prefix', () => {
+    expect(parseIconTitleDescriptionList('- Bookkeeping: Monthly close: Reconciled every month.')).toEqual([
+      { icon: 'CheckCircle', title: 'Bookkeeping', description: 'Monthly close: Reconciled every month.' },
+    ])
+    expect(parseIconTitleDescriptionList('- Bookkeeping: **Monthly close:** Reconciled.')).toEqual([
+      { icon: 'CheckCircle', title: 'Bookkeeping', description: 'Monthly close: Reconciled.' },
+    ])
+  })
+  it('reads a plain or bold "Title: description" with no icon', () => {
+    expect(parseIconTitleDescriptionList('- **Payroll:** Timely payroll.\n- Advisory: Guidance.')).toEqual([
+      { icon: 'CheckCircle', title: 'Payroll', description: 'Timely payroll.' },
+      { icon: 'CheckCircle', title: 'Advisory', description: 'Guidance.' },
+    ])
   })
 })

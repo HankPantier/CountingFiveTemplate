@@ -373,6 +373,7 @@ The full list of available `data-block` values matches the 22 block IDs document
 
 - **Page content:** edit the matching `.md` file in `content/pages/`. Block annotations (`<!-- block: feature-grid | variant: 3-col -->`) drive layout — don't remove them.
 - **Hero subheadline:** the `.md` frontmatter has a `hero_subhead:` field used by the `hero`, `hero-split`, and `page-header` blocks. It's a 12-18-word benefit-led line distinct from `meta_description` (which targets SERPs). If `hero_subhead:` is absent, the hero falls back to `meta_description`.
+- **Hero button:** `hero` / `hero-split` heroes always show a primary button: `hero_cta_label:` + `hero_cta_url:` if set, else the page's `cta_text:` + `cta_url:` (the platform's outline CTA), else `nav.json` `cta`, else "Schedule a consultation" → the nav's Contact item (or `/contact` when `content/pages/contact.md` exists). With no such destination, or when it would link the page to itself, there is no button.
 - **Brand colors / fonts:** edit `content/brand.json` and `content/design.json`, then run `npx tsx scripts/generate-theme.ts` to regenerate `src/styles/theme.css`. Or just re-run `npm run unpack <path>` to reset everything.
 - **Nav menu:** edit `content/nav.json` — `primary` is the top-level list, each item may have `children` (one level deep), optional `cta` at the top right.
 - **SEO files:** `public/robots.txt`, `public/llms.txt`, `public/llms-full.txt` are served as-is — edit directly. `/sitemap.xml` is generated dynamically by `src/app/sitemap.ts` (there is no static file to edit).

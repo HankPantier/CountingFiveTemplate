@@ -10,6 +10,9 @@ import type { PricingProps } from '@/lib/assembly/extract-block-props'
 export type { PricingProps }
 
 export function Pricing({ variant, heading, intro, tiers, disclaimer }: PricingProps) {
+  // Nothing parsed (and no intro to show): render nothing rather than an
+  // empty heading shell.
+  if (!tiers?.length && !intro?.trim()) return null
   const colsClass =
     variant === '4-tier'
       ? 'sm:grid-cols-2 lg:grid-cols-4'

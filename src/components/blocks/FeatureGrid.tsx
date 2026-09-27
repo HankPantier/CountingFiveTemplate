@@ -7,6 +7,9 @@ import type { FeatureGridProps } from '@/lib/assembly/extract-block-props'
 export type { FeatureGridProps }
 
 export function FeatureGrid({ variant, theme, heading, intro, items }: FeatureGridProps) {
+  // Nothing parsed (and no intro to show): render nothing rather than an
+  // empty heading shell.
+  if (!items?.length && !intro?.trim()) return null
   const colsClass =
     variant === '4-col'
       ? 'sm:grid-cols-2 lg:grid-cols-4'
@@ -15,7 +18,7 @@ export function FeatureGrid({ variant, theme, heading, intro, items }: FeatureGr
   // ---- Ink band: index register on the primary surface ----
   if (theme === 'ink') {
     return (
-      <Section fullBleed bg="primary" spacing="spacious" dataBlock="feature-grid">
+      <Section fullBleed bg="primary" spacing="spacious" dataBlock="feature-grid" className="u-band-ink">
         <header className="max-w-2xl mx-auto text-center">
           <h2 className="t-h2 text-primary-foreground">{heading}</h2>
           {intro && (

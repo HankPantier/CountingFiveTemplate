@@ -106,6 +106,9 @@ export default async function RootLayout({
       // off 'serif' / 'mono' — so untouched sites render exactly as before.
       data-headline={design.headlineStyle ?? 'sans'}
       data-eyebrow={design.eyebrowStyle ?? 'standard'}
+      // design.json darkSections: ink bands (.u-band-ink) render on the deep
+      // --color-ink surface instead of primary. Absent/false emits nothing.
+      data-dark-sections={design.darkSections ? 'on' : undefined}
       // Design Studio style axes (design.json "style"). Only NON-default values
       // emit an attribute, so untouched sites match no style-axes.css rule.
       {...styleAxisAttributes(design.style)}

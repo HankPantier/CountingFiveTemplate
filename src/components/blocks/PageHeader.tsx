@@ -2,6 +2,7 @@ import { Section } from './Section'
 import Link from 'next/link'
 import type { ReactNode } from 'react'
 import type { PageHeaderProps } from '@/lib/assembly/extract-block-props'
+import { ACTION_DISPLAY_COLOR } from '@/lib/theme/accent-color'
 
 export type { PageHeaderProps }
 
@@ -16,7 +17,7 @@ function renderHeadline(text: string): ReactNode {
   return (
     <>
       {before}
-      <span className="font-accent" data-c5="headline-accent" style={{ color: 'var(--color-action)' }}>
+      <span className="font-accent" data-c5="headline-accent" style={{ color: ACTION_DISPLAY_COLOR }}>
         {accent}
       </span>
       {after}

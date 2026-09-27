@@ -22,8 +22,11 @@ import {
   parseContentCardList,
   splitOnSidebarMarker,
   parseMarkdownTable,
+  parseTitleBodyChunks,
+  stepsFromTitleChunks,
 } from './md-utils'
 import type { PricingTier } from './md-utils'
+import { comparablePath } from '../nav/nav-tree'
 
 export type { PricingTier }
 
@@ -43,12 +46,52 @@ export type HeroProps = {
   cta_primary?: { label: string; url: string }
 }
 
+export type HeroCta = { label: string; url: string }
+
+/**
+ * What the hero CTA may fall back to on this site: nav.json's `cta`, and the
+ * site's contact destination (siteContactUrl — the nav's Contact item, else
+ * /contact only when that page exists). See getHeroCtaSite().
+ */
+export type HeroCtaSite = { navCta?: HeroCta; contactUrl?: string }
+
+/** Label of the last-resort hero CTA (to the site's contact destination). */
+export const DEFAULT_HERO_CTA_LABEL = 'Schedule a consultation'
+
+const pair = (label?: string, url?: string): HeroCta | undefined => {
+  const l = label?.trim()
+  const u = url?.trim()
+  return l && u ? { label: l, url: u } : undefined
+}
+
+/**
+ * The hero's primary call to action, first match wins:
+ *   1. the page's `hero_cta_label` + `hero_cta_url` frontmatter;
+ *   2. the page's outline CTA (`cta_text` + `cta_url`, emitted by the platform);
+ *   3. the site-wide `nav.cta`;
+ *   4. "Schedule a consultation" → the site's contact destination
+ *      (`site.contactUrl`); with none, no CTA — never a link to a 404.
+ * Omitted when it would link the page to itself (the contact page's hero
+ * never says "contact us").
+ */
+export function resolveHeroCta(manifest: PageManifest, site: HeroCtaSite = {}): HeroCta | undefined {
+  const cta =
+    pair(manifest.hero_cta_label, manifest.hero_cta_url) ??
+    pair(manifest.cta_text, manifest.cta_url) ??
+    pair(site.navCta?.label, site.navCta?.url) ??
+    pair(DEFAULT_HERO_CTA_LABEL, site.contactUrl)
+  if (!cta) return undefined
+  if (comparablePath(cta.url) === comparablePath(manifest.url || '/')) return undefined
+  return cta
+}
+
 /**
  * Hero is page-level: sourced from frontmatter.
  * Prefer hero_subhead (benefit-led, written for on-page); fall back to
  * meta_description for older deliverables that predate the dedicated field.
+ * `site` carries nav.cta + the contact destination (see resolveHeroCta).
  */
-export function extractHeroProps(manifest: PageManifest): HeroProps {
+export function extractHeroProps(manifest: PageManifest, site?: HeroCtaSite): HeroProps {
   return {
     variant: (manifest.hero_variant as HeroProps['variant']) ?? 'image',
     image: manifest.hero_image,
@@ -58,7 +101,7 @@ export function extractHeroProps(manifest: PageManifest): HeroProps {
     headline: heroHeadline(manifest),
     subheadline: manifest.hero_subhead ?? manifest.meta_description,
     eyebrow: manifest.hero_eyebrow,
-    cta_primary: undefined,
+    cta_primary: resolveHeroCta(manifest, site),
   }
 }
 
@@ -193,15 +236,34 @@ export type IntroTextProps = {
   heading: string
   body: string  // raw markdown — render via react-markdown
   cta?: { label: string; url: string }
+  /** Centred variant only: the body is long enough that centring every line
+   * reads as a "wall of text" — keep the heading centred, left-align the body
+   * in a readable measure. */
+  long_body?: boolean
+}
+
+/** Body text length (markdown syntax stripped) above which a centred intro
+ * left-aligns its body. About four lines of centred t-body-lg at 2xl width. */
+export const INTRO_CENTER_MAX_CHARS = 600
+
+export function isLongIntroBody(body: string): boolean {
+  const text = body
+    .replace(/!?\[([^\]]*)\]\([^)]*\)/g, '$1')
+    .replace(/[*_`#>]/g, '')
+    .replace(/\s+/g, ' ')
+    .trim()
+  return text.length > INTRO_CENTER_MAX_CHARS
 }
 
 export function extractIntroTextProps(section: PageSection): IntroTextProps {
   const { body, cta } = extractTrailingCta(section.content)
+  const variant = (section.variant as IntroTextProps['variant']) ?? 'centered'
   return {
-    variant: (section.variant as IntroTextProps['variant']) ?? 'centered',
+    variant,
     heading: section.heading,
     body,
     cta,
+    long_body: variant !== 'left-aligned' && isLongIntroBody(body),
   }
 }
 
@@ -320,6 +382,19 @@ export type StatsBarProps = {
   stats: Array<{ value: string; label: string }>
 }
 
+/**
+ * True when a stat value is a figure — digits with the usual figure
+ * punctuation and suffixes: "25+", "$1.2M", "$1,200,000+", "98%", "24/7",
+ * "10x", "~40", "1972". Anything else ("Woodard Top 50 Client Accounting
+ * Services Award firm (2023)", "Family-owned") is a phrase: StatsBar sets
+ * that value in an upright h3 text style; figures keep the display numerals.
+ */
+const STAT_FIGURE_RE = /^[~≈<>]?\s?[$€£]?\d[\d.,/:]*\s?(?:%|[xX×]|[kKmMbB]|\+)*$/
+
+export function isStatFigure(value: string): boolean {
+  return STAT_FIGURE_RE.test(value.trim())
+}
+
 export function extractStatsBarProps(section: PageSection): StatsBarProps {
   // parseStatsList handles both list and inline dot-delimited formats
   const stats = parseStatsList(section.content)
@@ -395,6 +470,21 @@ export function extractProcessStepsProps(section: PageSection): ProcessStepsProp
   // Detect intro: all text before the first numbered/bullet list item
   const lines = body.split('\n')
   const firstStepIdx = lines.findIndex(l => /^\s*\d+\.\s+/.test(l) || /^\s*[-*]\s+/.test(l))
+
+  // `### Title` + paragraph steps: headings lead (a bullet list inside a step's
+  // body must not be mistaken for the steps themselves).
+  const firstHeadingIdx = lines.findIndex(l => /^###\s+/.test(l))
+  if (firstHeadingIdx >= 0 && (firstStepIdx < 0 || firstHeadingIdx < firstStepIdx)) {
+    const { intro, chunks } = parseTitleBodyChunks(body)
+    return {
+      variant: (section.variant as ProcessStepsProps['variant']) ?? 'vertical',
+      heading: section.heading,
+      intro,
+      steps: stepsFromTitleChunks(chunks),
+      cta,
+    }
+  }
+
   const intro =
     firstStepIdx > 0
       ? lines.slice(0, firstStepIdx).join('\n').trim() || undefined
@@ -511,13 +601,13 @@ export type HeroSplitProps = {
  * HeroSplit is page-level — sourced from the manifest, same pattern as Hero
  * and PageHeader. M4.D wires it into PageLayout via manifest.hero_block.
  */
-export function extractHeroSplitProps(manifest: PageManifest): HeroSplitProps {
+export function extractHeroSplitProps(manifest: PageManifest, site?: HeroCtaSite): HeroSplitProps {
   const headline = heroHeadline(manifest)
   return {
     variant: (manifest.hero_variant as HeroSplitProps['variant']) ?? 'image-right',
     headline,
     subheadline: manifest.hero_subhead ?? manifest.meta_description,
-    cta_primary: undefined,
+    cta_primary: resolveHeroCta(manifest, site),
     cta_secondary: undefined,
     image: manifest.hero_image ?? '',
     image_alt: manifest.hero_image_alt ?? headline,

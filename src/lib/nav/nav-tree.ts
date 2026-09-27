@@ -24,12 +24,49 @@ export function isContactNavItem(item: NavItem): boolean {
 }
 
 /**
+ * A url reduced to the path used for same-page comparisons: scheme + host,
+ * query and hash dropped, trailing slashes removed, lower-cased ('/' for the
+ * root). Shared by the header-CTA de-dup and the hero CTA self-link guard.
+ */
+export function comparablePath(url: string): string {
+  const p = (url ?? '').trim().replace(/^https?:\/\/[^/]+/i, '').split(/[?#]/)[0].replace(/\/+$/, '')
+  return p === '' ? '/' : p.toLowerCase()
+}
+
+/**
+ * Where "contact us" should point on THIS site, or undefined when nothing
+ * safe exists: the first childless Contact item in the nav (any depth — e.g.
+ * Accord's "Contact" → /locations, Berg's /contact-us), else /contact when
+ * content/pages has a contact page, else undefined (never link a 404).
+ * `pageSlugs` are content/pages filenames without .md (listPageSlugs()).
+ */
+export function siteContactUrl(nav: NavJson, pageSlugs: readonly string[]): string | undefined {
+  const walk = (items: NavItem[]): string | undefined => {
+    for (const item of items) {
+      if (!item.children?.length && isContactNavItem(item) && item.url?.trim()) return item.url.trim()
+      const nested = item.children?.length ? walk(item.children) : undefined
+      if (nested) return nested
+    }
+    return undefined
+  }
+  return walk(nav.primary ?? []) ?? (pageSlugs.includes('contact') ? '/contact' : undefined)
+}
+
+/**
  * The primary nav as rendered: drop the home item (the logo is the sole home
  * link) and pin the Contact item last so it's always rightmost, regardless of
  * the order in nav.json. Order is otherwise preserved (stable).
+ * With the header `cta` button showing, a childless item pointing at the same
+ * page (typically "Contact" when the CTA goes to /contact) is dropped — the
+ * button replaces it. Items with a dropdown are always kept.
  */
-export function orderedPrimaryNav(items: NavItem[]): NavItem[] {
-  const visible = items.filter((item) => !isHomeNavItem(item))
+export function orderedPrimaryNav(items: NavItem[], cta?: NavJson['cta']): NavItem[] {
+  const ctaPath = cta?.url?.trim() && cta.label?.trim() ? comparablePath(cta.url) : null
+  const visible = items.filter(
+    (item) =>
+      !isHomeNavItem(item) &&
+      !(ctaPath !== null && !item.children?.length && comparablePath(item.url) === ctaPath)
+  )
   const contact = visible.filter(isContactNavItem)
   const rest = visible.filter((item) => !isContactNavItem(item))
   return [...rest, ...contact]

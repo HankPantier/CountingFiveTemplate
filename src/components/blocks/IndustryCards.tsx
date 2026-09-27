@@ -8,6 +8,9 @@ import type { IndustryCardsProps } from '@/lib/assembly/extract-block-props'
 export type { IndustryCardsProps }
 
 export function IndustryCards({ variant, theme, heading, intro, industries }: IndustryCardsProps) {
+  // Nothing parsed (and no intro to show): render nothing rather than an
+  // empty heading shell.
+  if (!industries?.length && !intro?.trim()) return null
   const colsClass =
     variant === '4-col'
       ? 'sm:grid-cols-2 lg:grid-cols-4'
@@ -16,7 +19,7 @@ export function IndustryCards({ variant, theme, heading, intro, industries }: In
   // ---- Signature ink index band ----
   if (theme === 'ink') {
     return (
-      <Section fullBleed bg="primary" spacing="spacious" dataBlock="industry-cards">
+      <Section fullBleed bg="primary" spacing="spacious" dataBlock="industry-cards" className="u-band-ink">
         <div className="grid gap-y-12 gap-x-10 lg:grid-cols-[0.9fr_1.6fr] lg:items-start">
           <header className="max-w-md">
             <div className="t-kicker mb-4">Industries</div>
