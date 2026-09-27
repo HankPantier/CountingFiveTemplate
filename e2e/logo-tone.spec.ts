@@ -1,5 +1,4 @@
 import { test, expect, type Page } from '@playwright/test'
-import sharp from 'sharp'
 import { contrastRatio } from './contrast'
 
 /**
@@ -75,15 +74,25 @@ async function logoContrast(page: Page, linkSelector: string): Promise<number> {
   const img = page.locator(`${linkSelector} img`)
   await img.scrollIntoViewIfNeeded()
   const png = await img.screenshot({ animations: 'disabled' })
-  const { data, info } = await sharp(png).removeAlpha().raw().toBuffer({ resolveWithObject: true })
-  const at = (fx: number, fy: number): [number, number, number] => {
-    const x = Math.round(fx * (info.width - 1))
-    const y = Math.round(fy * (info.height - 1))
-    const i = (y * info.width + x) * info.channels
-    return [data[i], data[i + 1], data[i + 2]]
-  }
-  // Centre = wordmark fill; the left margin (x < 24/160) = what it sits on.
-  return contrastRatio(at(0.5, 0.5), at(0.05, 0.5))
+  // Decode the screenshot in the browser (a data: image on a canvas is never
+  // tainted), so the spec needs no image library beyond Playwright.
+  const [fill, backdrop] = await page.evaluate(async (b64) => {
+    const el = new Image()
+    el.src = `data:image/png;base64,${b64}`
+    await el.decode()
+    const canvas = document.createElement('canvas')
+    canvas.width = el.naturalWidth
+    canvas.height = el.naturalHeight
+    const ctx = canvas.getContext('2d', { willReadFrequently: true })!
+    ctx.drawImage(el, 0, 0)
+    const at = (fx: number, fy: number): [number, number, number] => {
+      const d = ctx.getImageData(Math.round(fx * (canvas.width - 1)), Math.round(fy * (canvas.height - 1)), 1, 1).data
+      return [d[0], d[1], d[2]]
+    }
+    // Centre = wordmark fill; the left margin (x < 24/160) = what it sits on.
+    return [at(0.5, 0.5), at(0.05, 0.5)]
+  }, png.toString('base64'))
+  return contrastRatio(fill, backdrop)
 }
 
 test.describe('light logo (brand.json logo.tone = "light")', () => {
@@ -127,4 +136,16 @@ test.describe('light logo (brand.json logo.tone = "light")', () => {
     expect(await logoContrast(page, NAV_LOGO)).toBeGreaterThanOrEqual(3)
     expect(await logoContrast(page, FOOTER_LOGO)).toBeGreaterThanOrEqual(3)
   })
+
+  // Dark mode with each non-default preset the light-mode tests cover.
+  for (const [attr, value, link] of [
+    ['data-c5-nav', 'inverted', NAV_LOGO],
+    ['data-c5-nav', 'bordered', NAV_LOGO],
+    ['data-c5-footer', 'light', FOOTER_LOGO],
+  ] as const) {
+    test(`dark colour scheme, ${attr.replace('data-c5-', '')}="${value}": the white logo meets 3:1`, async ({ page }) => {
+      await setup(page, { ...LIGHT, [attr]: value }, 'dark')
+      expect(await logoContrast(page, link)).toBeGreaterThanOrEqual(3)
+    })
+  }
 })

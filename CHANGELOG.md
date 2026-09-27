@@ -32,8 +32,10 @@ white → black on dark). Sites whose logo is not flagged light are unchanged.
   `logo.footer` on the light footer.
 - e2e `logo-tone.spec.ts`: a Berg-like white-wordmark fixture measured from
   rendered pixels — ≥ 3:1 against its backdrop on every nav and footer
-  preset and in dark mode, no plate on the inverted nav, and a control that
-  reproduces the invisible logo without the flag. Content-agnostic.
+  preset, and in dark mode for the default, inverted and bordered nav and the
+  default and light footer; no plate on the inverted nav; and a control that
+  reproduces the invisible logo without the flag. Content-agnostic; the
+  screenshot is decoded on a canvas in the page (no image library needed).
 - Unit tests: attribute gating, every logo-tone.css selector gated on the
   attribute, no recolouring filter, import order.
 
