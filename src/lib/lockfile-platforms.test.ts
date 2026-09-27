@@ -22,6 +22,8 @@ const LINUX_BINDINGS = [
   'lightningcss-linux-x64-gnu', // next build (Tailwind v4)
   '@esbuild/linux-x64', // tsx (validate / generate-fonts)
   '@next/swc-linux-x64-gnu', // next build
+  '@img/sharp-linux-x64', // next start image optimisation (CI e2e)
+  '@img/sharp-libvips-linux-x64',
 ]
 
 describe.skipIf(!IS_TEMPLATE_DEFAULT)('package-lock.json', () => {
