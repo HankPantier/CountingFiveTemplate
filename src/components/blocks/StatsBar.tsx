@@ -1,6 +1,6 @@
 import { Section } from './Section'
 import { cn } from '@/lib/utils'
-import type { StatsBarProps } from '@/lib/assembly/extract-block-props'
+import { isStatFigure, type StatsBarProps } from '@/lib/assembly/extract-block-props'
 
 export type { StatsBarProps }
 
@@ -19,6 +19,10 @@ export function StatsBar({ variant, theme, heading, stats }: StatsBarProps) {
   const dividerClass = isLight
     ? 'md:border-l md:border-[color:var(--color-border)] md:pl-8'
     : 'md:border-l md:border-[color:var(--color-primary-foreground)]/15 md:pl-8'
+
+  // Any phrase-length or non-numeric value switches the whole bar (so the row
+  // stays consistent) from display numerals to an upright h3 text style.
+  const figures = stats.every((s) => isStatFigure(s.value))
 
   const valueColor = isLight ? 'var(--color-primary)' : 'var(--color-action)'
   const headingClass = isLight ? 'text-foreground' : 'text-primary-foreground'
@@ -43,8 +47,8 @@ export function StatsBar({ variant, theme, heading, stats }: StatsBarProps) {
         {stats.map((stat, i) => (
           <div key={i} className={i > 0 ? dividerClass : undefined}>
             <dd
-              className="t-display font-accent leading-none"
-              style={{ fontVariantNumeric: 'tabular-nums', color: valueColor }}
+              className={figures ? 't-display font-accent leading-none' : cn('t-h3 text-balance', headingClass)}
+              style={figures ? { fontVariantNumeric: 'tabular-nums', color: valueColor } : undefined}
             >
               {stat.value}
             </dd>

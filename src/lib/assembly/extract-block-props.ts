@@ -377,6 +377,20 @@ export type StatsBarProps = {
   stats: Array<{ value: string; label: string }>
 }
 
+/**
+ * True when a stat value reads as a figure ("25+", "$1.2M", "98%", "24/7",
+ * "3 CPAs"): short and carrying a digit. Phrases ("Woodard Top 50 Client
+ * Accounting Services Award firm (2023)") are not — StatsBar sets a bar that
+ * has any of those in a smaller, upright text style instead of the display
+ * numeral style.
+ */
+export const STAT_FIGURE_MAX_CHARS = 8
+
+export function isStatFigure(value: string): boolean {
+  const v = value.trim()
+  return v.length > 0 && v.length <= STAT_FIGURE_MAX_CHARS && /\d/.test(v)
+}
+
 export function extractStatsBarProps(section: PageSection): StatsBarProps {
   // parseStatsList handles both list and inline dot-delimited formats
   const stats = parseStatsList(section.content)

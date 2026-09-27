@@ -7,9 +7,10 @@ import {
   extractHeroProps,
   resolveHeroCta,
   DEFAULT_HERO_CTA,
-  extractProcessStepsProps,
   extractIntroTextProps,
+  extractProcessStepsProps,
   isLongIntroBody,
+  isStatFigure,
 } from './extract-block-props'
 import { parsePageMd, type PageSection, type PageManifest } from './parse-page-md'
 
@@ -203,20 +204,6 @@ cta_url: /other
   })
 })
 
-describe('extractProcessStepsProps ### steps', () => {
-  it('keeps an intro above the first ### step and ignores bullets inside a step', () => {
-    const p = extractProcessStepsProps(
-      section({
-        blockId: 'process-steps',
-        content: 'How it works.\n\n### Call\nWe listen.\n- a detail\n\n### Plan\nWe plan.\n\n[Start](/contact)',
-      }),
-    )
-    expect(p.intro).toBe('How it works.')
-    expect(p.steps.map((s) => s.title)).toEqual(['Call', 'Plan'])
-    expect(p.cta).toEqual({ label: 'Start', url: '/contact' })
-  })
-})
-
 describe('IntroText long centred bodies', () => {
   it('flags a centred body over ~600 chars (markdown stripped) as long', () => {
     expect(isLongIntroBody('Short intro.')).toBe(false)
@@ -229,5 +216,27 @@ describe('IntroText long centred bodies', () => {
     expect(
       extractIntroTextProps(section({ blockId: 'intro-text', variant: 'left-aligned', content: long })).long_body,
     ).toBe(false)
+  })
+})
+
+describe('StatsBar figures', () => {
+  it('short values with a digit are figures; phrases are not', () => {
+    for (const v of ['25+', '$1.2M', '98%', '24/7', '3 CPAs']) expect(isStatFigure(v), v).toBe(true)
+    for (const v of ['', 'Trusted', 'Woodard Top 50 Client Accounting Services Award firm (2023)', 'Since 1972!!'])
+      expect(isStatFigure(v), v).toBe(false)
+  })
+})
+
+describe('extractProcessStepsProps ### steps', () => {
+  it('keeps an intro above the first ### step and ignores bullets inside a step', () => {
+    const p = extractProcessStepsProps(
+      section({
+        blockId: 'process-steps',
+        content: 'How it works.\n\n### Call\nWe listen.\n- a detail\n\n### Plan\nWe plan.\n\n[Start](/contact)',
+      }),
+    )
+    expect(p.intro).toBe('How it works.')
+    expect(p.steps.map((s) => s.title)).toEqual(['Call', 'Plan'])
+    expect(p.cta).toEqual({ label: 'Start', url: '/contact' })
   })
 })
