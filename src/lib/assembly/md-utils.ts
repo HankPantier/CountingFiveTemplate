@@ -125,6 +125,20 @@ export function parseIconTitleDescriptionList(
       if (match) {
         return { icon: match[1], title: match[2].trim(), description: match[3].trim() }
       }
+      // Icon with a colon (not a dash) after the title, bold or not:
+      //   Calculator: **Outsourced Accounting:** Accurate books…
+      //   Calculator: **Outsourced Accounting**: Accurate books…
+      //   Calculator: Outsourced Accounting: Accurate books…
+      // (Slachta's feature-grid rendered "Calculator: Outsourced Accounting: …"
+      // as the card title.) The unbolded form needs a PascalCase icon word.
+      const boldColon = cleaned.match(/^(\w+):\s+\*\*(.+?):?\*\*:?\s*(.*)$/)
+      if (boldColon) {
+        return { icon: boldColon[1], title: boldColon[2].trim(), description: boldColon[3].trim() }
+      }
+      const plainColon = cleaned.match(/^([A-Z][A-Za-z0-9]*):\s+([^:*]+?):\s+(.+)$/)
+      if (plainColon) {
+        return { icon: plainColon[1], title: plainColon[2].trim(), description: plainColon[3].trim() }
+      }
       // Fallback: no icon — treat as **Title** [—|–|--] Description or plain text
       const fallback = cleaned.match(/^(?:\*\*(.+?)\*\*\s*(?:—|–|--)\s*(.+)|(.+)(?:—|–|--)(.+))$/)
       if (fallback) {
@@ -277,11 +291,33 @@ export function parseStepsList(
     if (boldCurrent) items.push(boldCurrent)
   }
 
+  // Fallback: `### Title` + paragraph steps (the page generator's other
+  // format — e.g. Kinexus "What happens after you contact us" rendered only
+  // its heading because nothing here matched).
+  if (items.length === 0) return stepsFromTitleChunks(parseTitleBodyChunks(body).chunks)
+
   return items.map((item, i) => ({
     number: String(i + 1).padStart(2, '0'),
     title: item.title,
     description: item.descLines.join(' ').trim(),
   }))
+}
+
+/**
+ * Map `### Title` / `**Title**` chunks (parseTitleBodyChunks) to numbered steps.
+ * Strips a leading "Step 2 —" / "2." from the title; the body's lines are
+ * joined into one description.
+ */
+export function stepsFromTitleChunks(
+  chunks: Array<{ title: string; body: string }>
+): Array<{ number: string; title: string; description: string }> {
+  return chunks
+    .map(({ title, body }) => ({
+      title: title.replace(/^(?:Step\s+)?\d+\s*[.:—–-]\s*/i, '').trim() || title.trim(),
+      description: body.split('\n').map(l => l.trim()).filter(Boolean).join(' '),
+    }))
+    .filter(step => step.title)
+    .map((step, i) => ({ number: String(i + 1).padStart(2, '0'), ...step }))
 }
 
 /**

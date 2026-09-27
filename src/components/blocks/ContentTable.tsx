@@ -4,6 +4,9 @@ import type { ContentTableProps } from '@/lib/assembly/extract-block-props'
 export type { ContentTableProps }
 
 export function ContentTable({ heading, intro, headers, rows, caption }: ContentTableProps) {
+  // Nothing parsed (and no intro to show): render nothing rather than an
+  // empty heading shell.
+  if (!rows?.length && !intro?.trim()) return null
   return (
     <Section dataBlock="content-table">
       {heading && (

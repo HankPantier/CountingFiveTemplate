@@ -7,6 +7,7 @@ import {
   extractHeroProps,
   resolveHeroCta,
   DEFAULT_HERO_CTA,
+  extractProcessStepsProps,
 } from './extract-block-props'
 import { parsePageMd, type PageSection, type PageManifest } from './parse-page-md'
 
@@ -197,5 +198,19 @@ cta_url: /other
     expect(m.hero_cta_label).toBe('Start here')
     expect(m.cta_url).toBe('/other')
     expect(extractHeroProps(m).cta_primary).toEqual({ label: 'Start here', url: '/start' })
+  })
+})
+
+describe('extractProcessStepsProps ### steps', () => {
+  it('keeps an intro above the first ### step and ignores bullets inside a step', () => {
+    const p = extractProcessStepsProps(
+      section({
+        blockId: 'process-steps',
+        content: 'How it works.\n\n### Call\nWe listen.\n- a detail\n\n### Plan\nWe plan.\n\n[Start](/contact)',
+      }),
+    )
+    expect(p.intro).toBe('How it works.')
+    expect(p.steps.map((s) => s.title)).toEqual(['Call', 'Plan'])
+    expect(p.cta).toEqual({ label: 'Start', url: '/contact' })
   })
 })

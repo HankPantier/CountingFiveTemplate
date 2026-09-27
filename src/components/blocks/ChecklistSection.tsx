@@ -19,6 +19,9 @@ export function ChecklistSection({
   image_alt,
   cta,
 }: ChecklistSectionProps) {
+  // Nothing parsed (and no intro to show): render nothing rather than an
+  // empty heading shell.
+  if (!items?.length && !intro?.trim()) return null
   // 2-column layout when 5+ items in standalone mode
   const useDoubleCol = variant === 'standalone' && items.length >= 5
   const imgSrc = resolveImageSrc(image)

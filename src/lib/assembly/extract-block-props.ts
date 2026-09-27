@@ -22,6 +22,8 @@ import {
   parseContentCardList,
   splitOnSidebarMarker,
   parseMarkdownTable,
+  parseTitleBodyChunks,
+  stepsFromTitleChunks,
 } from './md-utils'
 import type { PricingTier } from './md-utils'
 
@@ -431,6 +433,21 @@ export function extractProcessStepsProps(section: PageSection): ProcessStepsProp
   // Detect intro: all text before the first numbered/bullet list item
   const lines = body.split('\n')
   const firstStepIdx = lines.findIndex(l => /^\s*\d+\.\s+/.test(l) || /^\s*[-*]\s+/.test(l))
+
+  // `### Title` + paragraph steps: headings lead (a bullet list inside a step's
+  // body must not be mistaken for the steps themselves).
+  const firstHeadingIdx = lines.findIndex(l => /^###\s+/.test(l))
+  if (firstHeadingIdx >= 0 && (firstStepIdx < 0 || firstHeadingIdx < firstStepIdx)) {
+    const { intro, chunks } = parseTitleBodyChunks(body)
+    return {
+      variant: (section.variant as ProcessStepsProps['variant']) ?? 'vertical',
+      heading: section.heading,
+      intro,
+      steps: stepsFromTitleChunks(chunks),
+      cta,
+    }
+  }
+
   const intro =
     firstStepIdx > 0
       ? lines.slice(0, firstStepIdx).join('\n').trim() || undefined

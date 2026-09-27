@@ -11,6 +11,9 @@ import type { ServiceCardsProps } from '@/lib/assembly/extract-block-props'
 export type { ServiceCardsProps }
 
 export function ServiceCards({ variant, theme, heading, intro, cards }: ServiceCardsProps) {
+  // Nothing parsed (and no intro to show): render nothing rather than an
+  // empty heading shell.
+  if (!cards?.length && !intro?.trim()) return null
   const colsClass =
     variant === '2-col'
       ? 'sm:grid-cols-2'

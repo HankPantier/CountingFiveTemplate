@@ -8,6 +8,9 @@ import type { IndustryCardsProps } from '@/lib/assembly/extract-block-props'
 export type { IndustryCardsProps }
 
 export function IndustryCards({ variant, theme, heading, intro, industries }: IndustryCardsProps) {
+  // Nothing parsed (and no intro to show): render nothing rather than an
+  // empty heading shell.
+  if (!industries?.length && !intro?.trim()) return null
   const colsClass =
     variant === '4-col'
       ? 'sm:grid-cols-2 lg:grid-cols-4'

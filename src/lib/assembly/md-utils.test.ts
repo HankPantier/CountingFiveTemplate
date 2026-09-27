@@ -16,6 +16,7 @@ import {
   parseContentCardList,
   splitOnSidebarMarker,
   extractLeadingImage,
+  stepsFromTitleChunks,
 } from './md-utils'
 
 // ---------------------------------------------------------------------------
@@ -929,5 +930,47 @@ describe('extractLeadingImage', () => {
     const r = extractLeadingImage('See our ![workflow](diagram.png) in action.\n\nMore.')
     expect(r.src).toBeUndefined()
     expect(r.body).toBe('See our ![workflow](diagram.png) in action.\n\nMore.')
+  })
+})
+
+describe('WS-D parser fixes', () => {
+  it('parseStepsList accepts ### Title + paragraph steps', () => {
+    const steps = parseStepsList('### Pull your file\nWe request a transcript.\n\n### Build a plan\nWe meet.\nThen decide.')
+    expect(steps).toEqual([
+      { number: '01', title: 'Pull your file', description: 'We request a transcript.' },
+      { number: '02', title: 'Build a plan', description: 'We meet. Then decide.' },
+    ])
+  })
+
+  it('stepsFromTitleChunks strips "Step 2 —" / "3." prefixes', () => {
+    expect(
+      stepsFromTitleChunks([
+        { title: 'Step 1 — Call us', body: 'a' },
+        { title: '2. Meet', body: '' },
+      ]).map((s) => s.title),
+    ).toEqual(['Call us', 'Meet'])
+  })
+
+  it('parseIconTitleDescriptionList reads Icon: **Title:** desc (Slachta)', () => {
+    expect(
+      parseIconTitleDescriptionList(
+        '- Calculator: **Outsourced Accounting:** Accurate, reliable bookkeeping.\n- Briefcase: **Payroll Services**: Timely payroll.',
+      ),
+    ).toEqual([
+      { icon: 'Calculator', title: 'Outsourced Accounting', description: 'Accurate, reliable bookkeeping.' },
+      { icon: 'Briefcase', title: 'Payroll Services', description: 'Timely payroll.' },
+    ])
+  })
+
+  it('parseIconTitleDescriptionList reads unbolded Icon: Title: desc', () => {
+    expect(parseIconTitleDescriptionList('- ChartLine: Tax Services: Strategic planning.')).toEqual([
+      { icon: 'ChartLine', title: 'Tax Services', description: 'Strategic planning.' },
+    ])
+  })
+
+  it('still reads the dash form unchanged', () => {
+    expect(parseIconTitleDescriptionList('- Calculator: **Tax** — Year-round.')).toEqual([
+      { icon: 'Calculator', title: 'Tax', description: 'Year-round.' },
+    ])
   })
 })

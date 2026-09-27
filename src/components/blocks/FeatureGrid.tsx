@@ -7,6 +7,9 @@ import type { FeatureGridProps } from '@/lib/assembly/extract-block-props'
 export type { FeatureGridProps }
 
 export function FeatureGrid({ variant, theme, heading, intro, items }: FeatureGridProps) {
+  // Nothing parsed (and no intro to show): render nothing rather than an
+  // empty heading shell.
+  if (!items?.length && !intro?.trim()) return null
   const colsClass =
     variant === '4-col'
       ? 'sm:grid-cols-2 lg:grid-cols-4'
