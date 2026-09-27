@@ -14,7 +14,9 @@ import {
   extractHeroProps,
   extractHeroSplitProps,
   extractPageHeaderProps,
+  type HeroCta,
 } from '@/lib/assembly/extract-block-props'
+import { getNavConfig } from '@/lib/nav/get-nav-config'
 
 export async function generateMetadata(): Promise<Metadata> {
   const md = await getPageMarkdown('/')
@@ -44,12 +46,12 @@ export async function generateMetadata(): Promise<Metadata> {
   }
 }
 
-function renderHeroBlock(manifest: Parameters<typeof extractHeroProps>[0]): ReactNode {
+function renderHeroBlock(manifest: Parameters<typeof extractHeroProps>[0], navCta?: HeroCta): ReactNode {
   switch (manifest.hero_block) {
     case 'hero':
-      return <Hero {...extractHeroProps(manifest)} />
+      return <Hero {...extractHeroProps(manifest, navCta)} />
     case 'hero-split':
-      return <HeroSplit {...extractHeroSplitProps(manifest)} />
+      return <HeroSplit {...extractHeroSplitProps(manifest, navCta)} />
     case 'page-header':
       return <PageHeader {...extractPageHeaderProps(manifest)} />
     default:
@@ -62,12 +64,12 @@ export default async function HomePage() {
   const md = await getPageMarkdown('/')
   if (!md) notFound()
   const manifest = parsePageMd(md)
-  const brand = await getBrandConfig()
+  const [brand, nav] = await Promise.all([getBrandConfig(), getNavConfig()])
 
   return (
     <>
       <SchemaScript manifest={manifest} brand={brand} />
-      <PageLayout hero={renderHeroBlock(manifest)}>
+      <PageLayout hero={renderHeroBlock(manifest, nav.cta)}>
         {manifest.sections.map((section, i) => (
           <BlockRenderer key={i} section={section} manifest={manifest} />
         ))}

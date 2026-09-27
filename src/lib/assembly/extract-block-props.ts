@@ -43,12 +43,48 @@ export type HeroProps = {
   cta_primary?: { label: string; url: string }
 }
 
+export type HeroCta = { label: string; url: string }
+
+/** Last-resort hero CTA when neither the page nor nav.json names one. */
+export const DEFAULT_HERO_CTA: HeroCta = { label: 'Schedule a consultation', url: '/contact' }
+
+const pathOnly = (url: string): string => {
+  const p = url.replace(/^https?:\/\/[^/]+/i, '').split(/[?#]/)[0].replace(/\/+$/, '')
+  return p === '' ? '/' : p
+}
+
+const pair = (label?: string, url?: string): HeroCta | undefined => {
+  const l = label?.trim()
+  const u = url?.trim()
+  return l && u ? { label: l, url: u } : undefined
+}
+
+/**
+ * The hero's primary call to action, first match wins:
+ *   1. the page's `hero_cta_label` + `hero_cta_url` frontmatter;
+ *   2. the page's outline CTA (`cta_text` + `cta_url`, emitted by the platform);
+ *   3. the site-wide `nav.cta`;
+ *   4. "Schedule a consultation" → /contact.
+ * Omitted when it would link the page to itself (the contact page's hero
+ * never says "contact us").
+ */
+export function resolveHeroCta(manifest: PageManifest, navCta?: HeroCta): HeroCta | undefined {
+  const cta =
+    pair(manifest.hero_cta_label, manifest.hero_cta_url) ??
+    pair(manifest.cta_text, manifest.cta_url) ??
+    pair(navCta?.label, navCta?.url) ??
+    DEFAULT_HERO_CTA
+  if (pathOnly(cta.url) === pathOnly(manifest.url || '/')) return undefined
+  return cta
+}
+
 /**
  * Hero is page-level: sourced from frontmatter.
  * Prefer hero_subhead (benefit-led, written for on-page); fall back to
  * meta_description for older deliverables that predate the dedicated field.
+ * `navCta` is nav.json's `cta` (see resolveHeroCta).
  */
-export function extractHeroProps(manifest: PageManifest): HeroProps {
+export function extractHeroProps(manifest: PageManifest, navCta?: HeroCta): HeroProps {
   return {
     variant: (manifest.hero_variant as HeroProps['variant']) ?? 'image',
     image: manifest.hero_image,
@@ -58,7 +94,7 @@ export function extractHeroProps(manifest: PageManifest): HeroProps {
     headline: heroHeadline(manifest),
     subheadline: manifest.hero_subhead ?? manifest.meta_description,
     eyebrow: manifest.hero_eyebrow,
-    cta_primary: undefined,
+    cta_primary: resolveHeroCta(manifest, navCta),
   }
 }
 
@@ -511,13 +547,13 @@ export type HeroSplitProps = {
  * HeroSplit is page-level — sourced from the manifest, same pattern as Hero
  * and PageHeader. M4.D wires it into PageLayout via manifest.hero_block.
  */
-export function extractHeroSplitProps(manifest: PageManifest): HeroSplitProps {
+export function extractHeroSplitProps(manifest: PageManifest, navCta?: HeroCta): HeroSplitProps {
   const headline = heroHeadline(manifest)
   return {
     variant: (manifest.hero_variant as HeroSplitProps['variant']) ?? 'image-right',
     headline,
     subheadline: manifest.hero_subhead ?? manifest.meta_description,
-    cta_primary: undefined,
+    cta_primary: resolveHeroCta(manifest, navCta),
     cta_secondary: undefined,
     image: manifest.hero_image ?? '',
     image_alt: manifest.hero_image_alt ?? headline,

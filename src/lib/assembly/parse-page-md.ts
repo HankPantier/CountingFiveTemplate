@@ -50,6 +50,10 @@ export type PageManifest = {
   hero_eyebrow?: string     // Small-caps kicker above a statement-variant hero headline
   hero_video?: string       // Background video source for hero_variant: 'video'
   hero_images?: string[]    // Crossfade slides for hero_variant: 'slider'
+  hero_cta_label?: string   // Hero primary CTA; with hero_cta_url, overrides nav.cta / the /contact default
+  hero_cta_url?: string
+  cta_text?: string         // Page CTA the platform emits from the approved outline; hero fallback
+  cta_url?: string
   // Optional structured data (passed through)
   answer_block?: string
   eeat_signals?: string[]
@@ -248,6 +252,10 @@ export function parsePageMd(markdown: string): PageManifest {
     hero_eyebrow: fm.hero_eyebrow?.trim() || undefined,
     hero_video: fm.hero_video?.trim() || undefined,
     hero_images: fm.hero_images?.length ? fm.hero_images : undefined,
+    hero_cta_label: fm.hero_cta_label?.trim() || undefined,
+    hero_cta_url: fm.hero_cta_url?.trim() || undefined,
+    cta_text: fm.cta_text?.trim() || undefined,
+    cta_url: fm.cta_url?.trim() || undefined,
     answer_block: fm.answer_block,
     eeat_signals: fm.eeat_signals,
     internal_links: fm.internal_links,

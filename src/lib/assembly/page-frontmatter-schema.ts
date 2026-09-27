@@ -57,6 +57,12 @@ export const PageFrontmatterSchema = z
     // 'slider' crossfades hero_images. Both fall back to the static hero_image.
     hero_video: optStr,
     hero_images: z.array(z.string()).optional(),
+    // Hero primary CTA (both required to take effect); else the page's
+    // outline CTA (cta_text/cta_url), else nav.cta, else /contact.
+    hero_cta_label: optStr,
+    hero_cta_url: optStr,
+    cta_text: optStr,
+    cta_url: optStr,
 
     answer_block: optStr,
     eeat_signals: z.array(z.string()).optional(),

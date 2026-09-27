@@ -21,6 +21,7 @@ import {
   extractHeroProps,
   extractHeroSplitProps,
   extractPageHeaderProps,
+  type HeroCta,
 } from '@/lib/assembly/extract-block-props'
 
 /**
@@ -30,12 +31,12 @@ import {
  * would otherwise be shadowed by the more-specific post route.
  */
 
-function renderHeroBlock(manifest: ReturnType<typeof parsePageMd>): ReactNode {
+function renderHeroBlock(manifest: ReturnType<typeof parsePageMd>, navCta?: HeroCta): ReactNode {
   switch (manifest.hero_block) {
     case 'hero':
-      return <Hero {...extractHeroProps(manifest)} />
+      return <Hero {...extractHeroProps(manifest, navCta)} />
     case 'hero-split':
-      return <HeroSplit {...extractHeroSplitProps(manifest)} />
+      return <HeroSplit {...extractHeroSplitProps(manifest, navCta)} />
     case 'page-header':
       return <PageHeader {...extractPageHeaderProps(manifest)} />
     default:
@@ -70,7 +71,7 @@ export async function renderGeneratedPage(url: string): Promise<ReactNode | null
     <>
       <SchemaScript manifest={manifest} brand={brand} />
       <PageLayout
-        hero={renderHeroBlock(manifest)}
+        hero={renderHeroBlock(manifest, nav.cta)}
         breadcrumb={<Breadcrumb crumbs={crumbs} />}
         sideNav={sidePrimary ? <SideNav primary={sidePrimary} currentUrl={url} /> : undefined}
       >

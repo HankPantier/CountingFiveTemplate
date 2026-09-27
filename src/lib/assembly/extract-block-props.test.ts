@@ -4,6 +4,9 @@ import {
   extractChecklistSectionProps,
   extractCtaBannerProps,
   extractHeroSplitProps,
+  extractHeroProps,
+  resolveHeroCta,
+  DEFAULT_HERO_CTA,
 } from './extract-block-props'
 import { parsePageMd, type PageSection, type PageManifest } from './parse-page-md'
 
@@ -138,5 +141,61 @@ describe('extractHeroSplitProps', () => {
     } as unknown as PageManifest
     expect(extractHeroSplitProps({ ...base, hero_image_alt: 'A photo' }).image_alt).toBe('A photo')
     expect(extractHeroSplitProps(base).image_alt).toBe('Acme')
+  })
+})
+
+describe('hero CTA (resolveHeroCta)', () => {
+  const home = { title: 'Acme', url: '/', meta_description: 'd' } as unknown as PageManifest
+  const nav = { label: 'Book a call', url: '/book' }
+
+  it('prefers the page hero_cta_label + hero_cta_url', () => {
+    const m = { ...home, hero_cta_label: 'Get a quote', hero_cta_url: '/quote', cta_text: 'X', cta_url: '/x' }
+    expect(resolveHeroCta(m, nav)).toEqual({ label: 'Get a quote', url: '/quote' })
+  })
+
+  it('falls back to the outline cta_text + cta_url, then nav.cta, then /contact', () => {
+    expect(resolveHeroCta({ ...home, cta_text: 'Talk to us', cta_url: '/talk' }, nav)).toEqual({
+      label: 'Talk to us',
+      url: '/talk',
+    })
+    expect(resolveHeroCta(home, nav)).toEqual(nav)
+    expect(resolveHeroCta(home)).toEqual(DEFAULT_HERO_CTA)
+    expect(DEFAULT_HERO_CTA).toEqual({ label: 'Schedule a consultation', url: '/contact' })
+  })
+
+  it('ignores half-set pairs and blank nav.cta', () => {
+    expect(resolveHeroCta({ ...home, hero_cta_label: 'Only a label' }, { label: ' ', url: '/x' })).toEqual(
+      DEFAULT_HERO_CTA
+    )
+  })
+
+  it('omits a CTA that would link the page to itself', () => {
+    const contact = { ...home, url: '/contact' }
+    expect(resolveHeroCta(contact)).toBeUndefined()
+    expect(resolveHeroCta(contact, { label: 'Contact', url: 'https://acme.com/contact/' })).toBeUndefined()
+    expect(resolveHeroCta({ ...home, url: '/about' })).toEqual(DEFAULT_HERO_CTA)
+  })
+
+  it('is wired into both page-level heroes (no longer hard-coded undefined)', () => {
+    expect(extractHeroProps(home, nav).cta_primary).toEqual(nav)
+    expect(extractHeroSplitProps(home).cta_primary).toEqual(DEFAULT_HERO_CTA)
+    expect(extractHeroSplitProps(home).cta_secondary).toBeUndefined()
+  })
+
+  it('parses hero_cta_* and cta_* from frontmatter', () => {
+    const md = `---
+title: T
+url: /x
+hero: hero
+hero_cta_label: "Start here"
+hero_cta_url: /start
+cta_text: Other
+cta_url: /other
+---
+`
+    const m = parsePageMd(md)
+    expect(m.hero_cta_label).toBe('Start here')
+    expect(m.cta_url).toBe('/other')
+    expect(extractHeroProps(m).cta_primary).toEqual({ label: 'Start here', url: '/start' })
   })
 })
