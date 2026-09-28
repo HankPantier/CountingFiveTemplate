@@ -74,8 +74,16 @@ describe('src/styles/block-layouts.css', () => {
     }
   })
 
-  it('hides nothing and reorders nothing (a11y: DOM order is the reading order)', () => {
-    expect(css).not.toMatch(/display:\s*none|visibility:\s*hidden|\border:|flex-direction:\s*(row|column)-reverse|grid-auto-flow:\s*dense/)
+  it('hides no content and reorders nothing (a11y: DOM order is the reading order)', () => {
+    expect(css).not.toMatch(/visibility:\s*hidden|\border:|flex-direction:\s*(row|column)-reverse|grid-auto-flow:\s*dense/)
+    // The one display:none: team list's empty photo box, whose placeholder text
+    // only repeats the member name already in the h3 — and only without an <img>.
+    const hidden = [...flat.matchAll(/([^{}]+)\{([^}]*)\}/g)].filter((m) => /display:\s*none/.test(m[2]))
+    expect(hidden).toHaveLength(1)
+    for (const sel of hidden[0][1].split(',').map((x) => x.trim())) {
+      expect(sel).toMatch(/\[data-block="team-grid"\]/)
+      expect(sel).toMatch(/:first-child:not\(:has\(img\)\)$/)
+    }
   })
 
   it('is imported after nav-fit.css and before the client overrides', () => {

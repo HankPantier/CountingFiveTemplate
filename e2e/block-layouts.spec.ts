@@ -193,6 +193,37 @@ test.describe('a11y: nothing hidden, reading order kept', () => {
     }
   })
 
+  for (const vp of VIEWPORTS) {
+    test(`team list (${vp.name}): no blank photo box without a photo; long names wrap inside the row`, async ({ page }) => {
+      await page.setViewportSize({ width: vp.width, height: vp.height })
+      await page.goto(LAYOUTS)
+      const items = page.locator('[data-specimen-layout="team-grid:list"] [data-c5-slot="item"]')
+      // The sample's first member has a photo, the second has none.
+      await expect(items.nth(0).locator('[data-c5-slot="media"]')).toBeVisible()
+      await expect(items.nth(1).locator('[data-c5-slot="media"]')).toBeHidden()
+      await page.evaluate(() => {
+        for (const h of document.querySelectorAll('[data-specimen-layout="team-grid:list"] h3'))
+          h.firstChild!.textContent = 'Maximilian Alexander Featherstonehaugh-Wolfeschlegelsteinhausen'
+      })
+      for (const i of [0, 1]) {
+        const card = (await items.nth(i).locator(':scope > *').boundingBox())!
+        const h3 = (await items.nth(i).locator('h3').boundingBox())!
+        expect(h3.x + h3.width, 'name overflows the card').toBeLessThanOrEqual(card.x + card.width + 0.5)
+        const media = await items.nth(i).locator('[data-c5-slot="media"]').boundingBox()
+        if (media) expect(h3.x, 'name collides with the photo').toBeGreaterThanOrEqual(media.x + media.width)
+      }
+      expect(await page.evaluate(() => document.documentElement.scrollWidth - document.documentElement.clientWidth)).toBeLessThanOrEqual(0)
+    })
+  }
+
+  test('team grid (no layout) keeps the photo placeholder box (R1)', async ({ page }) => {
+    await page.setViewportSize({ width: 1440, height: 900 })
+    await page.goto(LAYOUTS)
+    await page.evaluate(() => document.querySelector('[data-specimen-layout="team-grid:list"] [data-block]')!.removeAttribute('data-layout'))
+    const items = page.locator('[data-specimen-layout="team-grid:list"] [data-c5-slot="item"]')
+    await expect(items.nth(1).locator('[data-c5-slot="media"]')).toBeVisible()
+  })
+
   test('FAQ split (preset): heading left of the questions, still first in the DOM', async ({ page }) => {
     await page.setViewportSize({ width: 1440, height: 900 })
     await page.goto('/design-specimen')

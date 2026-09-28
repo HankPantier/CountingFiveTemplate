@@ -111,7 +111,9 @@ html[data-c5-layout-cards="list"] [data-block="feature-grid"]:not([data-layout])
 
 /* ---- team-grid → list ----------------------------------------------------
  * One member per row: photo left (keeps its 4:5 crop), name, credentials and
- * bio right. */
+ * bio right. A member with no photo gets no photo box: the grid's placeholder
+ * only repeats the name (already in the h3), so in a row it would be a blank
+ * tile beside the text. The text column may shrink and wrap long names. */
 [data-block="team-grid"][data-layout="list"] header + div,
 html[data-c5-layout-team="list"] [data-block="team-grid"]:not([data-layout]):not(.u-band-ink) header + div {
   grid-template-columns: minmax(0, 1fr);
@@ -127,6 +129,15 @@ html[data-c5-layout-team="list"] [data-block="team-grid"]:not([data-layout]):not
 [data-block="team-grid"][data-layout="list"] header + div > * > * > :first-child,
 html[data-c5-layout-team="list"] [data-block="team-grid"]:not([data-layout]):not(.u-band-ink) header + div > * > * > :first-child {
   width: 6rem;
+}
+[data-block="team-grid"][data-layout="list"] header + div > * > * > :first-child:not(:has(img)),
+html[data-c5-layout-team="list"] [data-block="team-grid"]:not([data-layout]):not(.u-band-ink) header + div > * > * > :first-child:not(:has(img)) {
+  display: none;
+}
+[data-block="team-grid"][data-layout="list"] header + div > * > * > :last-child,
+html[data-c5-layout-team="list"] [data-block="team-grid"]:not([data-layout]):not(.u-band-ink) header + div > * > * > :last-child {
+  min-width: 0;
+  overflow-wrap: break-word;
 }
 @media (min-width: 40rem) {
   [data-block="team-grid"][data-layout="list"] header + div > * > * > :first-child,
