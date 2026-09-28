@@ -25,7 +25,9 @@ version meta so the platform can tell what the deployed shell renders.
   `cards: list`, `ctaBanner: centered`, `faq: split`, `team: list`,
   `testimonials: featured` → `<html data-c5-layout-*>` (layout.tsx), reusing the
   same rules via `html[data-c5-layout-…] [data-block=X]:not([data-layout])`,
-  never on ink bands. An explicit layout variant wins; legacy column /
+  never on ink card bands (service-cards / feature-grid `theme: ink`; an ink
+  cta-banner renders like any banner and does follow `ctaBanner`). An
+  explicit layout variant wins; legacy column /
   background variants follow the preset; a testimonials carousel stays one.
   FAQ split is preset-only. Absent / default / malformed emit nothing.
   Contract: `docs/design/layout-presets.json` (`npm run design-contracts`).

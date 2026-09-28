@@ -9,8 +9,12 @@
  *
  * Precedence: an explicit layout variant always wins (the preset selector
  * requires :not([data-layout])); legacy column/background variants carry no
- * data-layout, so they follow the preset; ink bands (.u-band-ink) never take a
- * preset. A layout variant renders the same markup as the block's default
+ * data-layout, so they follow the preset; ink card bands (.u-band-ink:
+ * service-cards / feature-grid with theme: ink) never take a preset. An ink
+ * cta-banner is not an ink band — CtaBanner renders `theme: ink` exactly like
+ * the default banner and emits no .u-band-ink — so it DOES follow the
+ * ctaBanner preset (the :not(.u-band-ink) there is inert, kept for one uniform
+ * selector shape). A layout variant renders the same markup as the block's default
  * variant (plus pixel-neutral data-c5-slot hooks), so the rules here restructure
  * from that markup alone and reach preset sections, which have no hooks.
  *

@@ -6,7 +6,9 @@
  *
  * Precedence: the preset sets the site's family; an explicit per-section layout
  * variant (block-catalog.ts `layout: true`) always wins; legacy column and
- * background variants follow the preset; ink bands (.u-band-ink) never take one.
+ * background variants follow the preset; ink card bands (.u-band-ink) never take
+ * one. An ink cta-banner renders like any banner (no .u-band-ink), so it follows
+ * the ctaBanner preset.
  *
  * 'default' (or an absent / unknown / malformed key) emits NO attribute, so an
  * untouched site matches no rule (R1). Like logo.size, `layout` is a sibling

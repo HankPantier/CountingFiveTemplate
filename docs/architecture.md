@@ -469,7 +469,8 @@ and a mirror + parity test on the platform:
 `faq: split`, `team: list`, `testimonials: featured`; `default` each) emits one
 `<html data-c5-layout-*>` attribute per non-default value (layout.tsx). The rules are the
 per-section layout-variant rules in `block-layouts.css`, applied to that family's
-sections with no `data-layout` and no ink band. An explicit layout variant wins; legacy
+sections with no `data-layout` and no ink card band (`.u-band-ink`; an ink cta-banner
+renders like any banner, so it does follow `ctaBanner`). An explicit layout variant wins; legacy
 column/background variants follow the preset; the testimonials carousel stays a
 carousel. Absent, default or malformed values emit nothing (R1).
 
