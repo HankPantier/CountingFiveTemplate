@@ -3,6 +3,7 @@
 @import "../styles/style-axes.css";
 @import "../styles/logo-tone.css";
 @import "../styles/action-edge.css";
+@import "../styles/logo-size.css";
 @import "../../content/design-overrides.css";
 
 /* dark: follows next-themes' .dark class on <html> (not the OS media query),

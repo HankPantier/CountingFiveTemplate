@@ -19,6 +19,7 @@ import { capabilitiesMetaContent } from '@/lib/theme/template-marker'
 import { styleAxisAttributes } from '@/lib/theme/style-axes'
 import { logoToneAttributes } from '@/lib/brand/logo-tone'
 import { actionEdgeAttributes } from '@/lib/theme/action-edge'
+import { logoSizeAttributes } from '@/lib/theme/logo-size'
 import { siteConfig } from '../../site.config'
 
 export async function generateMetadata(): Promise<Metadata> {
@@ -121,6 +122,9 @@ export default async function RootLayout({
       // buttons on primary bands get an on-primary edge (globals.css). Absent
       // for every palette that already passes.
       {...actionEdgeAttributes(brand)}
+      // design.json logo.size "large": taller header/footer logo (logo-size.css).
+      // Absent for 'standard' / unset — every other site keeps its 32px logo.
+      {...logoSizeAttributes(design)}
       style={fontAliases}
       // next-themes sets the theme class on <html> before hydration, so the
       // server/client class attributes intentionally differ on first paint.
