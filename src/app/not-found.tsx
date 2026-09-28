@@ -19,7 +19,7 @@ export default async function NotFound() {
   const [brand, nav] = await Promise.all([getBrandConfig(), getNavConfig()])
 
   return (
-    <Section as="div" className="max-w-2xl mx-auto text-center">
+    <Section as="div" dataBlock="not-found" className="max-w-2xl mx-auto text-center">
       <p className="text-sm font-mono uppercase tracking-widest text-muted-foreground">
         404
       </p>

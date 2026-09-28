@@ -66,7 +66,7 @@ export async function BlogIndex() {
         <h1 className="font-heading text-4xl md:text-5xl font-semibold text-foreground">{blog.title}</h1>
         <p className="mt-3 max-w-2xl mx-auto text-foreground/70 leading-relaxed">{blog.intro}</p>
       </Section>
-      <Section>
+      <Section dataBlock="resource-browser">
         {browsable.length === 0 ? (
           <p className="text-center text-foreground/60">No posts published yet — check back soon.</p>
         ) : (
@@ -165,7 +165,7 @@ export async function BlogPost({ slug }: { slug: string }) {
       </Section>
 
       {post.frontmatter.image && (
-        <Section className="max-w-4xl mx-auto !pt-0">
+        <Section dataBlock="post-image" className="max-w-4xl mx-auto !pt-0">
           {/* Intrinsic width/height (not `fill`) so the hero renders without
               depending on the parent having a computed height. */}
           <div className="relative overflow-hidden rounded-lg">
@@ -182,7 +182,7 @@ export async function BlogPost({ slug }: { slug: string }) {
         </Section>
       )}
 
-      <Section className="max-w-3xl mx-auto">
+      <Section dataBlock="post-body" className="max-w-3xl mx-auto">
         <article
           className="prose prose-neutral max-w-none prose-headings:font-heading prose-a:text-primary prose-a:underline"
           itemScope
@@ -201,7 +201,7 @@ export async function BlogPost({ slug }: { slug: string }) {
       </Section>
 
       {related.length > 0 && (
-        <Section className="max-w-5xl mx-auto">
+        <Section dataBlock="related-posts" className="max-w-5xl mx-auto">
           <h2 className="font-heading text-2xl font-semibold text-foreground text-center">Related reading</h2>
           <ul className="mt-8 grid gap-6 sm:grid-cols-2 lg:grid-cols-3">
             {related.map((p) => (

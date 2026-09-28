@@ -39,6 +39,10 @@ function UnknownBlockPlaceholder({ section }: { section: PageSection }) {
 
 export function BlockRenderer({ section, manifest }: BlockRendererProps) {
   const render = BLOCK_REGISTRY[section.blockId]
-  if (!render) return <UnknownBlockPlaceholder section={section} />
-  return render(section, manifest)
+  if (render) return render(section, manifest)
+  // A live site never shows the debug placeholder: an annotation the registry
+  // doesn't render (e.g. a page-level `page-header` placed in the body) falls
+  // back to plain prose, so the section's heading and copy still read.
+  if (process.env.NODE_ENV === 'production') return BLOCK_REGISTRY['content-prose'](section, manifest)
+  return <UnknownBlockPlaceholder section={section} />
 }

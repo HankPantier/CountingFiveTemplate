@@ -2,6 +2,51 @@
 
 All notable changes to this template are recorded here. The format follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/) and the project loosely follows semver — though as a per-client template, "release" means "checkpoint on `main`" rather than a published package version.
 
+## [2026.09.11] — Every surface is stylable; no debug placeholder on live sites
+
+Markup-only release: **no visible change** except on pages that showed the
+"Block not yet implemented" debug box (Aurora /privacy-policy and
+/meet-the-team/careers/apply), which now render that section as prose.
+
+### Added
+- **Styling hooks** for the surfaces that sat outside every `data-block` /
+  `data-component`, so the platform's Design Studio chat could not restyle them
+  (fleet audit 2026-09-28, 7 sites × every page type × 1440/390):
+  - `data-component="topbar"` — the top utility bar (TopUtilityBar).
+  - `data-component="contact-drawer"` — the floating Contact button
+    (ContactFab) and the drawer panel (ContactDrawer's SheetContent).
+  - `data-component="section-nav"` — the "In this section" side nav (SideNav,
+    incl. its mobile collapse).
+  - `data-block="resource-browser"` — the blog index search, filters, sort
+    and post cards.
+  - `data-block="post-image"`, `post-body`, `related-posts` — a post's
+    featured image, body (tables included) + "More …" button, and related
+    reading cards.
+  - `data-block="not-found"` — the 404 page.
+- Attributes only: no element, class or style changed.
+
+### Fixed
+- **No debug placeholder in production.** BlockRenderer rendered
+  "Block not yet implemented: <id>" for an annotation the registry doesn't
+  render (a page-level `page-header` placed in the body). A production build
+  now falls back to `content-prose` (heading + copy); development keeps the
+  placeholder.
+
+### Rollout notes (template 2026.09.10 → 2026.09.11)
+Ship in ONE commit, `c5-template.json` last.
+- **Overwrite (M):** `CHANGELOG.md`, `docs/architecture.md`,
+  `src/app/not-found.tsx`, `src/components/assembly/BlockRenderer.tsx`,
+  `src/components/contact/ContactDrawer.tsx`,
+  `src/components/contact/ContactFab.tsx`, `src/components/nav/SideNav.tsx`,
+  `src/components/nav/TopUtilityBar.tsx`, `src/lib/content/blog-views.tsx`,
+  `src/lib/theme/template-marker.test.ts`.
+- **Add (A):** `src/components/assembly/BlockRenderer.test.ts`.
+- **Delete (D):** none.
+- **Write last:** `c5-template.json` = `{"templateVersion": "2026.09.11",
+  "capabilities": ["fonts", "style-axes", "specimen", "layout-presets"],
+  "syncedFrom": "<the template main SHA being rolled out>"}`.
+- theme.css is not rewritten; no package.json change.
+
 ## [2026.09.10] — Image CTA banners and image heroes show their photo
 
 One bug, two blocks: every `image-bg` cta-banner (and `image-bg-centered`)
