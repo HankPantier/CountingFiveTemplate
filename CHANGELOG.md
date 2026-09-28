@@ -2,58 +2,108 @@
 
 All notable changes to this template are recorded here. The format follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/) and the project loosely follows semver — though as a per-client template, "release" means "checkpoint on `main`" rather than a published package version.
 
-## [2026.09.10] — Image CTA banners show their photo
+## [2026.09.10] — Image CTA banners and image heroes show their photo
 
-A single fix, shipped on its own: every `image-bg` cta-banner (and
-`image-bg-centered`) rendered as the flat colour banner. **Visible change:**
-on every live page with an image banner, the photo now appears behind the
-copy, under a dark ink scrim. Colour banners and every other block are
-unchanged.
+One bug, two blocks: every `image-bg` cta-banner (and `image-bg-centered`)
+and every full-bleed `image` / `video` / `slider` Hero rendered as a flat
+colour block. **Visible change:** on every live page with an image banner or
+a media hero, the photo now appears behind the copy under a dark ink scrim.
+Colour banners, the statement hero, HeroSplit and every other block are
+unchanged. Fleet scope (draft `content/pages`, 2026-09-28): 304 rendered
+image banners across the 11 sites, and 2 media heroes (Berg and Kinexus
+`/industries`, `hero: hero` + `hero_variant: image`).
 
 ### Fixed
-- **`image-bg` / `image-bg-centered` banners draw their photo.** The photo
-  (`-z-20`) and scrim (`-z-10`) sat in a section with no stacking context, so
-  the section's own `bg-primary` fill painted over them. The image banner's
-  section now has `isolation: isolate` (Tailwind `isolate`), so they paint
-  above that fill and below the copy. The image is still `next/image` `fill`,
-  `sizes="100vw"`, lazy (a closing banner is below the fold), absolutely
-  positioned — no layout shift.
-- **Readable scrim.** The old scrim (primary 62% + black → near-black at 74%)
-  is replaced by the palette's ink token — a primary-tinted near-black that
-  generate-theme.ts pins at 12% lightness for every brand, falling back to
-  `--color-near-black` on themes without the token — at 86% (top-left, where
-  the copy starts) → 70% (bottom-right). The copy token
-  (`--color-primary-foreground`) is re-scoped to `--color-near-white` on image
-  banners only, since the scrim is always dark (a light brand's
-  primary-foreground would be dark). Measured from pixels
-  (`e2e/cta-banner-image.spec.ts`): over a pure-white photo the heading holds
-  ≥ 7.4:1 and the 80%-alpha body ≥ 5.0:1 (template palette, a light gold
-  primary, and a theme without ink), over the real photos ≥ 10:1; light and
-  dark schemes alike (brand tokens do not flip in dark mode).
+- **Media backgrounds are drawn.** The media (`-z-20`) and scrim (`-z-10`)
+  sat in a `bg-primary` section with no stacking context, so the section's own
+  fill painted over them. Both blocks now give that section
+  `isolation: isolate` (`MEDIA_SECTION_CLASS`, new
+  `src/components/blocks/media-scrim.ts`), so the media paints above the fill
+  and below the copy. The cta-banner photo stays `next/image` `fill`,
+  `sizes="100vw"`, lazy (a closing banner is below the fold); the hero photo
+  stays `priority`. Both are absolutely positioned — no layout shift.
+- **Readable scrim** (shared, `MEDIA_SCRIM`). The old scrim (primary 62% +
+  black → near-black at 74%) is replaced by the palette's ink token — a
+  primary-tinted near-black that generate-theme.ts pins at 12% lightness for
+  every brand, falling back to `--color-near-black` on themes without the
+  token (Slachta, TruCount) — at 86% (top-left) → 76% (bottom-right). The
+  copy token (`--color-primary-foreground`) is re-scoped to
+  `--color-near-white` on media sections only (a light brand's
+  primary-foreground would be dark on the dark scrim).
+- **Hero eyebrow and headline accent.** They read `--color-action-text`. The
+  ink-corrected action colour is only AA on the solid ink; over a bright photo
+  seen through the scrim it falls to ~2.2:1 on mid-tone brand accents. On
+  media heroes the content div re-scopes it to a light tint of the brand
+  accent (35% `--color-action-on-ink` + 65% near-white).
+- **Hero skeleton veil.** The full-bleed hero photo used skeleton-image, whose
+  pulse placeholder is a `z-auto` sibling: behind a `-z-20` photo it painted
+  above the photo and the scrim, and its `animate-pulse` keeps cycling 0 → 50%
+  opacity after load. The hero now uses plain `next/image`, like CtaBanner and
+  HeroSlides; the primary fill is the placeholder while the photo loads.
+- **Measured contrast** (pixel-sampled under every text line box,
+  `e2e/cta-banner-image.spec.ts`, `e2e/hero-image.spec.ts`; minimums over a
+  pure-white photo, the worst case, long multi-paragraph copy, 1440 / 390 /
+  360, light and dark):
+  - Banner body (80% alpha): ≥ 5.6:1 on every fleet palette, the lowest being
+    the near-black fallback (Slachta / TruCount) at 5.62:1; 5.16:1 on a stress
+    light-gold ink. Banner heading ≥ 8.4:1. Over the real / dark photos
+    ≥ 10:1. (At the review build's 70% light stop the fallback body measured
+    ~4.6:1 at 390 / 360 — that is why the stop moved to 76%.)
+  - Hero, every fleet palette: H1 ≥ 8.0:1, subhead (85% alpha) ≥ 6.0:1,
+    eyebrow ≥ 5.7:1, headline accent ≥ 5.2:1.
 - `imageTreatment` (natural / mono / rounded) is unchanged: it grades framed
-  images (`.u-frame`, FramedMedia's media-grade) and never applied to the
-  full-bleed banner photo, like the full-bleed Hero image.
+  images (`.u-frame`, FramedMedia's media-grade) and never applied to a
+  full-bleed banner or hero background.
+
+### Site-specific exception
+- **korbey-lague-site**: its image banners were never flat.
+  `content/design-overrides.css` sets
+  `[data-block="cta-banner"] > * { position: relative; z-index: 1 }`, which
+  makes the banner's inner (max-width) div the stacking context, so the photo
+  and scrim have always rendered boxed inside the content column rather than
+  full-bleed. `isolate` on the section does not change that: korbey's banners
+  look the same after this release.
+
+### Added
+- `/design-specimen?layouts=1` media cells below the layout cells
+  (`[data-specimen-media]`, `mediaSpecimenCells()` in samples.ts):
+  `hero:image`, `hero:slider` and `cta-banner:image-bg:long` (a three-paragraph
+  body). `e2e/media-contrast.ts` holds the pixel-contrast helpers and the fleet
+  palettes.
 
 ### R1
-- `color-bg` / `color-bg-centered` render byte-identical to 2026.09.9 (unit
-  goldens rendered from 4ac337d, `cta-banner-image.test.ts`); so does an
-  `image-bg` banner with no resolvable image (it falls back to the colour
-  markup). Section / slot hooks, `data-layout`, the ink theme and the
-  `ctaBanner: centered` preset are untouched — the copy stays the section's
-  last child (`block-layouts.css` `> div > div:last-child`).
-- @visual: only the four `cta-banner-image-bg-centered{,-ink}` layout-cell
-  baselines (desktop / mobile) are refreshed. They had recorded the flat
-  render; they pass either way under the default 0.2 colour threshold because
-  the specimen photo is a dark flat placeholder, so the pixel spec is the
-  real gate. The zero-change pages use `color-bg` only: 8/8 unchanged.
+- `color-bg` / `color-bg-centered` banners, an `image-bg` banner with no
+  resolvable image, the statement hero (with and without its framed image) and
+  the no-media full-bleed hero render byte-identical to 2026.09.9 (unit goldens
+  rendered from 4ac337d: `cta-banner-image.test.ts`, `hero-media.test.ts`).
+  HeroSplit is untouched. Section / slot hooks, `data-layout`, the ink theme
+  and the `ctaBanner: centered` preset are untouched — the copy stays the
+  banner's last child (`block-layouts.css` `> div > div:last-child`).
+- @visual: the four `cta-banner-image-bg-centered{,-ink}` layout-cell
+  baselines are re-recorded (they had recorded the flat render; they pass
+  either way under the default 0.2 colour threshold because the specimen photo
+  is a dark flat placeholder, so the pixel specs are the real gate). Six NEW
+  baselines for the media cells (`e2e/hero-image.spec.ts-snapshots`). No
+  zero-change page or other layout cell moves (8/8 zero-change unchanged).
+- `e2e/block-layouts.spec.ts` "an explicit layout variant wins" fingerprints
+  the layout cells only: the new plain image-banner media cell rightly follows
+  the `ctaBanner` preset.
+
+### Notes
+- `content/posts` also carries 34 `image-bg` banner annotations (Abramson 13,
+  Accord 20, TruCount 1). They are inert: posts render their body as markdown,
+  not through the block registry, so nothing there changes.
 
 ### Rollout notes (template 2026.09.9 → 2026.09.10)
 Ship in ONE commit, `c5-template.json` last.
 - **Overwrite (M):** `CHANGELOG.md`, `docs/blocks.md`,
-  `src/components/blocks/CtaBanner.tsx`,
-  `src/lib/theme/template-marker.test.ts`.
-- **Add (A):** `e2e/cta-banner-image.spec.ts`,
-  `src/components/blocks/cta-banner-image.test.ts`.
+  `e2e/block-layouts.spec.ts`, `src/app/design-specimen/layouts/page.tsx`,
+  `src/components/blocks/CtaBanner.tsx`, `src/components/blocks/Hero.tsx`,
+  `src/lib/showcase/samples.ts`, `src/lib/theme/template-marker.test.ts`.
+- **Add (A):** `e2e/cta-banner-image.spec.ts`, `e2e/hero-image.spec.ts`,
+  `e2e/media-contrast.ts`, `src/components/blocks/cta-banner-image.test.ts`,
+  `src/components/blocks/hero-media.test.ts`,
+  `src/components/blocks/media-scrim.ts`.
 - **Delete (D):** none.
 - **Skip:** `e2e/*-snapshots/**` and `*.png` (local @visual baselines),
   `package-lock.json` (unchanged), `content/**`.
@@ -61,7 +111,8 @@ Ship in ONE commit, `c5-template.json` last.
   "capabilities": ["fonts", "style-axes", "specimen", "layout-presets"],
   "syncedFrom": "<the template main SHA being rolled out>"}`.
 - theme.css is not rewritten; no package.json change. Sites with image
-  banners change visibly on deploy (the canary shows before / after).
+  banners or media heroes change visibly on deploy (the canary shows before /
+  after).
 
 ## [2026.09.9] — Layout variants and site-wide layout presets
 
