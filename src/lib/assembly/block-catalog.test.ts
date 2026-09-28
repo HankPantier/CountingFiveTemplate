@@ -1,7 +1,8 @@
 import { readFileSync } from 'node:fs'
 import path from 'node:path'
 import { describe, expect, expectTypeOf, it } from 'vitest'
-import { KNOWN_BLOCK_IDS } from '@/components/assembly/block-registry'
+import { isValidElement } from 'react'
+import { BLOCK_REGISTRY, KNOWN_BLOCK_IDS } from '@/components/assembly/block-registry'
 import {
   ANNOTATION_FIELD_ORDER,
   BLOCK_CATALOG,
@@ -11,7 +12,8 @@ import {
   type BlockSpec,
   type BlockVariant,
 } from './block-catalog'
-import * as X from './extract-block-props'
+import type * as X from './extract-block-props'
+import { extractHeroProps, extractHeroSplitProps } from './extract-block-props'
 import { parsePageMd, type PageManifest, type PageSection } from './parse-page-md'
 
 const spec = (id: BlockId): BlockSpec => BLOCK_CATALOG[id]
@@ -23,23 +25,27 @@ const section = (blockId: string, extra: Partial<PageSection> = {}): PageSection
   ...extra,
 })
 
-// Every extractor whose props carry a `variant`, keyed by block id.
-const VARIANT_EXTRACTORS: Record<string, (s: PageSection) => { variant: string; theme?: string }> = {
-  'content-split': X.extractContentSplitProps,
-  'feature-grid': X.extractFeatureGridProps,
-  'cta-banner': X.extractCtaBannerProps,
-  'intro-text': X.extractIntroTextProps,
-  'service-cards': X.extractServiceCardsProps,
-  'team-grid': X.extractTeamGridProps,
-  testimonials: X.extractTestimonialsProps,
-  'stats-bar': X.extractStatsBarProps,
-  'checklist-section': X.extractChecklistSectionProps,
-  'process-steps': X.extractProcessStepsProps,
-  'industry-cards': X.extractIndustryCardsProps,
-  pricing: X.extractPricingProps,
-  'content-cards': X.extractContentCardsProps,
-  form: X.extractFormProps,
+const MANIFEST = {
+  title: 'T',
+  url: '/',
+  meta_title: 'T',
+  meta_description: 'D',
+  target_keyword: '',
+  canonical_url: '',
+  schema_markup: 'WebPage',
+  hero_block: 'page-header',
+  sections: [],
+  faq_block: [{ question: 'Q?', answer: 'A.' }],
+} as PageManifest
+
+// The props BLOCK_REGISTRY hands each block's component — derived from the
+// registry itself, so a block whose extractor starts accepting a variant or a
+// theme fails here until the catalog lists it (no hand-kept extractor map).
+function registryProps(id: string, extra: Partial<PageSection> = {}): Record<string, unknown> {
+  const el = BLOCK_REGISTRY[id](section(id, extra), MANIFEST)
+  return isValidElement(el) ? (el.props as Record<string, unknown>) : {}
 }
+const THEME_PROBES = ['ink', 'light', 'dark', 'accent', 'default']
 
 describe('block catalog contract', () => {
   it('docs/design/blocks.json matches the catalog (run npm run design-contracts)', () => {
@@ -70,31 +76,35 @@ describe('block catalog contract', () => {
     }
   })
 
-  it('the variant-less blocks are exactly those whose extractor has no variant', () => {
-    const withVariants = BLOCK_IDS.filter((id) => spec(id).variants.length && spec(id).placement !== 'frontmatter').sort()
-    expect(withVariants).toEqual(Object.keys(VARIANT_EXTRACTORS).sort())
+  it('lists variants for exactly the registry blocks whose props carry a variant', () => {
+    const withVariants = KNOWN_BLOCK_IDS.filter((id) => spec(id as BlockId).variants.length > 0)
+    const propsWithVariant = KNOWN_BLOCK_IDS.filter((id) => 'variant' in registryProps(id))
+    expect(withVariants).toEqual(propsWithVariant)
   })
 
-  it.each(Object.entries(VARIANT_EXTRACTORS))('%s: default and every listed variant match the extractor', (id, extract) => {
+  it.each(KNOWN_BLOCK_IDS)('%s: default and every listed variant reach the component', (id) => {
     const s = spec(id as BlockId)
-    expect(extract(section(id)).variant).toBe(s.default)
-    for (const { value } of s.variants) expect(extract(section(id, { variant: value })).variant).toBe(value)
+    if (!s.variants.length) return
+    expect(registryProps(id).variant).toBe(s.default)
+    for (const { value } of s.variants) expect(registryProps(id, { variant: value }).variant).toBe(value)
   })
 
-  it.each(Object.entries(VARIANT_EXTRACTORS))('%s: themes are exactly what the extractor accepts', (id, extract) => {
-    const accepted = extract(section(id, { theme: 'ink' })).theme === 'ink' ? ['ink'] : []
+  it.each(KNOWN_BLOCK_IDS)('%s: themes are exactly the probed values the component receives', (id) => {
+    const accepted = THEME_PROBES.filter((t) => registryProps(id, { theme: t }).theme === t)
     expect([...spec(id as BlockId).themes]).toEqual(accepted)
   })
 
   it('page openers: defaults match the hero extractors', () => {
     const m = { title: 'T', url: '/', meta_description: 'D', sections: [] } as unknown as PageManifest
-    expect(X.extractHeroProps(m).variant).toBe(spec('hero').default)
-    expect(X.extractHeroSplitProps(m).variant).toBe(spec('hero-split').default)
+    expect(extractHeroProps(m).variant).toBe(spec('hero').default)
+    expect(extractHeroSplitProps(m).variant).toBe(spec('hero-split').default)
   })
 })
 
-// Compile-time parity with the extract-block-props unions (tsc checks this
-// file; expectTypeOf is a no-op at runtime).
+// Compile-time parity with the extract-block-props unions. tsc checks this
+// file (expectTypeOf is a no-op at runtime): it is the guard on the exact
+// VALUE sets; the registry-derived runtime tests above guard which blocks take
+// a variant/theme at all and that defaults and listed values reach the component.
 describe('variant unions (type-level)', () => {
   it('match the extractor prop types', () => {
     expectTypeOf<BlockVariant<'content-split'>>().toEqualTypeOf<X.ContentSplitProps['variant']>()
@@ -115,5 +125,16 @@ describe('variant unions (type-level)', () => {
     // HeroProps still carries the dead 'image-right' | 'image-left' values (they
     // render full-bleed); the contract omits them — hero-split is that layout.
     expectTypeOf<BlockVariant<'hero'>>().toEqualTypeOf<Exclude<X.HeroProps['variant'], 'image-right' | 'image-left'>>()
+  })
+  it('variant-less blocks have no variant prop (a new one must be listed in the catalog)', () => {
+    expectTypeOf<X.ContentProseProps>().not.toHaveProperty('variant')
+    expectTypeOf<X.LogoBarProps>().not.toHaveProperty('variant')
+    expectTypeOf<X.ContentTableProps>().not.toHaveProperty('variant')
+    expectTypeOf<X.FaqAccordionProps>().not.toHaveProperty('variant')
+    expectTypeOf<X.BookingProps>().not.toHaveProperty('variant')
+    expectTypeOf<X.ResourceListProps>().not.toHaveProperty('variant')
+    expectTypeOf<X.PricingCalculatorProps>().not.toHaveProperty('variant')
+    expectTypeOf<X.PricingPlansProps>().not.toHaveProperty('variant')
+    expectTypeOf<X.PageHeaderProps>().not.toHaveProperty('variant')
   })
 })
