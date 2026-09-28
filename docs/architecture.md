@@ -159,11 +159,13 @@ target these; the logo links also carry the inert `data-c5="logo"` hook.
   Design Studio concept rewrites the whole `style` object, which would reset it,
   and the Studio never scores the logo. The platform sets it from the Theme Studio
   Controls ("Logo size").
-- **Fit** — from `md` up the logo link doesn't shrink (`md:shrink-0`). When the
-  header row (logo · desktop nav · actions) is wider than the bar, NavBar collapses
-  the desktop nav into the menu button (`src/components/nav/use-nav-fit.ts`)
-  instead of squeezing the logo. A row that fits (labels may still wrap, as
-  before) is never changed.
+- **Fit** — an inline script right after the header (`src/lib/nav/nav-fit.ts`,
+  emitted by layout.tsx) measures the header row (logo at its natural width ·
+  desktop nav · actions) before first paint. If it is wider than the bar it sets
+  `<html data-c5-nav-fit="collapse">` and `src/styles/nav-fit.css` swaps the
+  desktop nav for the menu button from `md` up, instead of letting the flex row
+  squeeze the logo (to 0px on Kinexus). A row that fits (labels may still wrap,
+  as before) is never changed; with JavaScript off the bar clips its overflow.
 
 To target child slots from `content/design-overrides.css`, give them `data-slot="<name>"` attributes (e.g. `<button data-slot="accept">`). Designs then target via `[data-component="..."] [data-slot="..."]`.
 

@@ -1,5 +1,6 @@
 import { test, expect, type Page } from '@playwright/test'
 import { LOGO_SIZE_ATTRIBUTE } from '../src/lib/theme/logo-size'
+import { NAV_FIT_ATTRIBUTE } from '../src/lib/nav/nav-fit'
 
 /**
  * Template 2026.09.8 — header logo size + the long-nav fit guard.
@@ -9,13 +10,15 @@ import { LOGO_SIZE_ATTRIBUTE } from '../src/lib/theme/logo-size'
  *    design-defaults.spec.ts). Set in-page here, so no rebuild per value:
  *    the rendered logo is 32px without it (unchanged) and 44px desktop /
  *    40px phone / 40px footer with it, drawn at its own aspect ratio.
- * 2. A Kinexus-like header (287×85 logo, 9 top-level items + a CTA) needs
- *    more than the 1280px bar. The logo used to be flex-shrunk to 0px; now
- *    the desktop nav collapses into the menu button and the logo keeps its
- *    natural width. A nav that fits is untouched.
+ * 2. The header fit guard (src/lib/nav/nav-fit.ts): a header row wider than
+ *    the bar used to flex-shrink the logo (to 0px on Kinexus). The inline
+ *    script now collapses the desktop nav into the menu button BEFORE first
+ *    paint. Those fixtures are written into the served HTML itself
+ *    (page.route), so the decision the page is first painted with is what's
+ *    measured — with the JS bundles blocked, i.e. before hydration.
  *
- * Content-agnostic: the logo and the long nav are injected fixtures (after
- * hydration), so this runs in client repos too.
+ * Content-agnostic: the logo and the long navs are fixtures, so this runs in
+ * client repos too.
  */
 
 // Pryor-like stacked lockup (two lines of text), 200×64 → aspect 3.125.
@@ -93,32 +96,6 @@ async function setup(page: Page, opts: { width: number; logo: string; large?: bo
   await settle(page)
 }
 
-/** Replace the desktop nav with Kinexus's 9 items and add a CTA to the actions. */
-async function injectLongNav(page: Page) {
-  await page.evaluate((labels) => {
-    const list = document.querySelector('[data-component="navbar"] nav ul')!
-    const template = list.querySelector(':scope > li')!
-    const items = labels.map((label) => {
-      const li = template.cloneNode(true) as HTMLElement
-      li.dataset.fixture = 'long-nav'
-      const item = li.querySelector('a, button')!
-      item.textContent = label
-      item.classList.add('w-max')
-      return li
-    })
-    for (const li of Array.from(list.children) as HTMLElement[]) li.style.display = 'none'
-    list.append(...items)
-    const actions = document.querySelector('[data-component="navbar"] > div > div:last-child')!
-    const cta = document.createElement('a')
-    cta.href = '#'
-    cta.dataset.fixture = 'long-nav'
-    cta.className = 'inline-flex items-center justify-center whitespace-nowrap rounded-md text-sm font-medium h-10 px-4 py-2 bg-action text-action-foreground'
-    cta.textContent = 'Book a consultation'
-    actions.prepend(cta)
-  }, KINEXUS_NAV)
-  await settle(page)
-}
-
 async function box(page: Page, sel: string) {
   return page.locator(sel).first().evaluate((el) => {
     const r = el.getBoundingClientRect()
@@ -156,57 +133,144 @@ test.describe('logo size (design.json logo.size)', () => {
   }
 })
 
-test.describe('long nav never squeezes the logo (Kinexus)', () => {
-  test('a nav that fits is untouched: desktop nav shown, no menu button, logo at natural width', async ({ page }) => {
+// Served-HTML fixtures: the header exactly as SSR emits it, with a fixture
+// logo, top level and CTA written in — so the inline fit script decides on
+// them while the page is parsed. Every label is held on one line (w-max, as a
+// NavigationMenuTrigger dropdown item renders).
+type NavFixture = { logo: string; aspect: number; labels: string[] }
+// Kinexus-like: row minimum ≈1430px with the 108px logo (Kinexus measured
+// 1311px without it) — overflows the 1280px bar at every width.
+const KINEXUS: NavFixture = { logo: KINEXUS_LOGO, aspect: KINEXUS_ASPECT, labels: KINEXUS_NAV }
+// Buss-like: a 164px logo and a row that fits the 1280px bar with a little to
+// spare but not a 1180px one (Buss: 1280 of 1280 live).
+const BUSS_LOGO =
+  'data:image/svg+xml,' +
+  encodeURIComponent(
+    '<svg xmlns="http://www.w3.org/2000/svg" width="820" height="160" viewBox="0 0 820 160"><rect width="820" height="160" fill="#2d2524"/></svg>',
+  )
+const BUSS: NavFixture = {
+  logo: BUSS_LOGO,
+  aspect: 820 / 160,
+  labels: ['Tax services', 'Accounting', 'Advisory', 'Industries', 'About us', 'Resources', 'Client portal', 'Contact'],
+}
+
+function rewriteHeader(html: string, f: NavFixture): string {
+  const li = (label: string) =>
+    `<li class="relative"><a class="w-max inline-flex h-9 items-center justify-center rounded-md px-4 text-sm font-medium" href="#">${label}</a></li>`
+  const cta =
+    '<a data-fixture="cta" class="hidden md:inline-flex items-center justify-center whitespace-nowrap rounded-md text-sm font-medium h-10 px-4 py-2 bg-action text-action-foreground" href="#">Book a consultation</a>'
+  const out = html
+    .replace(/(<a [^>]*data-c5="logo"[^>]*>)[\s\S]*?(<\/a>)/, `$1<img src="${f.logo}" alt="Firm logo" width="160" height="32" class="h-8 w-auto">$2`)
+    .replace(/(<nav aria-label="Main"[\s\S]*?<ul[^>]*>)[\s\S]*?(<\/ul>)/, `$1${f.labels.map(li).join('')}$2`)
+    .replace('</nav><div class="flex items-center gap-2">', `</nav><div class="flex items-center gap-2">${cta}`)
+  if (out === html) throw new Error('header fixture did not apply')
+  return out
+}
+
+/** Load / with the fixture header; `hydrate: false` blocks the JS bundles. */
+async function servedFixture(page: Page, f: NavFixture, width: number, opts: { hydrate?: boolean; large?: boolean } = {}) {
+  await page.setViewportSize({ width, height: 900 })
+  await page.route('**/*', async (route) => {
+    const req = route.request()
+    if (req.resourceType() === 'document') {
+      const res = await route.fetch()
+      let body = rewriteHeader(await res.text(), f)
+      if (opts.large) body = body.replace('<html ', `<html ${LOGO_SIZE_ATTRIBUTE}="large" `)
+      await route.fulfill({ response: res, body })
+    } else if (!opts.hydrate && req.resourceType() === 'script') {
+      await route.abort()
+    } else {
+      await route.continue()
+    }
+  })
+  await page.goto('/')
+  await page.waitForLoadState('load')
+  await settle(page)
+}
+
+async function headerState(page: Page) {
+  return page.evaluate(
+    ({ attr }) => {
+      const bar = document.querySelector('[data-component="navbar"] > div')!
+      const logo = bar.querySelector('[data-c5="logo"]')!.getBoundingClientRect()
+      return {
+        attr: document.documentElement.getAttribute(attr),
+        logoWidth: logo.width,
+        navShown: getComputedStyle(bar.querySelector(':scope > nav')!).display !== 'none',
+        menuShown: getComputedStyle(bar.querySelector('button[aria-label="Open menu"]')!).display !== 'none',
+        scrollWidth: document.documentElement.scrollWidth,
+      }
+    },
+    { attr: NAV_FIT_ATTRIBUTE },
+  )
+}
+
+test.describe('header fit guard (decided before first paint)', () => {
+  test('a nav that fits is untouched: no attribute, desktop nav shown, logo at natural width', async ({ page }) => {
     await setup(page, { width: 1280, logo: KINEXUS_LOGO })
     await expect(page.locator(DESKTOP_NAV)).toBeVisible()
     await expect(page.locator(MENU_BUTTON)).toBeHidden()
+    expect(await page.evaluate((a) => document.documentElement.getAttribute(a), NAV_FIT_ATTRIBUTE)).toBeNull()
     expect((await box(page, `${NAV_LOGO} img`)).width).toBeCloseTo(32 * KINEXUS_ASPECT, 0)
   })
 
-  test('the fixture reproduces the 0px logo with the old header behaviour', async ({ page }) => {
-    await setup(page, { width: 1280, logo: KINEXUS_LOGO })
-    await injectLongNav(page)
-    // Undo the guard in-page: a shrinkable logo link and the nav forced visible
-    // (no collapse). A nav whose min-content exceeds the bar sends the row into
-    // flex-shrink; the nav (flex-basis 0) can't shrink, so the logo
-    // (min-content 0 through its img's max-width:100%) absorbs it all.
-    await page.evaluate(() => {
-      const bar = document.querySelector('[data-component="navbar"] > div')!
-      ;(bar.querySelector('[data-c5="logo"]') as HTMLElement).style.flexShrink = '1'
-      ;(bar.querySelector('nav') as HTMLElement).style.display = 'flex'
-      ;(bar.querySelector('button[aria-label="Open menu"]') as HTMLElement).style.display = 'none'
-    })
-    expect((await box(page, `${NAV_LOGO} img`)).width).toBeLessThan(2)
+  test('the Kinexus fixture reproduces the 0px logo without the guard (2026.09.7 layout)', async ({ page }) => {
+    await servedFixture(page, KINEXUS, 1280)
+    // NavBar's markup is 2026.09.7's: without the attribute it lays out as before.
+    await page.evaluate((a) => document.documentElement.removeAttribute(a), NAV_FIT_ATTRIBUTE)
+    const s = await headerState(page)
+    expect(s.navShown).toBe(true)
+    expect(s.logoWidth).toBeLessThan(2)
+    expect(s.scrollWidth).toBeGreaterThan(1280)
   })
 
-  for (const large of [false, true]) {
-    test(`${large ? 'large' : 'standard'} logo: the long nav collapses into the menu button and the logo keeps its natural width`, async ({ page }) => {
-      await setup(page, { width: 1280, logo: KINEXUS_LOGO, large })
-      await injectLongNav(page)
-      await expect(page.locator(DESKTOP_NAV)).toBeHidden()
-      await expect(page.locator(MENU_BUTTON)).toBeVisible()
-      await expect(page.locator('[data-fixture="long-nav"]').last()).toBeVisible() // the CTA stays
-      const h = large ? 44 : 32
-      const logo = await box(page, `${NAV_LOGO} img`)
-      expect(logo.height).toBe(h)
-      expect(logo.width).toBeCloseTo(h * KINEXUS_ASPECT, 0)
-      expect(await page.evaluate(() => document.documentElement.scrollWidth)).toBeLessThanOrEqual(1280)
+  for (const width of [1024, 1180, 1280]) {
+    test(`Kinexus fixture at ${width}px, before hydration: nav collapsed, logo natural, no sideways scroll`, async ({ page }) => {
+      await servedFixture(page, KINEXUS, width)
+      const s = await headerState(page)
+      expect(s.attr).toBe('collapse')
+      expect(s.navShown).toBe(false)
+      expect(s.menuShown).toBe(true)
+      expect(s.logoWidth).toBeCloseTo(32 * KINEXUS_ASPECT, 0)
+      expect(s.scrollWidth).toBeLessThanOrEqual(width)
     })
   }
 
-  test('the nav comes back when it fits again (probe on resize)', async ({ page }) => {
-    await setup(page, { width: 1100, logo: KINEXUS_LOGO })
-    await injectLongNav(page)
-    await expect(page.locator(DESKTOP_NAV)).toBeHidden()
-    // Back to the site's own (short) nav, then a resize re-probes.
-    await page.evaluate(() => {
-      for (const el of Array.from(document.querySelectorAll('[data-fixture="long-nav"]'))) el.remove()
-      for (const li of Array.from(document.querySelectorAll('[data-component="navbar"] nav ul > li')) as HTMLElement[]) li.style.display = ''
+  for (const [width, collapse] of [
+    [1024, true],
+    [1180, true],
+    [1280, false],
+    [1440, false],
+  ] as const) {
+    test(`Buss fixture at ${width}px, before hydration: ${collapse ? 'collapsed' : 'untouched (fits)'}`, async ({ page }) => {
+      await servedFixture(page, BUSS, width)
+      const s = await headerState(page)
+      expect(s.attr).toBe(collapse ? 'collapse' : null)
+      expect(s.navShown).toBe(!collapse)
+      expect(s.logoWidth).toBeCloseTo(32 * BUSS.aspect, 0)
+      expect(s.scrollWidth).toBeLessThanOrEqual(width)
     })
-    await page.setViewportSize({ width: 1110, height: 900 })
+  }
+
+  test('large logo: the Kinexus fixture collapses and the 44px logo keeps its natural width', async ({ page }) => {
+    await servedFixture(page, KINEXUS, 1280, { large: true })
+    const s = await headerState(page)
+    expect(s.attr).toBe('collapse')
+    const logo = await box(page, `${NAV_LOGO} img`)
+    expect(logo.height).toBe(44)
+    expect(logo.width).toBeCloseTo(44 * KINEXUS_ASPECT, 0)
+    expect(s.scrollWidth).toBeLessThanOrEqual(1280)
+  })
+
+  test('the decision follows the viewport (resize re-probes, before hydration)', async ({ page }) => {
+    await servedFixture(page, BUSS, 1180)
+    expect((await headerState(page)).attr).toBe('collapse')
+    await page.setViewportSize({ width: 1280, height: 900 })
     await settle(page)
-    await expect(page.locator(DESKTOP_NAV)).toBeVisible()
-    await expect(page.locator(MENU_BUTTON)).toBeHidden()
+    expect((await headerState(page)).attr).toBeNull()
+    expect((await headerState(page)).navShown).toBe(true)
+    await page.setViewportSize({ width: 1180, height: 900 })
+    await settle(page)
+    expect((await headerState(page)).attr).toBe('collapse')
   })
 })

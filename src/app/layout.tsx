@@ -20,6 +20,7 @@ import { styleAxisAttributes } from '@/lib/theme/style-axes'
 import { logoToneAttributes } from '@/lib/brand/logo-tone'
 import { actionEdgeAttributes } from '@/lib/theme/action-edge'
 import { logoSizeAttributes } from '@/lib/theme/logo-size'
+import { NAV_FIT_SCRIPT } from '@/lib/nav/nav-fit'
 import { siteConfig } from '../../site.config'
 
 export async function generateMetadata(): Promise<Metadata> {
@@ -166,6 +167,11 @@ export default async function RootLayout({
             </a>
             <TopUtilityBar phone={brand.contact.phone} />
             <NavBar brand={brand} nav={nav} />
+            {/* Header fit guard: runs as soon as the header is parsed, before
+                first paint, and collapses a desktop nav too long for the bar
+                (src/lib/nav/nav-fit.ts, nav-fit.css). A static constant — no
+                request or content data is interpolated. */}
+            <script dangerouslySetInnerHTML={{ __html: NAV_FIT_SCRIPT }} />
             {children}
             <Footer />
             {/* <Analytics> is a client component that reads consent from

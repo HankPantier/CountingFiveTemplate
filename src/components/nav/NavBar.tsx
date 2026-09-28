@@ -3,7 +3,7 @@
 import Link from 'next/link'
 import Image from 'next/image'
 import { usePathname } from 'next/navigation'
-import { useEffect, useRef, useState } from 'react'
+import { useEffect, useState } from 'react'
 import { cn } from '@/lib/utils'
 import { Button } from '@/components/ui/button'
 import {
@@ -15,7 +15,6 @@ import {
   NavigationMenuTrigger,
 } from '@/components/ui/navigation-menu'
 import { MobileNav } from './MobileNav'
-import { useNavFit } from './use-nav-fit'
 import { ThemeToggle } from '@/components/theme/ThemeToggle'
 import { resolveImageSrc } from '@/lib/assembly/resolve-image'
 import { isUrlActive, orderedPrimaryNav } from '@/lib/nav/nav-tree'
@@ -44,11 +43,6 @@ function NavLabel({ label }: { label: string }) {
 export function NavBar({ brand, nav }: { brand: BrandJson; nav: NavJson }) {
   const pathname = usePathname() ?? '/'
   const [scrolled, setScrolled] = useState(false)
-  // A desktop nav too long for the bar collapses into the mobile menu instead
-  // of squeezing the logo (see use-nav-fit.ts). false on the server and for
-  // every nav that fits, so those render exactly as before.
-  const barRef = useRef<HTMLDivElement>(null)
-  const navCollapsed = useNavFit(barRef)
   useEffect(() => {
     let frame = 0
     let pending = false
@@ -79,12 +73,8 @@ export function NavBar({ brand, nav }: { brand: BrandJson; nav: NavJson }) {
         scrolled ? 'bg-background/95 backdrop-blur border-b border-border' : 'bg-background'
       )}
     >
-      <div ref={barRef} className="max-w-7xl mx-auto h-16 px-4 sm:px-6 lg:px-8 flex items-center justify-between">
-        {/* md:shrink-0: from md up the logo keeps its natural width. Without it
-            a long nav flex-shrank the logo to 0px (its img's max-width:100%
-            has no min-content width). Phones keep today's behaviour: only the
-            theme toggle and the menu button share that row. */}
-        <Link href="/" className="flex items-center gap-2 md:shrink-0" aria-label={`${brand.firm.name} home`} data-c5="logo">
+      <div className="max-w-7xl mx-auto h-16 px-4 sm:px-6 lg:px-8 flex items-center justify-between">
+        <Link href="/" className="flex items-center gap-2" aria-label={`${brand.firm.name} home`} data-c5="logo">
           {brand.logo.primary ? (
             <Image
               src={resolveImageSrc(brand.logo.primary)!}
@@ -99,7 +89,7 @@ export function NavBar({ brand, nav }: { brand: BrandJson; nav: NavJson }) {
           )}
         </Link>
 
-        <NavigationMenu className={navCollapsed ? 'hidden' : 'hidden md:flex'}>
+        <NavigationMenu className="hidden md:flex">
           <NavigationMenuList>
             {orderedPrimaryNav(nav.primary, nav.cta).map(item => {
               const itemActive = isUrlActive(pathname, item.url)
@@ -178,7 +168,7 @@ export function NavBar({ brand, nav }: { brand: BrandJson; nav: NavJson }) {
             </Button>
           )}
           <ThemeToggle />
-          <MobileNav nav={nav} desktop={navCollapsed} />
+          <MobileNav nav={nav} />
         </div>
       </div>
     </header>

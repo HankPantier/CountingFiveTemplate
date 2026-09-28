@@ -39,7 +39,12 @@ test('<html> data-c5-* style-axis attributes match design.json style (none by de
   const actual = await page.evaluate(() => {
     const el = document.documentElement
     return Object.fromEntries(
-      el.getAttributeNames().filter((n) => n.startsWith('data-c5')).map((n) => [n, el.getAttribute(n) ?? '']),
+      el
+        .getAttributeNames()
+        // data-c5-nav-fit is viewport-derived runtime state (the header fit
+        // guard, 2026.09.8), not a design.json/brand.json hook.
+        .filter((n) => n.startsWith('data-c5') && n !== 'data-c5-nav-fit')
+        .map((n) => [n, el.getAttribute(n) ?? '']),
     )
   })
   expect(actual).toEqual(expected)
@@ -67,6 +72,8 @@ test.describe('template default content', () => {
     await expect(html).toHaveAttribute('data-headline', 'sans')
     await expect(html).toHaveAttribute('data-eyebrow', 'standard')
     const names = await page.evaluate(() => document.documentElement.getAttributeNames())
+    // The template's own header fits at the default viewport, so the fit guard
+    // (data-c5-nav-fit) sets nothing either.
     expect(names.filter((n) => n.startsWith('data-c5'))).toEqual([])
   })
 

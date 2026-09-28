@@ -27,26 +27,43 @@ the whole overflow.
   on every concept apply, and the Studio critic never scores the logo. `logo`
   is a sibling key the Studio's design.json merge carries through untouched.
   The platform sets it from the Theme Studio Controls ("Logo size").
-- **`src/components/nav/use-nav-fit.ts`**: when the header row (logo · desktop
-  nav · actions) is wider than the bar, the desktop nav collapses into the
-  menu button (MobileNav `desktop`) at that width. While collapsed it
-  re-probes on a bar resize or font load (expand, measure, collapse again,
-  synchronously in one frame, so nothing flickers). Server render unchanged.
+- **Header fit guard, decided before first paint** (`src/lib/nav/nav-fit.ts`):
+  a tiny inline script layout.tsx emits right after `<NavBar>` (the CSP
+  already allows inline scripts) measures the header row (logo at its NATURAL
+  width · desktop nav · actions) while the page is parsed. If it is wider than
+  the bar it sets `<html data-c5-nav-fit="collapse">` and
+  **`src/styles/nav-fit.css`** (from `md` up) hides the desktop nav and shows
+  the menu button. A row that fits sets nothing. It re-decides on window
+  resize, bar resize and logo load; a re-check while collapsed removes the
+  attribute, measures and restores it in the same task, so the expanded state
+  is never painted. It waits for the logo image to load rather than guess its
+  width (next/image boxes every logo at 160×32 until then). Any error leaves
+  the 2026.09.7 page.
+- JavaScript off: `@media (scripting: none)` clips the bar's horizontal
+  overflow, so a too-long row no longer widens the page (2026.09.7 scrolled
+  sideways). No effect when scripting is on.
 - Tests: unit (`logoSizeAttributes` gating, every logo-size.css selector
-  gated, sizes, import order; `rowOverflows`; NavBar/MobileNav wiring); e2e
-  `logo-size.spec.ts` measured from the rendered boxes: default 32px header
-  and footer; large 44px desktop / 40px phone / 40px footer at the logo's own
-  aspect ratio, bar still 64px, no sideways scroll on a phone; a Kinexus-like
-  fixture (287×85 logo, 9 items + CTA, row minimum ≈1320px vs Kinexus's
-  measured 1311px) reproduces the 0px logo with the old behaviour, and now
-  collapses to the menu button with the logo at its natural 108px (standard
-  and large); the nav returns when it fits again. Content-agnostic.
+  gated, sizes, import order; the fit script executed against a fake DOM;
+  nav-fit.css gating); e2e `logo-size.spec.ts` measured from the rendered
+  boxes: default 32px header and footer; large 44px desktop / 40px phone /
+  40px footer at the logo's own aspect ratio, bar still 64px, no sideways
+  scroll on a phone. Fit guard: fixtures written into the SERVED HTML
+  (page.route) with the JS bundles blocked, so what is measured is the
+  pre-hydration first paint — a Kinexus-like header (287×85 logo, 9 items +
+  CTA) reproduces the 0px logo without the attribute and is collapsed with
+  the logo at its natural 108px (44px tall when large); a Buss-like header
+  (164px logo) collapses at 1024/1180 and is untouched at 1280/1440; resizing
+  re-decides. Content-agnostic.
 
 ### Changed
-- **NavBar**: the logo link is `md:shrink-0` (keeps its natural width from
-  `md` up); the desktop nav / menu button classes follow the fit guard
-  (unchanged when the row fits). Labels still wrap exactly as before when
-  that is enough to fit: only a row that cannot fit at all collapses.
+- **NavBar / MobileNav are unchanged** (byte-identical to 2026.09.7): the fit
+  guard is the inline script + nav-fit.css, so SSR, no-JS and pre-hydration
+  markup are 2026.09.7's. Labels still wrap exactly as before when that is
+  enough to fit: only a row that cannot fit with the logo at its natural width
+  collapses.
+- `hooks.test.ts`: nav-fit.css is the fifth hook stylesheet.
+- `e2e/design-defaults.spec.ts`: `data-c5-nav-fit` (viewport-derived runtime
+  state) is excluded from the design.json/brand.json hook contract.
 - `hooks.test.ts`: logo-size.css is the fourth stylesheet allowed to reference
   `data-c5` hooks. `template-marker.test.ts`: 2026.09.8.
 - `e2e/design-defaults.spec.ts`: the `<html data-c5-*>` contract includes the
@@ -56,7 +73,8 @@ the whole overflow.
 ### R1
 - @visual baselines unchanged (8/8). Header screenshots byte-identical to
   2026.09.7 at 390/768/834/1024/1280/1440 px with the text wordmark, a stacked
-  lockup and the Kinexus logo on the default nav.
+  lockup and the Kinexus logo on the default nav, and with a Buss-like header
+  at 1280/1440 (it fits there).
 - The fit guard only changes a header whose logo is squeezed today (row wider
   than the bar at the logo's natural width). Measured on the live sites
   (2026-09-27, logo rendered / natural width):
@@ -74,14 +92,13 @@ the whole overflow.
 ### Rollout notes (template 2026.09.7 → 2026.09.8)
 Ship in ONE commit, `c5-template.json` last.
 - **Overwrite (M):** `src/app/globals.css`, `src/app/layout.tsx`,
-  `src/components/nav/NavBar.tsx`, `src/components/nav/MobileNav.tsx`,
   `src/lib/theme/types.ts`,
   `src/lib/theme/{hooks.test,template-marker.test}.ts`,
   `e2e/design-defaults.spec.ts`, `docs/architecture.md`,
   `docs/how-to-new-site.md`, `CHANGELOG.md`.
-- **Add (A):** `src/styles/logo-size.css`,
+- **Add (A):** `src/styles/logo-size.css`, `src/styles/nav-fit.css`,
   `src/lib/theme/{logo-size,logo-size.test}.ts`,
-  `src/components/nav/{use-nav-fit,use-nav-fit.test}.ts`,
+  `src/lib/nav/{nav-fit,nav-fit.test}.ts`,
   `e2e/logo-size.spec.ts`.
 - **Delete (D):** none.
 - **Skip:** `package-lock.json` (unchanged), `content/**`.

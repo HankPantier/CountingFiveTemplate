@@ -1,0 +1,24 @@
+/* nav-fit.css — the desktop header fit guard (src/lib/nav/nav-fit.ts).
+ *
+ * The inline script layout.tsx emits right after <NavBar> sets
+ * <html data-c5-nav-fit="collapse"> before first paint when the header row
+ * (logo at its natural width · desktop nav · actions) is wider than the bar.
+ * From md up the desktop nav then gives way to the menu button (MobileNav,
+ * md:hidden otherwise), so the logo is never squeezed. A row that fits sets
+ * nothing: every rule below except the no-JS one is inert (R1). */
+@media (min-width: 48rem) {
+  html[data-c5-nav-fit="collapse"] [data-component="navbar"] > div > nav {
+    display: none;
+  }
+  html[data-c5-nav-fit="collapse"] [data-component="navbar"] button[aria-label="Open menu"] {
+    display: inline-flex;
+  }
+}
+/* JavaScript off: no script decides, so a row too long for the bar is clipped
+ * at the bar instead of widening the page (2026.09.7 scrolled sideways). Only
+ * matches when scripting is disabled, so JS pages are untouched. */
+@media (scripting: none) {
+  [data-component="navbar"] > div {
+    overflow-x: clip;
+  }
+}
