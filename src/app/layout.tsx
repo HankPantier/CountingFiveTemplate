@@ -20,6 +20,7 @@ import { styleAxisAttributes } from '@/lib/theme/style-axes'
 import { logoToneAttributes } from '@/lib/brand/logo-tone'
 import { actionEdgeAttributes } from '@/lib/theme/action-edge'
 import { logoSizeAttributes } from '@/lib/theme/logo-size'
+import { layoutPresetAttributes } from '@/lib/theme/layout-presets'
 import { NAV_FIT_SCRIPT } from '@/lib/nav/nav-fit'
 import { siteConfig } from '../../site.config'
 
@@ -128,6 +129,9 @@ export default async function RootLayout({
       // site keeps its 32px logo. (data-c5-nav-fit is NOT set here: the header
       // fit script adds it at runtime, see NAV_FIT_SCRIPT below.)
       {...logoSizeAttributes(design)}
+      // design.json "layout" presets (2026.09.9): only NON-default values emit
+      // data-c5-layout-* (src/lib/theme/layout-presets.ts, block-layouts.css).
+      {...layoutPresetAttributes(design.layout)}
       style={fontAliases}
       // next-themes sets the theme class on <html> before hydration, so the
       // server/client class attributes intentionally differ on first paint.

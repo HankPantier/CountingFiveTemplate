@@ -5,6 +5,7 @@ import { styleAxisAttributes } from '../src/lib/theme/style-axes'
 import { logoToneAttributes } from '../src/lib/brand/logo-tone'
 import { actionEdgeAttributes } from '../src/lib/theme/action-edge'
 import { logoSizeAttributes } from '../src/lib/theme/logo-size'
+import { LAYOUT_PRESETS, LAYOUT_PRESET_NAMES, layoutPresetAttributes } from '../src/lib/theme/layout-presets'
 import type { BrandJson } from '../src/lib/brand/types'
 import { capabilitiesMetaContent, TEMPLATE_MARKER } from '../src/lib/theme/template-marker'
 import { IS_TEMPLATE_DEFAULT, NOT_TEMPLATE_DEFAULT_REASON } from './template-default'
@@ -22,11 +23,13 @@ import { IS_TEMPLATE_DEFAULT, NOT_TEMPLATE_DEFAULT_REASON } from './template-def
 // style is absent or all-default), so client repos that opt into axes pass —
 // plus the brand.json-derived hooks: logo.tone "light" (2026.09.6) and the
 // action edge for a palette whose raw action is under 3:1 on primary (2026.09.7),
-// and design.json logo.size "large" (2026.09.8).
+// design.json logo.size "large" (2026.09.8) and the non-default design.json
+// layout presets (data-c5-layout-*, 2026.09.9).
 test('<html> data-c5-* style-axis attributes match design.json style (none by default)', async ({ page }) => {
   const design = JSON.parse(readFileSync(path.resolve(__dirname, '..', 'content', 'design.json'), 'utf-8')) as {
     style?: unknown
     logo?: { size?: 'standard' | 'large' }
+    layout?: unknown
   }
   const brand = JSON.parse(readFileSync(path.resolve(__dirname, '..', 'content', 'brand.json'), 'utf-8')) as BrandJson
   const expected = {
@@ -34,6 +37,7 @@ test('<html> data-c5-* style-axis attributes match design.json style (none by de
     ...logoToneAttributes(brand),
     ...actionEdgeAttributes(brand),
     ...logoSizeAttributes(design),
+    ...layoutPresetAttributes(design.layout),
   }
   await page.goto('/')
   const actual = await page.evaluate(() => {
@@ -75,6 +79,10 @@ test.describe('template default content', () => {
     // The template's own header fits at the default viewport, so the fit guard
     // (data-c5-nav-fit) sets nothing either.
     expect(names.filter((n) => n.startsWith('data-c5'))).toEqual([])
+    // Layout presets (2026.09.9): none of the five html attributes by default.
+    for (const name of LAYOUT_PRESET_NAMES) expect(names).not.toContain(LAYOUT_PRESETS[name].attribute)
+    // …and no section carries a layout variant on the template's own pages.
+    await expect(page.locator('[data-layout], [data-c5-slot]')).toHaveCount(0)
   })
 
   test('untouched site loads today’s fonts (Public Sans heading/body, Fraunces accent)', async ({ page }) => {
