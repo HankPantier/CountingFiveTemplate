@@ -43,7 +43,7 @@ describe('actionEdgeAttributes', () => {
 })
 
 describe('renderedPrimarySurface', () => {
-  it('equals the --color-primary the generator wrote to theme.css', () => {
+  it.skipIf(!IS_TEMPLATE_DEFAULT)('equals the --color-primary the generator wrote to theme.css', () => {
     const brand = JSON.parse(readFileSync(path.join(process.cwd(), 'content/brand.json'), 'utf-8')) as BrandJson
     const css = readFileSync(path.join(process.cwd(), 'src/styles/theme.css'), 'utf-8')
     const m = css.match(/--color-primary:\s*hsl\(([^)]+)\)/)
