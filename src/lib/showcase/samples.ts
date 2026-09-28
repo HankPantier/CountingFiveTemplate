@@ -289,9 +289,10 @@ export function layoutSpecimenCells(): LayoutSpecimenCell[] {
 
 // ---------------------------------------------------------------------------
 // Media background cells (2026.09.10) — below the layout cells on
-// /design-specimen?layouts=1. An image cta-banner with a long multi-paragraph
-// body: copy that runs down the lighter end of the media scrim
-// (src/components/blocks/media-scrim.ts), for the contrast e2e.
+// /design-specimen?layouts=1. The full-bleed image / slider Hero and an image
+// cta-banner with a long multi-paragraph body: the surfaces whose copy sits on
+// a photo under the media scrim (src/components/blocks/media-scrim.ts), so the
+// contrast e2e and the Design Studio can see them without a client page.
 // ---------------------------------------------------------------------------
 
 export type MediaSpecimenCell =
@@ -307,7 +308,17 @@ const LONG_CTA_BODY = [
 ].join('\n')
 
 export function mediaSpecimenCells(): MediaSpecimenCell[] {
+  const hero = (variant: 'image' | 'slider'): PageManifest => ({
+    ...makeSampleHeroManifest('hero'),
+    hero_variant: variant,
+    hero_image: 'hero-office.png',
+    hero_cta_label: 'Schedule a consultation',
+    hero_cta_url: '/contact',
+    ...(variant === 'slider' ? { hero_images: ['hero-office.png', 'team-photo.png'] } : {}),
+  })
   return [
+    { key: 'hero:image', kind: 'hero', manifest: hero('image') },
+    { key: 'hero:slider', kind: 'hero', manifest: hero('slider') },
     {
       key: 'cta-banner:image-bg:long',
       kind: 'block',
