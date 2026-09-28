@@ -1,0 +1,15 @@
+/* action-edge.css — CTA buttons on primary bands (template 2026.09.7). The cta fill is the raw
+ * action colour; when that is under 3:1 against the rendered primary,
+ * layout.tsx emits <html data-c5-action-edge="on"> (src/lib/theme/action-edge.ts)
+ * and the button gets a 2px inner edge in the on-primary token (≥ 4.5:1 on
+ * primary), so its boundary clears WCAG 1.4.11. An inset outline, not a
+ * border or box-shadow: no layout shift, and the focus ring (box-shadow) still
+ * draws. Fill and label are unchanged; a light card inside the band keeps the
+ * plain button. Without the attribute (every passing palette) nothing matches. */
+html[data-c5-action-edge="on"] .bg-primary [data-c5="button"].bg-action {
+  outline: 2px solid var(--color-action-on-primary, var(--color-action));
+  outline-offset: -2px;
+}
+html[data-c5-action-edge="on"] .bg-primary :is(.u-card, .bg-card, .bg-background) [data-c5="button"].bg-action {
+  outline: none;
+}

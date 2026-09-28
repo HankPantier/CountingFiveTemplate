@@ -2,6 +2,79 @@
 
 All notable changes to this template are recorded here. The format follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/) and the project loosely follows semver — though as a per-client template, "release" means "checkpoint on `main`" rather than a published package version.
 
+## [2026.09.7] — CTA buttons keep their shape on primary bands
+
+The call-to-action button (Button `variant="cta"`, raw `--color-action`
+fill) also sits on primary bands, above all the CtaBanner at the foot of most
+pages. Measured on the live sites (2026-09-27, computed styles + rendered
+pixels), the button fill against the band next to it: Accord 1.50:1, Aurora
+2.08, Abramson 2.19, Pryor 2.64, Berg 2.91, Buss 2.93 — the button shape
+dissolved into the band (WCAG 1.4.11 asks 3:1 for a component's boundary).
+Kinexus (3.14) and bblcpa (5.32) already pass and are unchanged, as is every
+site whose raw action clears 3:1 on primary.
+
+No large accent TEXT on primary still reads the raw action (2026.09.5 routed
+it through `--color-action-text`); nothing else on the live sites paints raw
+action on primary except the page-header accent rule (decorative,
+`aria-hidden`) and the pricing "Most popular" badge (its label is 4.5:1 on its
+own fill), both left as they are.
+
+### Added
+- **`<html data-c5-action-edge="on">`** (`src/lib/theme/action-edge.ts`,
+  layout.tsx) when brand.json's raw action is under 3:1 against the RENDERED
+  primary (the AA-corrected surface as theme.css emits it, hsl rounded to
+  whole percents). Every palette that passes emits nothing (R1).
+- **`src/styles/action-edge.css`** (imported after logo-tone.css, before the
+  client overrides), every rule gated on the attribute: a cta button inside a
+  `.bg-primary` surface gets a 2px inner edge (`outline`, offset −2px) in
+  `--color-action-on-primary` (≥ 4.5:1 on primary by construction). An
+  outline, not a border or box-shadow: no layout shift and the focus ring
+  (box-shadow) still draws. Fill, label and hover are unchanged; a light card
+  inside the band keeps the plain button.
+- `src/lib/theme/surface-contrast.ts`: `pickForeground` / `setLightness` /
+  `ensureContrast` moved verbatim out of `scripts/generate-theme.ts` (theme.css
+  output byte-identical) plus `renderedPrimarySurface()`, so the runtime gate
+  and the generator compute the same primary.
+- Tests: unit (the eight live palettes → attribute on/off with the ratios
+  measured on the live sites; template default emits nothing; malformed
+  palette never throws; rendered primary equals theme.css; every
+  action-edge.css selector gated, outline-only, import order); e2e
+  `action-edge.spec.ts` measured from pixels — an Accord-palette CtaBanner
+  fixture reproduces < 3:1 without the flag, clears 3:1 with it, the light-card
+  button keeps no edge, and layout emits the attribute exactly when the site's
+  own palette needs it (content-agnostic).
+
+### Changed
+- `hooks.test.ts`: action-edge.css is the third stylesheet allowed to
+  reference `data-c5` hooks. `template-marker.test.ts`: 2026.09.7.
+- `e2e/design-defaults.spec.ts`: the `<html data-c5-*>` contract now also
+  expects the brand.json-derived hooks (`data-c5-logo-tone`, 2026.09.6, and
+  `data-c5-action-edge`), so it passes on Berg and on the edge sites.
+- The default-palette unit check skips outside the template
+  (`content/.template-default`), like the logo-tone one.
+
+### Rollout notes (template 2026.09.6 → 2026.09.7)
+Ship in ONE commit, `c5-template.json` last.
+- **Overwrite (M):** `src/app/globals.css`, `src/app/layout.tsx`,
+  `scripts/generate-theme.ts`,
+  `src/lib/theme/{hooks.test,template-marker.test}.ts`,
+  `e2e/design-defaults.spec.ts`, `CHANGELOG.md`.
+- **Add (A):** `src/styles/action-edge.css`,
+  `src/lib/theme/{action-edge,action-edge.test,surface-contrast}.ts`,
+  `e2e/action-edge.spec.ts`.
+- **Delete (D):** none.
+- **Skip:** `package-lock.json` (unchanged), `content/**`.
+- **Write last:** `c5-template.json` = `{"templateVersion": "2026.09.7",
+  "capabilities": ["fonts", "style-axes", "specimen"], "syncedFrom":
+  "<the template main SHA being rolled out>"}`.
+- theme.css is not rewritten by this release; no package.json change.
+- **Visible per site** (from each repo's brand.json palette): Accord 1.50,
+  Aurora 2.08, Abramson 2.19, korbey 2.27, Pryor 2.64, Slachta 2.87,
+  TruCount 2.87, Berg 2.91, Buss 2.93 — the cta buttons on primary bands
+  (CtaBanner) gain the on-primary edge. Kinexus (3.14) and bblcpa (5.32): no
+  change. The layout e2e checks the attribute against the site's own
+  brand.json.
+
 ## [2026.09.6] — Light (white) logos stay visible
 
 A white wordmark on transparent (Berg) was invisible everywhere: on the

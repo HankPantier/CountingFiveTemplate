@@ -2,6 +2,9 @@ import { readFileSync } from 'node:fs'
 import path from 'node:path'
 import { test, expect } from '@playwright/test'
 import { styleAxisAttributes } from '../src/lib/theme/style-axes'
+import { logoToneAttributes } from '../src/lib/brand/logo-tone'
+import { actionEdgeAttributes } from '../src/lib/theme/action-edge'
+import type { BrandJson } from '../src/lib/brand/types'
 import { capabilitiesMetaContent, TEMPLATE_MARKER } from '../src/lib/theme/template-marker'
 import { IS_TEMPLATE_DEFAULT, NOT_TEMPLATE_DEFAULT_REASON } from './template-default'
 
@@ -15,12 +18,15 @@ import { IS_TEMPLATE_DEFAULT, NOT_TEMPLATE_DEFAULT_REASON } from './template-def
  */
 // Content-agnostic: <html> carries exactly the data-c5-* attributes for the
 // NON-default values in THIS repo's content/design.json "style" (none when
-// style is absent or all-default), so client repos that opt into axes pass.
+// style is absent or all-default), so client repos that opt into axes pass —
+// plus the brand.json-derived hooks: logo.tone "light" (2026.09.6) and the
+// action edge for a palette whose raw action is under 3:1 on primary (2026.09.7).
 test('<html> data-c5-* style-axis attributes match design.json style (none by default)', async ({ page }) => {
   const design = JSON.parse(readFileSync(path.resolve(__dirname, '..', 'content', 'design.json'), 'utf-8')) as {
     style?: unknown
   }
-  const expected = styleAxisAttributes(design.style)
+  const brand = JSON.parse(readFileSync(path.resolve(__dirname, '..', 'content', 'brand.json'), 'utf-8')) as BrandJson
+  const expected = { ...styleAxisAttributes(design.style), ...logoToneAttributes(brand), ...actionEdgeAttributes(brand) }
   await page.goto('/')
   const actual = await page.evaluate(() => {
     const el = document.documentElement
