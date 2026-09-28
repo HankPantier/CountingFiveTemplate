@@ -47,12 +47,18 @@ own fill), both left as they are.
 ### Changed
 - `hooks.test.ts`: action-edge.css is the third stylesheet allowed to
   reference `data-c5` hooks. `template-marker.test.ts`: 2026.09.7.
+- `e2e/design-defaults.spec.ts`: the `<html data-c5-*>` contract now also
+  expects the brand.json-derived hooks (`data-c5-logo-tone`, 2026.09.6, and
+  `data-c5-action-edge`), so it passes on Berg and on the edge sites.
+- The default-palette unit check skips outside the template
+  (`content/.template-default`), like the logo-tone one.
 
 ### Rollout notes (template 2026.09.6 → 2026.09.7)
 Ship in ONE commit, `c5-template.json` last.
 - **Overwrite (M):** `src/app/globals.css`, `src/app/layout.tsx`,
   `scripts/generate-theme.ts`,
-  `src/lib/theme/{hooks.test,template-marker.test}.ts`, `CHANGELOG.md`.
+  `src/lib/theme/{hooks.test,template-marker.test}.ts`,
+  `e2e/design-defaults.spec.ts`, `CHANGELOG.md`.
 - **Add (A):** `src/styles/action-edge.css`,
   `src/lib/theme/{action-edge,action-edge.test,surface-contrast}.ts`,
   `e2e/action-edge.spec.ts`.

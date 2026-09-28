@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest'
-import { readFileSync } from 'node:fs'
+import { existsSync, readFileSync } from 'node:fs'
 import path from 'node:path'
 import { ACTION_EDGE_ATTRIBUTE, actionEdgeAttributes, actionOnPrimaryRatio } from './action-edge'
 import { renderedPrimarySurface } from './surface-contrast'
@@ -19,6 +19,10 @@ const FLEET: Array<{ site: string; palette: BrandJson['palette']; live: number; 
   { site: 'bblcpa', live: 5.32, edge: false, palette: { primary: '#003767', secondary: '#043464', complementary: '#f57f09', action: '#ff8e27', nearBlack: '#222222', nearWhite: '#FeFefe' } },
 ]
 
+// Template-only (see e2e/template-default.ts): a client's own palette may
+// legitimately need the edge (Accord), so the default-content check skips there.
+const IS_TEMPLATE_DEFAULT = existsSync(path.join(process.cwd(), 'content', '.template-default'))
+
 describe('actionEdgeAttributes', () => {
   it.each(FLEET)('$site: edge only when raw action < 3:1 on the rendered primary', ({ palette, live, edge }) => {
     // Same figure the browser painted on the live site (±0.01 rounding).
@@ -26,7 +30,7 @@ describe('actionEdgeAttributes', () => {
     expect(actionEdgeAttributes({ palette })).toEqual(edge ? { [ACTION_EDGE_ATTRIBUTE]: 'on' } : {})
   })
 
-  it('emits nothing for the template default palette (R1)', () => {
+  it.skipIf(!IS_TEMPLATE_DEFAULT)('emits nothing for the template default palette (R1)', () => {
     const brand = JSON.parse(readFileSync(path.join(process.cwd(), 'content/brand.json'), 'utf-8')) as BrandJson
     expect(actionEdgeAttributes(brand)).toEqual({})
   })
