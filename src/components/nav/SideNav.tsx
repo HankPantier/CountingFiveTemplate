@@ -70,7 +70,7 @@ export function SideNav({
   )
 
   return (
-    <nav aria-label={`${primary.label} section`}>
+    <nav data-component="section-nav" aria-label={`${primary.label} section`}>
       <div className="hidden md:block md:sticky md:top-20">{tree}</div>
       <div className="md:hidden">
         <SideNavCollapse label="In this section">{tree}</SideNavCollapse>

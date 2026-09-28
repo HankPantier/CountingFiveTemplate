@@ -14,7 +14,7 @@ export function TopUtilityBar({ phone }: { phone?: string }) {
   if (!clientCenter.enabled && !phone) return null
 
   return (
-    <div className="w-full bg-footer text-footer-foreground">
+    <div data-component="topbar" className="w-full bg-footer text-footer-foreground">
       <div className="mx-auto flex h-10 max-w-7xl items-center justify-end gap-6 px-4 text-sm sm:px-6 lg:px-8">
         {clientCenter.enabled && (
           <button

@@ -144,7 +144,12 @@ retired `export-brief` script; older clones may still send it harmlessly.
 ## Persistent chrome hooks
 
 Blocks carry `data-block="..."` and persistent chrome (navbar, footer, consent
-banner) carries `data-component="..."` on its outer element. Style-axis presets
+banner, top utility bar `topbar`, the floating Contact button and its drawer
+`contact-drawer`, the "In this section" side nav `section-nav`) carries
+`data-component="..."` on its outer element. Every visible surface sits inside
+one of them (2026.09.11): the blog index (`resource-browser`), a post's image,
+body and related reading (`post-image`, `post-body`, `related-posts`) and the
+404 page (`not-found`) are blocks too, so the Design Studio can restyle them. Style-axis presets
 (`src/styles/style-axes.css`) and per-client `content/design-overrides.css`
 target these; the logo links also carry the inert `data-c5="logo"` hook.
 
