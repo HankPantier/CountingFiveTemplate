@@ -93,7 +93,7 @@ the whole overflow.
 Ship in ONE commit, `c5-template.json` last.
 - **Overwrite (M):** `src/app/globals.css`, `src/app/layout.tsx`,
   `src/lib/theme/types.ts`,
-  `src/lib/theme/{hooks.test,template-marker.test}.ts`,
+  `src/lib/theme/{hooks.test,template-marker.test,action-edge.test}.ts`,
   `e2e/design-defaults.spec.ts`, `docs/architecture.md`,
   `docs/how-to-new-site.md`, `CHANGELOG.md`.
 - **Add (A):** `src/styles/logo-size.css`, `src/styles/nav-fit.css`,
@@ -101,6 +101,9 @@ Ship in ONE commit, `c5-template.json` last.
   `src/lib/nav/{nav-fit,nav-fit.test}.ts`,
   `e2e/logo-size.spec.ts`.
 - **Delete (D):** none.
+- `action-edge.test.ts` is template main 548271e (its theme.css/brand.json
+  parity check runs only on template-default content), merged into this
+  release; repos synced from 17909dc don't have it yet.
 - **Skip:** `package-lock.json` (unchanged), `content/**`.
 - **Write last:** `c5-template.json` = `{"templateVersion": "2026.09.8",
   "capabilities": ["fonts", "style-axes", "specimen"], "syncedFrom":
