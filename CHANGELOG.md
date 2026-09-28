@@ -47,6 +47,10 @@ version meta so the platform can tell what the deployed shell renders.
   the dead `image-right` / `image-left`, still render the full-bleed hero.
 - `Section` takes `dataLayout`; `FramedMedia` takes `slot`. Both emit nothing
   when unset.
+- `block-catalog.test.ts`: the registry ↔ catalog equality is exact in the
+  template; in a client repo every registry block only has to be catalogued
+  (repos without the opt-in `pricing-plans` block — Abramson, Accord, Aurora,
+  bblcpa, Kinexus, Slachta — failed it in the fleet dry-verify).
 - `hooks.test.ts`: block-layouts.css is the sixth hook stylesheet.
   `template-marker.test.ts`: 2026.09.9 + `layout-presets`.
   `e2e/design-defaults.spec.ts`: the preset attributes from design.json are

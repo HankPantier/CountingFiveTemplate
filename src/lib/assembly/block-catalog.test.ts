@@ -1,4 +1,4 @@
-import { readFileSync } from 'node:fs'
+import { existsSync, readFileSync } from 'node:fs'
 import path from 'node:path'
 import { describe, expect, expectTypeOf, it } from 'vitest'
 import { isValidElement } from 'react'
@@ -50,6 +50,11 @@ function registryProps(id: string, extra: Partial<PageSection> = {}): Record<str
 }
 const THEME_PROBES = ['ink', 'light', 'dark', 'accent', 'default']
 
+// Client repos may predate an opt-in block (pricing-plans is rolled out per
+// client on request), so there the registry only has to be catalogued; the
+// template itself must match the catalog exactly. See e2e/template-default.ts.
+const IS_TEMPLATE_DEFAULT = existsSync(path.join(process.cwd(), 'content', '.template-default'))
+
 // The annotation value the component received. cta-banner splits
 // `<bg>-centered` into variant + align (2026.09.9); every other block passes
 // the value straight through as `variant`.
@@ -66,7 +71,8 @@ describe('block catalog contract', () => {
 
   it('lists exactly the registry blocks inline/auto, and the three page openers as frontmatter', () => {
     const body = BLOCK_IDS.filter((id) => spec(id).placement !== 'frontmatter').sort()
-    expect(body).toEqual(KNOWN_BLOCK_IDS)
+    if (IS_TEMPLATE_DEFAULT) expect(body).toEqual(KNOWN_BLOCK_IDS)
+    else for (const id of KNOWN_BLOCK_IDS) expect(body, `${id} is not in the block catalog`).toContain(id)
     expect(BLOCK_IDS.filter((id) => spec(id).placement === 'frontmatter').sort()).toEqual(['hero', 'hero-split', 'page-header'])
   })
 
@@ -89,7 +95,7 @@ describe('block catalog contract', () => {
   })
 
   it('lists variants for exactly the registry blocks whose props carry a variant', () => {
-    const withVariants = KNOWN_BLOCK_IDS.filter((id) => spec(id as BlockId).variants.length > 0)
+    const withVariants = KNOWN_BLOCK_IDS.filter((id) => spec(id as BlockId)?.variants.length > 0)
     const propsWithVariant = KNOWN_BLOCK_IDS.filter((id) => 'variant' in registryProps(id))
     expect(withVariants).toEqual(propsWithVariant)
   })
