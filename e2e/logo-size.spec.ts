@@ -262,6 +262,28 @@ test.describe('header fit guard (decided before first paint)', () => {
     expect(s.scrollWidth).toBeLessThanOrEqual(1280)
   })
 
+  test('after hydration, a content change with no resize re-decides (bar-content ResizeObserver)', async ({ page }) => {
+    await setup(page, { width: 1280, logo: KINEXUS_LOGO })
+    expect((await headerState(page)).attr).toBeNull()
+    // Grow the hydrated nav in place (same viewport): only the nav's own size changes.
+    await page.evaluate((labels) => {
+      const list = document.querySelector('[data-component="navbar"] nav ul')!
+      const tpl = list.querySelector(':scope > li')!
+      for (const label of labels) {
+        const li = tpl.cloneNode(true) as HTMLElement
+        const a = li.querySelector('a, button')!
+        a.textContent = label
+        a.classList.add('w-max')
+        list.append(li)
+      }
+    }, KINEXUS_NAV)
+    await settle(page)
+    const s = await headerState(page)
+    expect(s.attr).toBe('collapse')
+    expect(s.menuShown).toBe(true)
+    expect(s.logoWidth).toBeCloseTo(32 * KINEXUS_ASPECT, 0)
+  })
+
   test('the decision follows the viewport (resize re-probes, before hydration)', async ({ page }) => {
     await servedFixture(page, BUSS, 1180)
     expect((await headerState(page)).attr).toBe('collapse')

@@ -20,8 +20,9 @@
  *
  * While the logo image is still loading its natural width is unknown (next/image
  * sizes the box from width/height props, 160×32 for every logo), so the script
- * waits for the image's load rather than guess. Re-measured on window resize
- * and a bar resize. A re-measure while collapsed PROBES: it removes the
+ * waits for the image's load rather than guess. Re-measured on window resize,
+ * a resize of the bar or of its content (logo link, nav, actions) and every
+ * web-font load (document.fonts loadingdone). A re-measure while collapsed PROBES: it removes the
  * attribute, measures, and sets it again in the same task, so the
  * un-collapsed state is never painted.
  *
@@ -61,8 +62,18 @@ measure();
 var logoImg = bar.firstElementChild && bar.firstElementChild.querySelector('img');
 if (logoImg && !logoImg.complete) logoImg.addEventListener('load', schedule);
 w.addEventListener('resize', schedule);
-if (d.fonts && d.fonts.ready) d.fonts.ready.then(schedule);
-if (w.ResizeObserver) new w.ResizeObserver(schedule).observe(bar);
+if (d.fonts) {
+  if (d.fonts.ready) d.fonts.ready.then(schedule);
+  // Every web-font batch, not only the first: a late swap changes label widths.
+  if (d.fonts.addEventListener) d.fonts.addEventListener('loadingdone', schedule);
+}
+if (w.ResizeObserver) {
+  // The bar (viewport width) and its content: the logo link, the nav and the
+  // actions change size when labels or the logo change.
+  var ro = new w.ResizeObserver(schedule);
+  ro.observe(bar);
+  for (var k = bar.firstElementChild; k; k = k.nextElementSibling) ro.observe(k);
+}
 `
 
 /** The inline script. Any failure leaves the page exactly as 2026.09.7. */
