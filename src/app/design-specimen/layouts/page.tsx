@@ -1,7 +1,9 @@
 import type { Metadata } from 'next'
 import { Section } from '@/components/blocks/Section'
 import { BLOCK_REGISTRY } from '@/components/assembly/block-registry'
-import { layoutSpecimenCells, makeSampleManifest } from '@/lib/showcase/samples'
+import { Hero } from '@/components/blocks/Hero'
+import { extractHeroProps } from '@/lib/assembly/extract-block-props'
+import { layoutSpecimenCells, makeSampleManifest, mediaSpecimenCells } from '@/lib/showcase/samples'
 
 /**
  * Layout specimen (2026.09.9): every block × layout variant cell (and list ×
@@ -14,6 +16,11 @@ import { layoutSpecimenCells, makeSampleManifest } from '@/lib/showcase/samples'
  * The site-wide layout presets (html[data-c5-layout-*]) are not cells: they
  * apply the same rules to the default markup the plain /design-specimen shows
  * (e2e/block-layouts.spec.ts toggles them there). FAQ split is preset-only.
+ *
+ * Below the layout cells (2026.09.10): the media background cells — the
+ * full-bleed image / slider Hero and an image cta-banner with a long body
+ * ([data-specimen-media]), for e2e/hero-image.spec.ts and
+ * e2e/cta-banner-image.spec.ts.
  */
 export const metadata: Metadata = {
   title: 'Design specimen — layouts',
@@ -39,6 +46,18 @@ export default function DesignSpecimenLayouts() {
           </div>
         )
       })}
+      {mediaSpecimenCells().map((c) => (
+        <div key={c.key} data-specimen-media={c.key}>
+          <Section as="div" spacing="none" className="border-t border-border py-3">
+            <p className="text-xs font-mono uppercase tracking-widest text-muted-foreground">
+              {c.key} · media background · sample content
+            </p>
+          </Section>
+          {c.kind === 'hero'
+            ? <Hero {...extractHeroProps(c.manifest)} />
+            : BLOCK_REGISTRY[c.blockId]?.(c.section, manifest)}
+        </div>
+      ))}
     </main>
   )
 }

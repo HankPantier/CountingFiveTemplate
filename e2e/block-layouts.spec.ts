@@ -147,13 +147,16 @@ test.describe('site-wide layout presets (in-page <html> attribute)', () => {
     await page.setViewportSize({ width: 1280, height: 900 })
     await page.goto(LAYOUTS)
     await settle(page)
+    // The layout cells only: the media cells below them (2026.09.10) include a
+    // plain image cta-banner, which rightly follows the ctaBanner preset.
     const main = page.locator('main')
-    const before = await boxes(main)
+    const cells = async () => Promise.all((await main.locator(':scope > [data-specimen-layout]').all()).map(boxes))
+    const before = await cells()
     // Every preset at once: layout-variant sections carry data-layout, so none may move.
     await page.evaluate((attrs) => {
       for (const [a, v] of attrs) document.documentElement.setAttribute(a, v)
     }, LAYOUT_PRESET_NAMES.map((n) => [LAYOUT_PRESETS[n].attribute, LAYOUT_PRESETS[n].values[1]] as [string, string]))
-    expect(await boxes(main)).toEqual(before)
+    expect(await cells()).toEqual(before)
 
     // Ink: strip the variant from the ink list cells → the base ink grid; the
     // cards preset (still on) must leave it alone.

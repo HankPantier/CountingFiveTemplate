@@ -8,8 +8,12 @@ import { MD_LINK_COMPONENTS } from '@/lib/markdown-components'
 import type { CtaBannerProps } from '@/lib/assembly/extract-block-props'
 import { resolveImageSrc } from '@/lib/assembly/resolve-image'
 import { layoutSlot } from './layout-slot'
+import { MEDIA_SCRIM, MEDIA_SECTION_CLASS } from './media-scrim'
 
 export type { CtaBannerProps }
+
+/** Section classes for the image banner (see the Section call below). */
+const IMAGE_SECTION_CLASS = `relative overflow-hidden ${MEDIA_SECTION_CLASS}`
 
 export function CtaBanner({
   variant,
@@ -31,7 +35,13 @@ export function CtaBanner({
       fullBleed
       bg="primary"
       spacing="spacious"
-      className="relative overflow-hidden"
+      // image-bg: `isolate` gives the section its own stacking context, so the
+      // photo (-z-20) and scrim (-z-10) paint ABOVE the section's bg-primary
+      // fill instead of behind it (before 2026.09.10 every image banner rendered
+      // as flat colour). The text token is pinned to near-white because the
+      // scrim is always dark, whatever the brand's primary-foreground is.
+      // color-bg keeps its exact pre-2026.09.10 markup (R1).
+      className={bgSrc ? IMAGE_SECTION_CLASS : 'relative overflow-hidden'}
       dataBlock="cta-banner"
       dataLayout={layout}
     >
@@ -44,15 +54,12 @@ export function CtaBanner({
             sizes="100vw"
             className="object-cover -z-20"
           />
-          {/* Directional brand scrim (primary → deep) — mirrors Hero's refined
-              wash so the light copy holds AA contrast while reading on-brand. */}
+          {/* Primary-tinted dark (ink) scrim, deepest at the top-left where
+              the copy starts — see media-scrim.ts. */}
           <div
             aria-hidden="true"
             className="absolute inset-0 -z-10"
-            style={{
-              background:
-                'linear-gradient(160deg, color-mix(in srgb, var(--color-primary) 62%, #000) 0%, color-mix(in srgb, var(--color-near-black) 74%, transparent) 100%)',
-            }}
+            style={{ background: MEDIA_SCRIM }}
           />
         </>
       ) : (

@@ -4,7 +4,7 @@ import { KNOWN_CAPABILITIES, SYNCED_FROM, TEMPLATE_MARKER, capabilitiesMetaConte
 describe('c5-template.json', () => {
   it('declares exactly the T2 capabilities + layout-presets (R2)', () => {
     expect(TEMPLATE_MARKER).toEqual({
-      templateVersion: '2026.09.9',
+      templateVersion: '2026.09.10',
       capabilities: ['fonts', 'style-axes', 'specimen', 'layout-presets'],
     })
   })
@@ -17,7 +17,7 @@ describe('c5-template.json', () => {
   it('renders the meta content comma-joined', () => {
     expect(capabilitiesMetaContent()).toBe(TEMPLATE_MARKER.capabilities.join(','))
   })
-  it('renders the template version meta (2026.09.9) from the marker', () => {
+  it('renders the template version meta (2026.09.10) from the marker', () => {
     expect(templateVersionMetaContent()).toBe(TEMPLATE_MARKER.templateVersion)
     expect(templateVersionMetaContent({ templateVersion: '2026.10.1', capabilities: [] })).toBe('2026.10.1')
   })

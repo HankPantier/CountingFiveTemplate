@@ -1,4 +1,9 @@
-import { Image } from '@/components/ui/skeleton-image'
+// Plain next/image for the full-bleed photo (2026.09.10), like CtaBanner and
+// HeroSlides: skeleton-image's pulse placeholder is a z-auto sibling, so behind
+// a -z-20 photo it painted ABOVE the photo and the scrim, and its animate-pulse
+// keeps cycling 0 → 50% opacity after load (a grey veil over the hero). The
+// bg-primary fill is the placeholder while the photo loads.
+import Image from 'next/image'
 import { Section } from './Section'
 import { Button } from '@/components/ui/button'
 import { FramedMedia } from '@/components/ui/framed-media'
@@ -7,6 +12,8 @@ import type { ReactNode } from 'react'
 import { resolveImageSrc } from '@/lib/assembly/resolve-image'
 import { HeroSlides } from './HeroSlides'
 import { ACTION_DISPLAY_COLOR } from '@/lib/theme/accent-color'
+import { cn } from '@/lib/utils'
+import { MEDIA_ACTION_TEXT_CLASS, MEDIA_SCRIM, MEDIA_SECTION_CLASS } from './media-scrim'
 
 export type HeroProps = {
   // Type-only narrowing (2026.09.9): unknown values (the dead image-right /
@@ -112,7 +119,18 @@ export function Hero({
   const hasBackground = Boolean(videoSrc) || slideSrcs.length > 0 || Boolean(bgSrc)
 
   return (
-    <Section as="header" fullBleed spacing="none" bg="primary" className="relative overflow-hidden" dataBlock="hero">
+    <Section
+      as="header"
+      fullBleed
+      spacing="none"
+      bg="primary"
+      // With media: isolate so the media (-z-20) and scrim (-z-10) paint above
+      // the bg-primary fill (before 2026.09.10 they painted behind it and the
+      // hero rendered flat), copy pinned near-white — see media-scrim.ts. The
+      // no-media hero keeps its exact pre-2026.09.10 markup (R1).
+      className={hasBackground ? `relative overflow-hidden ${MEDIA_SECTION_CLASS}` : 'relative overflow-hidden'}
+      dataBlock="hero"
+    >
       {videoSrc ? (
         <video
           autoPlay
@@ -131,18 +149,10 @@ export function Hero({
         <Image src={bgSrc} alt={image_alt ?? ''} fill priority sizes="100vw" className="object-cover -z-20" />
       ) : null}
       {hasBackground && (
-        // Directional brand scrim (primary → deep) instead of a flat black wash —
-        // keeps AA contrast for the white headline while reading on-brand.
-        <div
-          aria-hidden="true"
-          className="absolute inset-0 -z-10"
-          style={{
-            background:
-              'linear-gradient(160deg, color-mix(in srgb, var(--color-primary) 62%, #000) 0%, color-mix(in srgb, var(--color-near-black) 74%, transparent) 100%)',
-          }}
-        />
+        // Primary-tinted dark (ink) scrim — see media-scrim.ts.
+        <div aria-hidden="true" className="absolute inset-0 -z-10" style={{ background: MEDIA_SCRIM }} />
       )}
-      <div className="relative max-w-3xl mx-auto py-24 md:py-36 text-center">
+      <div className={cn('relative max-w-3xl mx-auto py-24 md:py-36 text-center', hasBackground && MEDIA_ACTION_TEXT_CLASS)}>
         {eyebrow && <div className="t-kicker mb-5 justify-center">{eyebrow}</div>}
         <h1 className="t-display">{renderHeadline(headline)}</h1>
         <p className="t-body-lg mt-6 text-primary-foreground/85">{subheadline}</p>

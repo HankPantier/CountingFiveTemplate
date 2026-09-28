@@ -238,14 +238,32 @@ No commitment. No jargon.
 ```
 
 `color-bg` (default) uses the brand primary color; `image-bg` uses `image:` from the
-annotation as a hero background. `color-bg-centered` / `image-bg-centered` (2026.09.9)
-stack the heading, text and button centred over the same backgrounds.
+annotation as a full-bleed background photo. `color-bg-centered` / `image-bg-centered`
+(2026.09.9) stack the heading, text and button centred over the same backgrounds.
 
-> **Known issue (pre-existing, not fixed in 2026.09.9):** every `image-bg` banner —
-> including the new `image-bg-centered` — currently renders as the flat colour banner.
-> The background image sits at `-z-20` inside a section that creates no stacking
-> context, so it paints behind the section's own `bg-primary` fill. The image is still
-> downloaded and the markup is unchanged; only the visible result is flat colour.
+```markdown
+<!-- block: cta-banner | variant: image-bg | image: office-handshake.jpg -->
+```
+
+The photo sits under a dark scrim — the palette's ink (a primary-tinted near-black,
+`--color-near-black` on themes without it) at 86% → 76%, shared with the media Hero
+(`src/components/blocks/media-scrim.ts`) — and the copy is near-white. Measured from
+pixels over a pure-white photo (the worst case) with a long three-paragraph body, the
+body holds ≥ 5.6:1 and the heading ≥ 8.4:1 on every fleet palette, in light and dark
+mode, at 1440 / 390 / 360 (`e2e/cta-banner-image.spec.ts`; preview the cells at
+`/design-specimen?layouts=1`). The photo is decorative (`alt=""`) and lazy-loaded.
+`imageTreatment` style axes grade framed images only, not this background.
+
+> **Fixed in 2026.09.10.** Before it, every `image-bg` banner — `image-bg-centered`
+> included — rendered as the flat colour banner: the photo sat at `-z-20` in a section
+> with no stacking context, so the section's `bg-primary` fill painted over it. The
+> image section is now `isolate`. On a 2026.09.9 site the image still downloads but
+> is not visible.
+>
+> **Exception — korbey-lague-site:** its `design-overrides.css` gives the banner's
+> children `position: relative; z-index: 1`, which makes the inner (max-width) div the
+> stacking context. Its photos have always rendered boxed inside the content column
+> rather than full-bleed, before and after this fix.
 
 ---
 
@@ -591,7 +609,7 @@ hero_subhead: A short benefit-led tagline.
 ---
 ```
 
-- **`hero`** — full-bleed hero with optional background image. Variants: `image`, `video`, `slider`, `image-right`, `image-left`.
+- **`hero`** — full-bleed hero with optional background image. Variants: `image`, `video`, `slider`, `statement` (light canvas, editorial type, framed side image); unknown values (the dead `image-right` / `image-left`) render as `image`. The media variants draw the photo / video / slides under the shared ink scrim (86% → 76%, `media-scrim.ts`), with near-white copy and the eyebrow and headline accent in a light tint of the action colour; measured ≥ 5.2:1 for every text element on every fleet palette over a pure-white photo (`e2e/hero-image.spec.ts`). **Fixed in 2026.09.10:** before it the media sat behind the section's `bg-primary` fill and every image / video / slider hero rendered flat primary. Without media the hero is the flat primary band, unchanged.
 - **`hero-split`** — two-column hero with prose on one side, image on the other. Variants: `image-right`, `image-left`.
 - **`page-header`** — minimal title + subheadline + breadcrumb. No variant.
 
