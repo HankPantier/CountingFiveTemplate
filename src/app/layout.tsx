@@ -18,6 +18,7 @@ import { getDesignConfig } from '@/lib/theme/get-theme-vars'
 import { capabilitiesMetaContent } from '@/lib/theme/template-marker'
 import { styleAxisAttributes } from '@/lib/theme/style-axes'
 import { logoToneAttributes } from '@/lib/brand/logo-tone'
+import { actionEdgeAttributes } from '@/lib/theme/action-edge'
 import { siteConfig } from '../../site.config'
 
 export async function generateMetadata(): Promise<Metadata> {
@@ -116,6 +117,10 @@ export default async function RootLayout({
       // brand.json logo.tone "light" (white logo): logo plates/filters in
       // globals.css. Absent for every dark or unset logo.
       {...logoToneAttributes(brand)}
+      // brand.json palette whose raw action is under 3:1 on primary: the CTA
+      // buttons on primary bands get an on-primary edge (globals.css). Absent
+      // for every palette that already passes.
+      {...actionEdgeAttributes(brand)}
       style={fontAliases}
       // next-themes sets the theme class on <html> before hydration, so the
       // server/client class attributes intentionally differ on first paint.

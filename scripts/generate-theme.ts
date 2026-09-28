@@ -10,64 +10,7 @@ import {
   renderedHex,
   toHslTokens,
 } from '../src/lib/theme/action-text-contrast'
-
-/**
- * Helper: Pick foreground color (near-white or near-black) with WCAG contrast ratio >= 4.5
- */
-function pickForeground(
-  bgHex: string,
-  nearWhiteHex: string,
-  nearBlackHex: string
-): string {
-  try {
-    const cw = chroma.contrast(bgHex, nearWhiteHex)
-    const cb = chroma.contrast(bgHex, nearBlackHex)
-    if (cw >= 4.5) return nearWhiteHex
-    if (cb >= 4.5) return nearBlackHex
-    return cw >= cb ? nearWhiteHex : nearBlackHex
-  } catch {
-    return nearWhiteHex
-  }
-}
-
-/**
- * Helper: Override the HSL lightness of a color. `targetL` is 0–100.
- * Preserves the original hue and saturation. Uses chroma's `.set('hsl.l', ...)`
- * to avoid the bare-array constructor which defaults to RGB.
- */
-function setLightness(hex: string, targetL: number): string {
-  try {
-    return chroma(hex).set('hsl.l', targetL / 100).hex()
-  } catch {
-    return hex
-  }
-}
-
-/**
- * Helper: Nudge a surface (background) color's lightness until it reaches the
- * WCAG contrast `minRatio` against the given foreground, preserving hue +
- * saturation. Darkens when the foreground is the lighter of the pair, lightens
- * otherwise — so it always converges (contrast grows without bound toward the
- * opposite extreme). A no-op when the pair already passes.
- *
- * Why: client brand palettes are externally driven and a borderline surface
- * (e.g. a mid-gray `secondary`) can ship just under AA. This auto-corrects the
- * shipped surface by an imperceptible amount instead of failing the audit.
- */
-function ensureContrast(bgHex: string, fgHex: string, minRatio = 4.5): string {
-  try {
-    if (chroma.contrast(bgHex, fgHex) >= minRatio) return bgHex
-    const darkenBg = chroma(fgHex).luminance() > chroma(bgHex).luminance()
-    const startL = Math.round(chroma(bgHex).get('hsl.l') * 100)
-    for (let l = startL; l >= 0 && l <= 100; darkenBg ? l-- : l++) {
-      const candidate = setLightness(bgHex, l)
-      if (chroma.contrast(candidate, fgHex) >= minRatio) return candidate
-    }
-    return setLightness(bgHex, darkenBg ? 0 : 100)
-  } catch {
-    return bgHex
-  }
-}
+import { ensureContrast, pickForeground, setLightness } from '../src/lib/theme/surface-contrast'
 
 async function main() {
   try {
