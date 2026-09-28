@@ -2,6 +2,67 @@
 
 All notable changes to this template are recorded here. The format follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/) and the project loosely follows semver — though as a per-client template, "release" means "checkpoint on `main`" rather than a published package version.
 
+## [2026.09.10] — Image CTA banners show their photo
+
+A single fix, shipped on its own: every `image-bg` cta-banner (and
+`image-bg-centered`) rendered as the flat colour banner. **Visible change:**
+on every live page with an image banner, the photo now appears behind the
+copy, under a dark ink scrim. Colour banners and every other block are
+unchanged.
+
+### Fixed
+- **`image-bg` / `image-bg-centered` banners draw their photo.** The photo
+  (`-z-20`) and scrim (`-z-10`) sat in a section with no stacking context, so
+  the section's own `bg-primary` fill painted over them. The image banner's
+  section now has `isolation: isolate` (Tailwind `isolate`), so they paint
+  above that fill and below the copy. The image is still `next/image` `fill`,
+  `sizes="100vw"`, lazy (a closing banner is below the fold), absolutely
+  positioned — no layout shift.
+- **Readable scrim.** The old scrim (primary 62% + black → near-black at 74%)
+  is replaced by the palette's ink token — a primary-tinted near-black that
+  generate-theme.ts pins at 12% lightness for every brand, falling back to
+  `--color-near-black` on themes without the token — at 86% (top-left, where
+  the copy starts) → 70% (bottom-right). The copy token
+  (`--color-primary-foreground`) is re-scoped to `--color-near-white` on image
+  banners only, since the scrim is always dark (a light brand's
+  primary-foreground would be dark). Measured from pixels
+  (`e2e/cta-banner-image.spec.ts`): over a pure-white photo the heading holds
+  ≥ 7.4:1 and the 80%-alpha body ≥ 5.0:1 (template palette, a light gold
+  primary, and a theme without ink), over the real photos ≥ 10:1; light and
+  dark schemes alike (brand tokens do not flip in dark mode).
+- `imageTreatment` (natural / mono / rounded) is unchanged: it grades framed
+  images (`.u-frame`, FramedMedia's media-grade) and never applied to the
+  full-bleed banner photo, like the full-bleed Hero image.
+
+### R1
+- `color-bg` / `color-bg-centered` render byte-identical to 2026.09.9 (unit
+  goldens rendered from 4ac337d, `cta-banner-image.test.ts`); so does an
+  `image-bg` banner with no resolvable image (it falls back to the colour
+  markup). Section / slot hooks, `data-layout`, the ink theme and the
+  `ctaBanner: centered` preset are untouched — the copy stays the section's
+  last child (`block-layouts.css` `> div > div:last-child`).
+- @visual: only the four `cta-banner-image-bg-centered{,-ink}` layout-cell
+  baselines (desktop / mobile) are refreshed. They had recorded the flat
+  render; they pass either way under the default 0.2 colour threshold because
+  the specimen photo is a dark flat placeholder, so the pixel spec is the
+  real gate. The zero-change pages use `color-bg` only: 8/8 unchanged.
+
+### Rollout notes (template 2026.09.9 → 2026.09.10)
+Ship in ONE commit, `c5-template.json` last.
+- **Overwrite (M):** `CHANGELOG.md`, `docs/blocks.md`,
+  `src/components/blocks/CtaBanner.tsx`,
+  `src/lib/theme/template-marker.test.ts`.
+- **Add (A):** `e2e/cta-banner-image.spec.ts`,
+  `src/components/blocks/cta-banner-image.test.ts`.
+- **Delete (D):** none.
+- **Skip:** `e2e/*-snapshots/**` and `*.png` (local @visual baselines),
+  `package-lock.json` (unchanged), `content/**`.
+- **Write last:** `c5-template.json` = `{"templateVersion": "2026.09.10",
+  "capabilities": ["fonts", "style-axes", "specimen", "layout-presets"],
+  "syncedFrom": "<the template main SHA being rolled out>"}`.
+- theme.css is not rewritten; no package.json change. Sites with image
+  banners change visibly on deploy (the canary shows before / after).
+
 ## [2026.09.9] — Layout variants and site-wide layout presets
 
 More layouts per block, chosen per section (the platform's layout picker) or
@@ -66,13 +127,13 @@ version meta so the platform can tell what the deployed shell renders.
   banner renders flat, see Known issue). The platform only offers the
   new values once a site's draft marker is 2026.09.9.
 
-### Known issue (pre-existing, unchanged here)
-- Every `image-bg` cta-banner, including the new `image-bg-centered`, currently
-  renders as the flat colour banner: the image sits at `-z-20` in a section
-  that creates no stacking context, so the section's `bg-primary` paints over
-  it. Left as is by decision (CtaBanner untouched in this release); see
-  docs/blocks.md. The `image-bg-centered` @visual baselines show that flat
-  result.
+### Known issue (pre-existing, unchanged here — fixed in 2026.09.10)
+- Every `image-bg` cta-banner, including the new `image-bg-centered`,
+  rendered as the flat colour banner: the image sat at `-z-20` in a section
+  that created no stacking context, so the section's `bg-primary` painted over
+  it. Left as is in this release (CtaBanner untouched); the
+  `image-bg-centered` @visual baselines showed that flat result. Fixed in
+  2026.09.10.
 
 ### R1
 - Existing variants emit no new attribute or class (unit-tested for every

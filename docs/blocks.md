@@ -238,14 +238,25 @@ No commitment. No jargon.
 ```
 
 `color-bg` (default) uses the brand primary color; `image-bg` uses `image:` from the
-annotation as a hero background. `color-bg-centered` / `image-bg-centered` (2026.09.9)
-stack the heading, text and button centred over the same backgrounds.
+annotation as a full-bleed background photo. `color-bg-centered` / `image-bg-centered`
+(2026.09.9) stack the heading, text and button centred over the same backgrounds.
 
-> **Known issue (pre-existing, not fixed in 2026.09.9):** every `image-bg` banner —
-> including the new `image-bg-centered` — currently renders as the flat colour banner.
-> The background image sits at `-z-20` inside a section that creates no stacking
-> context, so it paints behind the section's own `bg-primary` fill. The image is still
-> downloaded and the markup is unchanged; only the visible result is flat colour.
+```markdown
+<!-- block: cta-banner | variant: image-bg | image: office-handshake.jpg -->
+```
+
+The photo sits under a dark scrim — the palette's ink (a primary-tinted near-black,
+`--color-near-black` on themes without it) at 86% → 70% — and the copy is near-white,
+so it holds WCAG AA (4.5:1) over any photo, bright or dark, in light and dark mode
+(`e2e/cta-banner-image.spec.ts` measures it from pixels). The photo is decorative
+(`alt=""`) and lazy-loaded. `imageTreatment` style axes grade framed images only, not
+this background.
+
+> **Fixed in 2026.09.10.** Before it, every `image-bg` banner — `image-bg-centered`
+> included — rendered as the flat colour banner: the photo sat at `-z-20` in a section
+> with no stacking context, so the section's `bg-primary` fill painted over it. The
+> image section is now `isolate`. On a 2026.09.9 site the image still downloads but
+> is not visible.
 
 ---
 
