@@ -15,6 +15,7 @@ import {
 import type * as X from './extract-block-props'
 import { extractHeroProps, extractHeroSplitProps } from './extract-block-props'
 import { parsePageMd, type PageManifest, type PageSection } from './parse-page-md'
+import type { HeroProps as HeroComponentProps } from '@/components/blocks/Hero'
 
 const spec = (id: BlockId): BlockSpec => BLOCK_CATALOG[id]
 const section = (blockId: string, extra: Partial<PageSection> = {}): PageSection => ({
@@ -122,9 +123,9 @@ describe('variant unions (type-level)', () => {
     expectTypeOf<BlockVariant<'content-cards'>>().toEqualTypeOf<X.ContentCardsProps['variant']>()
     expectTypeOf<BlockVariant<'form'>>().toEqualTypeOf<X.FormProps['variant']>()
     expectTypeOf<BlockVariant<'hero-split'>>().toEqualTypeOf<X.HeroSplitProps['variant']>()
-    // HeroProps still carries the dead 'image-right' | 'image-left' values (they
-    // render full-bleed); the contract omits them — hero-split is that layout.
-    expectTypeOf<BlockVariant<'hero'>>().toEqualTypeOf<Exclude<X.HeroProps['variant'], 'image-right' | 'image-left'>>()
+    // 2026.09.9 narrowed HeroProps (the dead image-right / image-left are gone).
+    expectTypeOf<BlockVariant<'hero'>>().toEqualTypeOf<X.HeroProps['variant']>()
+    expectTypeOf<HeroComponentProps['variant']>().toEqualTypeOf<X.HeroProps['variant']>()
   })
   it('variant-less blocks have no variant prop (a new one must be listed in the catalog)', () => {
     expectTypeOf<X.ContentProseProps>().not.toHaveProperty('variant')

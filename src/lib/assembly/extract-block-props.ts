@@ -35,7 +35,10 @@ export type { PricingTier }
 // ---------------------------------------------------------------------------
 
 export type HeroProps = {
-  variant: 'image' | 'video' | 'slider' | 'image-right' | 'image-left' | 'statement'
+  /** Type-only narrowing (2026.09.9): the dead 'image-right' / 'image-left'
+   * values are gone (hero-split is that layout). extractHeroProps still passes
+   * any hero_variant through, and Hero renders an unknown value full-bleed. */
+  variant: 'image' | 'video' | 'slider' | 'statement'
   image?: string
   image_alt?: string
   video?: string
