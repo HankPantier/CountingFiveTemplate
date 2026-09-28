@@ -9,6 +9,7 @@ import { MD_LINK_COMPONENTS } from '@/lib/markdown-components'
 import { cn } from '@/lib/utils'
 import { resolveImageSrc } from '@/lib/assembly/resolve-image'
 import type { ContentCardsProps } from '@/lib/assembly/extract-block-props'
+import { layoutSlot } from './layout-slot'
 
 function toISODate(input: string): string {
   const d = new Date(input)
@@ -25,9 +26,12 @@ export function ContentCards({ variant, heading, intro, cards, cta }: ContentCar
     variant === '2-col'
       ? 'sm:grid-cols-2'
       : 'sm:grid-cols-2 lg:grid-cols-3'
+  // 'list' (2026.09.9): default markup + data-layout + slot hooks; the rows come
+  // from src/styles/block-layouts.css (shared with the site-wide cards preset).
+  const layout = variant === 'list' ? 'list' : undefined
 
   return (
-    <Section dataBlock="content-cards">
+    <Section dataBlock="content-cards" dataLayout={layout}>
       <header className="mx-auto max-w-2xl text-center">
         <h2 className="t-h2 text-foreground">{heading}</h2>
         {intro && (
@@ -35,9 +39,9 @@ export function ContentCards({ variant, heading, intro, cards, cta }: ContentCar
         )}
       </header>
 
-      <div className={cn('mt-12 grid gap-6', colsClass)}>
+      <div className={cn('mt-12 grid gap-6', colsClass)} data-c5-slot={layoutSlot(layout, 'items')}>
         {cards.map((card, i) => (
-          <article key={i} className="h-full">
+          <article key={i} className="h-full" data-c5-slot={layoutSlot(layout, 'item')}>
             <div className="u-card u-card-interactive flex h-full flex-col overflow-hidden">
               {card.image && (
                 <FramedMedia
@@ -47,10 +51,11 @@ export function ContentCards({ variant, heading, intro, cards, cta }: ContentCar
                   grade="duotone"
                   framed={false}
                   sizes="(max-width: 640px) 100vw, (max-width: 1024px) 50vw, 33vw"
+                  slot={layoutSlot(layout, 'media')}
                 />
               )}
 
-              <div className="flex flex-1 flex-col p-6">
+              <div className="flex flex-1 flex-col p-6" data-c5-slot={layoutSlot(layout, 'body')}>
                 {card.date && (
                   <time dateTime={toISODate(card.date)} className="t-kicker mb-3 block">
                     {card.date}

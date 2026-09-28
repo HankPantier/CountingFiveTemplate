@@ -5,15 +5,17 @@ import { isValidElement } from 'react'
 import { BLOCK_REGISTRY, KNOWN_BLOCK_IDS } from '@/components/assembly/block-registry'
 import {
   ANNOTATION_FIELD_ORDER,
+  BASELINE_SINCE,
   BLOCK_CATALOG,
   BLOCK_IDS,
+  LAYOUTS_SINCE,
   blockCatalogJson,
   type BlockId,
   type BlockSpec,
   type BlockVariant,
 } from './block-catalog'
 import type * as X from './extract-block-props'
-import { extractHeroProps, extractHeroSplitProps } from './extract-block-props'
+import { ctaBannerAnnotationVariant, extractHeroProps, extractHeroSplitProps } from './extract-block-props'
 import { parsePageMd, type PageManifest, type PageSection } from './parse-page-md'
 import type { HeroProps as HeroComponentProps } from '@/components/blocks/Hero'
 
@@ -47,6 +49,15 @@ function registryProps(id: string, extra: Partial<PageSection> = {}): Record<str
   return isValidElement(el) ? (el.props as Record<string, unknown>) : {}
 }
 const THEME_PROBES = ['ink', 'light', 'dark', 'accent', 'default']
+
+// The annotation value the component received. cta-banner splits
+// `<bg>-centered` into variant + align (2026.09.9); every other block passes
+// the value straight through as `variant`.
+function registryVariant(id: string, extra: Partial<PageSection> = {}): unknown {
+  const props = registryProps(id, extra)
+  if (id === 'cta-banner') return ctaBannerAnnotationVariant(props as Parameters<typeof ctaBannerAnnotationVariant>[0])
+  return props.variant
+}
 
 describe('block catalog contract', () => {
   it('docs/design/blocks.json matches the catalog (run npm run design-contracts)', () => {
@@ -86,13 +97,40 @@ describe('block catalog contract', () => {
   it.each(KNOWN_BLOCK_IDS)('%s: default and every listed variant reach the component', (id) => {
     const s = spec(id as BlockId)
     if (!s.variants.length) return
-    expect(registryProps(id).variant).toBe(s.default)
-    for (const { value } of s.variants) expect(registryProps(id, { variant: value }).variant).toBe(value)
+    expect(registryVariant(id)).toBe(s.default)
+    for (const { value } of s.variants) expect(registryVariant(id, { variant: value })).toBe(value)
   })
 
   it.each(KNOWN_BLOCK_IDS)('%s: themes are exactly the probed values the component receives', (id) => {
     const accepted = THEME_PROBES.filter((t) => registryProps(id, { theme: t }).theme === t)
     expect([...spec(id as BlockId).themes]).toEqual(accepted)
+  })
+
+  it('layout variants: every one ships in a versioned release, only on blocks with a layout family', () => {
+    const layouts = BLOCK_IDS.flatMap((id) => spec(id).variants.filter((x) => x.layout).map((x) => `${id}:${x.value}@${x.since}`))
+    expect(layouts.sort()).toEqual(
+      [
+        'content-cards:list',
+        'cta-banner:color-bg-centered',
+        'cta-banner:image-bg-centered',
+        'feature-grid:list',
+        'service-cards:list',
+        'team-grid:list',
+        'testimonials:featured',
+      ].map((x) => `${x}@${LAYOUTS_SINCE}`),
+    )
+    for (const id of BLOCK_IDS) for (const x of spec(id).variants) if (!x.layout) expect(x.since, `${id}:${x.value}`).toBe(BASELINE_SINCE)
+  })
+
+  it('cta-banner: the centred values split into background + align; unknown values pass through', () => {
+    const cta = (variant?: string) => registryProps('cta-banner', { variant })
+    expect(cta('image-bg-centered')).toMatchObject({ variant: 'image-bg', align: 'centered' })
+    expect(cta('color-bg-centered')).toMatchObject({ variant: 'color-bg', align: 'centered' })
+    expect(cta('image-bg')).not.toHaveProperty('align')
+    expect(cta(undefined)).not.toHaveProperty('align')
+    // Only the two catalogued backgrounds split; anything else is today's cast.
+    expect(cta('bogus-centered')).toMatchObject({ variant: 'bogus-centered' })
+    expect(cta('bogus-centered')).not.toHaveProperty('align')
   })
 
   it('page openers: defaults match the hero extractors', () => {
@@ -110,7 +148,7 @@ describe('variant unions (type-level)', () => {
   it('match the extractor prop types', () => {
     expectTypeOf<BlockVariant<'content-split'>>().toEqualTypeOf<X.ContentSplitProps['variant']>()
     expectTypeOf<BlockVariant<'feature-grid'>>().toEqualTypeOf<X.FeatureGridProps['variant']>()
-    expectTypeOf<BlockVariant<'cta-banner'>>().toEqualTypeOf<X.CtaBannerProps['variant']>()
+    expectTypeOf<BlockVariant<'cta-banner'>>().toEqualTypeOf<X.CtaBannerAnnotationVariant>()
     expectTypeOf<BlockVariant<'intro-text'>>().toEqualTypeOf<X.IntroTextProps['variant']>()
     expectTypeOf<BlockVariant<'service-cards'>>().toEqualTypeOf<X.ServiceCardsProps['variant']>()
     expectTypeOf<BlockVariant<'team-grid'>>().toEqualTypeOf<X.TeamGridProps['variant']>()

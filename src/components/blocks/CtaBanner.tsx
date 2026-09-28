@@ -7,17 +7,23 @@ import remarkGfm from 'remark-gfm'
 import { MD_LINK_COMPONENTS } from '@/lib/markdown-components'
 import type { CtaBannerProps } from '@/lib/assembly/extract-block-props'
 import { resolveImageSrc } from '@/lib/assembly/resolve-image'
+import { layoutSlot } from './layout-slot'
 
 export type { CtaBannerProps }
 
 export function CtaBanner({
   variant,
+  align,
   heading,
   body,
   background_asset,
   cta_primary,
 }: CtaBannerProps) {
   const bgSrc = variant === 'image-bg' ? resolveImageSrc(background_asset) : undefined
+  // `<bg>-centered` (2026.09.9): the same markup + data-layout + slot hooks; the
+  // stacked, centred composition comes from src/styles/block-layouts.css
+  // (shared with the site-wide ctaBanner preset).
+  const layout = align === 'centered' ? `${variant}-centered` : undefined
 
   return (
     <Section
@@ -27,6 +33,7 @@ export function CtaBanner({
       spacing="spacious"
       className="relative overflow-hidden"
       dataBlock="cta-banner"
+      dataLayout={layout}
     >
       {bgSrc ? (
         <>
@@ -59,8 +66,8 @@ export function CtaBanner({
           }}
         />
       )}
-      <div className="relative flex flex-col md:flex-row md:items-center md:justify-between gap-6">
-        <div className="md:max-w-2xl">
+      <div className="relative flex flex-col md:flex-row md:items-center md:justify-between gap-6" data-c5-slot={layoutSlot(layout, 'content')}>
+        <div className="md:max-w-2xl" data-c5-slot={layoutSlot(layout, 'copy')}>
           <h2 className="t-h1 text-primary-foreground">{heading}</h2>
           {body && (
             <div className="prose prose-invert t-body-lg mt-4 max-w-none text-primary-foreground/80 prose-p:my-0 prose-a:underline">
@@ -69,7 +76,7 @@ export function CtaBanner({
           )}
         </div>
         {cta_primary && (
-          <div className="shrink-0">
+          <div className="shrink-0" data-c5-slot={layoutSlot(layout, 'actions')}>
             <Button asChild size="lg" variant="cta">
               <Link href={cta_primary.url}>{cta_primary.label}</Link>
             </Button>

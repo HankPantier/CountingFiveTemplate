@@ -49,7 +49,9 @@ describe('style-axis hooks', () => {
   // html[data-c5-nav-fit="collapse"] (asserted in src/lib/brand/logo-tone.test.ts,
   // src/lib/theme/action-edge.test.ts, src/lib/theme/logo-size.test.ts and
   // src/lib/nav/nav-fit.test.ts).
-  it('no stylesheet except style-axes / logo-tone / action-edge / logo-size / nav-fit.css references data-c5 (R1)', () => {
+  // block-layouts.css (2026.09.9): every rule gated on [data-layout="…"] or
+  // html[data-c5-layout-…] (asserted in src/lib/theme/block-layouts.test.ts).
+  it('no stylesheet except style-axes / logo-tone / action-edge / logo-size / nav-fit / block-layouts.css references data-c5 (R1)', () => {
     const css: string[] = []
     const walk = (dir: string) => {
       for (const name of readdirSync(dir)) {
@@ -59,7 +61,7 @@ describe('style-axis hooks', () => {
       }
     }
     walk(path.join(process.cwd(), 'src'))
-    const allowed = ['style-axes.css', 'logo-tone.css', 'action-edge.css', 'logo-size.css', 'nav-fit.css'].map((f) => path.join('src', 'styles', f))
+    const allowed = ['style-axes.css', 'logo-tone.css', 'action-edge.css', 'logo-size.css', 'nav-fit.css', 'block-layouts.css'].map((f) => path.join('src', 'styles', f))
     const offenders = css.filter((p) => !allowed.some((a) => p.endsWith(a)) && readFileSync(p, 'utf-8').includes('data-c5'))
     expect(offenders).toEqual([])
   })
