@@ -148,6 +148,23 @@ banner) carries `data-component="..."` on its outer element. Style-axis presets
 (`src/styles/style-axes.css`) and per-client `content/design-overrides.css`
 target these; the logo links also carry the inert `data-c5="logo"` hook.
 
+### Header logo size and fit
+
+- **Size** — `content/design.json` `"logo": { "size": "large" }` emits
+  `<html data-c5-logo-size="large">` (`src/lib/theme/logo-size.ts`) and
+  `src/styles/logo-size.css` raises the header logo from 32px to 40px on phones and
+  44px from `md`, and the footer logo to 40px (the image keeps its aspect ratio;
+  `object-fit: contain` scales a too-wide logo down whole). Absent or `"standard"`
+  emits nothing (today's 32px). It is a sibling of `style`, not a style axis: a
+  Design Studio concept rewrites the whole `style` object, which would reset it,
+  and the Studio never scores the logo. The platform sets it from the Theme Studio
+  Controls ("Logo size").
+- **Fit** — from `md` up the logo link doesn't shrink (`md:shrink-0`). When the
+  header row (logo · desktop nav · actions) is wider than the bar, NavBar collapses
+  the desktop nav into the menu button (`src/components/nav/use-nav-fit.ts`)
+  instead of squeezing the logo. A row that fits (labels may still wrap, as
+  before) is never changed.
+
 To target child slots from `content/design-overrides.css`, give them `data-slot="<name>"` attributes (e.g. `<button data-slot="accept">`). Designs then target via `[data-component="..."] [data-slot="..."]`.
 
 ## Caching model (Cache Components)
