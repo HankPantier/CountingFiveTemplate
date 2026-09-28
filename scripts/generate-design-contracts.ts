@@ -4,10 +4,12 @@ import path from 'node:path'
 import { fontManifestJson } from '../src/lib/theme/font-manifest'
 import { generateFontsModule } from '../src/lib/theme/font-module'
 import { styleAxesJson } from '../src/lib/theme/style-axes'
+import { blockCatalogJson } from '../src/lib/assembly/block-catalog'
 
 /**
  * Writes the machine-readable contracts the Revaltus platform mirrors (and
  * parity-tests against): docs/design/font-manifest.json, docs/design/style-axes.json,
+ * docs/design/blocks.json,
  * and the golden fonts modules under src/lib/theme/__fixtures__/fonts/. The
  * default golden is the DEFAULT kind (generateFontsModule() with no design).
  * Content-independent: nothing here reads content/.
@@ -26,7 +28,8 @@ async function main(): Promise<void> {
     await fs.writeFile(path.join(FIX, `fonts-${name}.golden.txt`), generateFontsModule(design.typography).source, 'utf-8')
   }
   await fs.writeFile(path.join(root, 'docs', 'design', 'style-axes.json'), styleAxesJson(), 'utf-8')
-  console.log('✓ Wrote docs/design/font-manifest.json + docs/design/style-axes.json + font golden fixtures')
+  await fs.writeFile(path.join(root, 'docs', 'design', 'blocks.json'), blockCatalogJson(), 'utf-8')
+  console.log('✓ Wrote docs/design/{font-manifest,style-axes,blocks}.json + font golden fixtures')
 }
 
 main().catch((err) => {
