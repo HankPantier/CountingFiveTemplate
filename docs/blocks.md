@@ -238,7 +238,14 @@ No commitment. No jargon.
 ```
 
 `color-bg` (default) uses the brand primary color; `image-bg` uses `image:` from the
-annotation as a hero background.
+annotation as a hero background. `color-bg-centered` / `image-bg-centered` (2026.09.9)
+stack the heading, text and button centred over the same backgrounds.
+
+> **Known issue (pre-existing, not fixed in 2026.09.9):** every `image-bg` banner —
+> including the new `image-bg-centered` — currently renders as the flat colour banner.
+> The background image sits at `-z-20` inside a section that creates no stacking
+> context, so it paints behind the section's own `bg-primary` fill. The image is still
+> downloaded and the markup is unchanged; only the visible result is flat colour.
 
 ---
 

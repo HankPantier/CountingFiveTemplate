@@ -62,8 +62,17 @@ version meta so the platform can tell what the deployed shell renders.
 - A pre-2026.09.9 template casts an unknown variant: `list` / `featured`
   render as the default grid; both centred banners render as the flat
   `color-bg` banner (its image is drawn only for exactly `image-bg`, so
-  `image-bg-centered` loses its image there). The platform only offers the
+  `image-bg-centered` would lose its image there — moot while every image-bg
+  banner renders flat, see Known issue). The platform only offers the
   new values once a site's draft marker is 2026.09.9.
+
+### Known issue (pre-existing, unchanged here)
+- Every `image-bg` cta-banner, including the new `image-bg-centered`, currently
+  renders as the flat colour banner: the image sits at `-z-20` in a section
+  that creates no stacking context, so the section's `bg-primary` paints over
+  it. Left as is by decision (CtaBanner untouched in this release); see
+  docs/blocks.md. The `image-bg-centered` @visual baselines show that flat
+  result.
 
 ### R1
 - Existing variants emit no new attribute or class (unit-tested for every
