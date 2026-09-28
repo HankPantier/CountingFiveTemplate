@@ -286,3 +286,38 @@ export function layoutSpecimenCells(): LayoutSpecimenCell[] {
   }
   return cells
 }
+
+// ---------------------------------------------------------------------------
+// Media background cells (2026.09.10) — below the layout cells on
+// /design-specimen?layouts=1. An image cta-banner with a long multi-paragraph
+// body: copy that runs down the lighter end of the media scrim
+// (src/components/blocks/media-scrim.ts), for the contrast e2e.
+// ---------------------------------------------------------------------------
+
+export type MediaSpecimenCell =
+  | { key: string; kind: 'hero'; manifest: PageManifest }
+  | { key: string; kind: 'block'; blockId: string; section: PageSection }
+
+const LONG_CTA_BODY = [
+  'Whether the books are behind, the tax bill was a surprise last April, or a new contract just landed, the next step is the same: talk to someone who can look at the actual numbers.',
+  '',
+  'We work with construction companies, farm and ranch operations, law firms, engineers, family offices and individuals, and every engagement starts with a real conversation, not a sales pitch.',
+  '',
+  'Book a 20-minute call with a partner. No obligation, no sales script.',
+].join('\n')
+
+export function mediaSpecimenCells(): MediaSpecimenCell[] {
+  return [
+    {
+      key: 'cta-banner:image-bg:long',
+      kind: 'block',
+      blockId: 'cta-banner',
+      section: {
+        ...makeSampleSection('cta-banner'),
+        heading: 'Start with a conversation about your accounting needs',
+        content: ['![](hero-office.png)', '', LONG_CTA_BODY, '', '[Schedule a consultation](/contact)'].join('\n'),
+        variant: 'image-bg',
+      },
+    },
+  ]
+}

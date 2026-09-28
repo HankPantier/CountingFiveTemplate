@@ -8,23 +8,12 @@ import { MD_LINK_COMPONENTS } from '@/lib/markdown-components'
 import type { CtaBannerProps } from '@/lib/assembly/extract-block-props'
 import { resolveImageSrc } from '@/lib/assembly/resolve-image'
 import { layoutSlot } from './layout-slot'
+import { MEDIA_SCRIM, MEDIA_SECTION_CLASS } from './media-scrim'
 
 export type { CtaBannerProps }
 
 /** Section classes for the image banner (see the Section call below). */
-const IMAGE_SECTION_CLASS =
-  'relative overflow-hidden isolate [--color-primary-foreground:var(--color-near-white)]'
-
-/** Scrim over the banner photo: the palette's ink (a deep primary-tinted
- * near-black, lightness 12% whatever the brand — generate-theme.ts; near-black
- * on themes that predate the token), translucent so the photo shows through:
- * ~14% of its light at the top-left where the copy starts, ~30% at the
- * bottom-right. Being palette-independent in lightness, near-white copy holds
- * ≥4.5:1 even over a pure-white photo (e2e/cta-banner-image.spec.ts). */
-const SCRIM_INK = 'var(--color-ink, var(--color-near-black))'
-const IMAGE_SCRIM =
-  `linear-gradient(160deg, color-mix(in srgb, ${SCRIM_INK} 86%, transparent) 0%, ` +
-  `color-mix(in srgb, ${SCRIM_INK} 70%, transparent) 100%)`
+const IMAGE_SECTION_CLASS = `relative overflow-hidden ${MEDIA_SECTION_CLASS}`
 
 export function CtaBanner({
   variant,
@@ -66,11 +55,11 @@ export function CtaBanner({
             className="object-cover -z-20"
           />
           {/* Primary-tinted dark (ink) scrim, deepest at the top-left where
-              the copy starts — see IMAGE_SCRIM. */}
+              the copy starts — see media-scrim.ts. */}
           <div
             aria-hidden="true"
             className="absolute inset-0 -z-10"
-            style={{ background: IMAGE_SCRIM }}
+            style={{ background: MEDIA_SCRIM }}
           />
         </>
       ) : (
