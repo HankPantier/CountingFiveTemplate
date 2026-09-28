@@ -33,6 +33,13 @@ describe('proxy', () => {
     )
   })
 
+  it('rewrites `/design-specimen?layouts=1` to the static layout specimen (only that value)', () => {
+    expect(proxy(makeReq('/design-specimen?layouts=1')).headers.get('x-middleware-rewrite')).toBe('http://localhost/design-specimen/layouts')
+    expect(proxy(makeReq('/design-specimen')).headers.get('x-middleware-rewrite')).toBeNull()
+    expect(proxy(makeReq('/design-specimen?layouts=0')).headers.get('x-middleware-rewrite')).toBeNull()
+    expect(proxy(makeReq('/about?layouts=1')).headers.get('x-middleware-rewrite')).toBeNull()
+  })
+
   it('rewrites `/.well-known/agent.json` to the agent-card handler', () => {
     const res = proxy(makeReq('/.well-known/agent.json'))
     expect(res.headers.get('x-middleware-rewrite')).toBe(

@@ -25,6 +25,8 @@ type FramedMediaProps = {
   priority?: boolean
   sizes?: string
   className?: string
+  /** data-c5-slot hook (layout variants only; see blocks/layout-slot.ts). */
+  slot?: string
 }
 
 /**
@@ -41,9 +43,11 @@ export function FramedMedia({
   priority = false,
   sizes = '(max-width: 768px) 100vw, 50vw',
   className,
+  slot,
 }: FramedMediaProps) {
   return (
     <div
+      data-c5-slot={slot}
       className={cn(
         'relative w-full overflow-hidden bg-muted',
         RATIO_CLASS[ratio],

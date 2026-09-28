@@ -19,8 +19,11 @@
  * - default: the variant the extractor renders when the annotation has none.
  * - variants[].since: first template release that renders the value. Values
  *   that predate release versioning carry BASELINE_SINCE.
- * - variants[].layout: a structural layout choice that wins over a site-wide
- *   layout preset (none yet — the Phase 3 layouts set it).
+ * - variants[].layout: a structural layout choice (the section root carries
+ *   data-layout="<value>", src/styles/block-layouts.css). It always wins over
+ *   the site-wide layout preset (design.json `layout`,
+ *   src/lib/theme/layout-presets.ts); the other variants (column counts,
+ *   backgrounds) follow the preset.
  * - themes: `theme:` values the extractor accepts (`ink` = the deep band).
  */
 
@@ -29,6 +32,9 @@ export const ANNOTATION_FIELD_ORDER = ['variant', 'image', 'alt', 'query', 'them
 
 /** `since` for every value that shipped before 2026.09.1 started versioning. */
 export const BASELINE_SINCE = '2026.09.1'
+
+/** First release with layout variants + layout presets. */
+export const LAYOUTS_SINCE = '2026.09.9'
 
 export type BlockPlacement = 'inline' | 'frontmatter' | 'auto'
 export type BlockVariantSpec = { value: string; since: string; layout?: true }
@@ -44,6 +50,10 @@ export type BlockSpec = {
 // Generic so BlockVariant<B> stays a literal union (the extractor parity test needs it).
 function v<T extends string>(...values: T[]): { value: T; since: string }[] {
   return values.map((value) => ({ value, since: BASELINE_SINCE }))
+}
+/** Layout variants (data-layout on the section root), first shipped in `since`. */
+function layout<T extends string>(since: string, ...values: T[]): { value: T; since: string; layout: true }[] {
+  return values.map((value) => ({ value, since, layout: true as const }))
 }
 
 export const BLOCK_CATALOG = {
@@ -67,19 +77,26 @@ export const BLOCK_CATALOG = {
   'process-steps': { label: 'Process steps', placement: 'inline', insertable: true, default: 'vertical', variants: v('horizontal', 'vertical'), themes: [] },
 
   // Card grids
-  'feature-grid': { label: 'Feature grid', placement: 'inline', insertable: true, default: '3-col', variants: v('3-col', '4-col'), themes: ['ink'] },
-  'service-cards': { label: 'Services', placement: 'inline', insertable: true, default: '3-col', variants: v('2-col', '3-col'), themes: ['ink'] },
-  'content-cards': { label: 'Content cards', placement: 'inline', insertable: true, default: '3-col', variants: v('3-col', '2-col'), themes: [] },
-  'team-grid': { label: 'Team', placement: 'inline', insertable: true, default: '3-col', variants: v('2-col', '3-col', '4-col'), themes: [] },
+  'feature-grid': { label: 'Feature grid', placement: 'inline', insertable: true, default: '3-col', variants: [...v('3-col', '4-col'), ...layout(LAYOUTS_SINCE, 'list')], themes: ['ink'] },
+  'service-cards': { label: 'Services', placement: 'inline', insertable: true, default: '3-col', variants: [...v('2-col', '3-col'), ...layout(LAYOUTS_SINCE, 'list')], themes: ['ink'] },
+  'content-cards': { label: 'Content cards', placement: 'inline', insertable: true, default: '3-col', variants: [...v('3-col', '2-col'), ...layout(LAYOUTS_SINCE, 'list')], themes: [] },
+  'team-grid': { label: 'Team', placement: 'inline', insertable: true, default: '3-col', variants: [...v('2-col', '3-col', '4-col'), ...layout(LAYOUTS_SINCE, 'list')], themes: [] },
   'industry-cards': { label: 'Industries', placement: 'inline', insertable: true, default: '3-col', variants: v('3-col', '4-col'), themes: ['ink'] },
 
   // Social proof
-  testimonials: { label: 'Testimonials', placement: 'inline', insertable: true, default: 'grid', variants: v('carousel', 'grid'), themes: [] },
+  testimonials: { label: 'Testimonials', placement: 'inline', insertable: true, default: 'grid', variants: [...v('carousel', 'grid'), ...layout(LAYOUTS_SINCE, 'featured')], themes: [] },
   'stats-bar': { label: 'Stats', placement: 'inline', insertable: true, default: '3-up', variants: v('3-up', '4-up'), themes: ['ink'] },
   'logo-bar': { label: 'Logos', placement: 'inline', insertable: true, default: null, variants: [], themes: [] },
 
   // Conversion
-  'cta-banner': { label: 'Call to action', placement: 'inline', insertable: true, default: 'color-bg', variants: v('color-bg', 'image-bg'), themes: ['ink'] },
+  'cta-banner': {
+    label: 'Call to action',
+    placement: 'inline',
+    insertable: true,
+    default: 'color-bg',
+    variants: [...v('color-bg', 'image-bg'), ...layout(LAYOUTS_SINCE, 'color-bg-centered', 'image-bg-centered')],
+    themes: ['ink'],
+  },
   pricing: { label: 'Pricing', placement: 'inline', insertable: true, default: '3-tier', variants: v('2-tier', '3-tier', '4-tier'), themes: [] },
   'faq-accordion': { label: 'FAQ', placement: 'auto', insertable: false, default: null, variants: [], themes: [] },
   form: { label: 'Form', placement: 'inline', insertable: true, default: 'contact', variants: v('contact', 'quote', 'newsletter', 'custom'), themes: [] },

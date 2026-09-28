@@ -15,11 +15,12 @@ import { getBrandConfig } from '@/lib/brand/get-brand-config'
 import { getNavConfig } from '@/lib/nav/get-nav-config'
 import { getClientCenterConfig } from '@/lib/client-center/get-client-center-config'
 import { getDesignConfig } from '@/lib/theme/get-theme-vars'
-import { capabilitiesMetaContent } from '@/lib/theme/template-marker'
+import { capabilitiesMetaContent, templateVersionMetaContent } from '@/lib/theme/template-marker'
 import { styleAxisAttributes } from '@/lib/theme/style-axes'
 import { logoToneAttributes } from '@/lib/brand/logo-tone'
 import { actionEdgeAttributes } from '@/lib/theme/action-edge'
 import { logoSizeAttributes } from '@/lib/theme/logo-size'
+import { layoutPresetAttributes } from '@/lib/theme/layout-presets'
 import { NAV_FIT_SCRIPT } from '@/lib/nav/nav-fit'
 import { siteConfig } from '../../site.config'
 
@@ -34,8 +35,9 @@ export async function generateMetadata(): Promise<Metadata> {
     description:
       brand.firm.tagline ?? `${brand.firm.name} — accounting & advisory services`,
     // Design Studio capability handshake (see src/lib/theme/template-marker.ts).
-    // Pages don't set `other`, so every page inherits it.
-    other: { 'c5-capabilities': capabilitiesMetaContent() },
+    // Pages don't set `other`, so every page inherits it. c5-template-version
+    // (2026.09.9) lets the platform take min(draft marker, deployed shell).
+    other: { 'c5-capabilities': capabilitiesMetaContent(), 'c5-template-version': templateVersionMetaContent() },
   }
 }
 
@@ -128,6 +130,9 @@ export default async function RootLayout({
       // site keeps its 32px logo. (data-c5-nav-fit is NOT set here: the header
       // fit script adds it at runtime, see NAV_FIT_SCRIPT below.)
       {...logoSizeAttributes(design)}
+      // design.json "layout" presets (2026.09.9): only NON-default values emit
+      // data-c5-layout-* (src/lib/theme/layout-presets.ts, block-layouts.css).
+      {...layoutPresetAttributes(design.layout)}
       style={fontAliases}
       // next-themes sets the theme class on <html> before hydration, so the
       // server/client class attributes intentionally differ on first paint.

@@ -5,6 +5,7 @@
 @import "../styles/action-edge.css";
 @import "../styles/logo-size.css";
 @import "../styles/nav-fit.css";
+@import "../styles/block-layouts.css";
 @import "../../content/design-overrides.css";
 
 /* dark: follows next-themes' .dark class on <html> (not the OS media query),

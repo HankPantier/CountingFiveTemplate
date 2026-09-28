@@ -53,13 +53,13 @@ Three "blocks" are **page-level**, set in frontmatter rather than as section ann
 | `booking` | Scheduling-widget embed (Calendly / iframe) | — |
 | `checklist-section` | Bullet list of value props, optionally beside an image | `standalone`, `with-image` |
 | `contact-info` | Address / phone / email card from `brand.json` | — |
-| `content-cards` | Generic linked cards (blog, resource, news teaser) | `2-col`, `3-col` |
+| `content-cards` | Generic linked cards (blog, resource, news teaser) | `2-col`, `3-col`, `list`* |
 | `content-prose` | Free-form long-form markdown body | — |
 | `content-split` | Heading + prose on one side, image on the other | `image-right`, `image-left` |
 | `content-table` | Markdown table with optional caption | — |
-| `cta-banner` | One-line call-to-action band | `color-bg`, `image-bg` |
+| `cta-banner` | One-line call-to-action band | `color-bg`, `image-bg`, `color-bg-centered`*, `image-bg-centered`* |
 | `faq-accordion` | Question/answer accordion + FAQPage JSON-LD | — |
-| `feature-grid` | Icon + title + description bullet grid | `3-col`, `4-col` |
+| `feature-grid` | Icon + title + description bullet grid | `3-col`, `4-col`, `list`* |
 | `form` | Contact / quote / newsletter / custom form | `contact`, `quote`, `newsletter`, `custom` |
 | `industry-cards` | Industry-served cards | `3-col`, `4-col` |
 | `intro-text` | Centered intro paragraph beneath a heading | `centered`, `left-aligned` |
@@ -68,10 +68,21 @@ Three "blocks" are **page-level**, set in frontmatter rather than as section ann
 | `pricing` | Tier cards with bullet features | `2-tier`, `3-tier`, `4-tier` |
 | `process-steps` | Numbered/lettered step list | `horizontal`, `vertical` |
 | `resource-list` | Downloadable resources + newsletter CTA | — |
-| `service-cards` | Service offering cards (3-up by default) | `2-col`, `3-col` |
+| `service-cards` | Service offering cards (3-up by default) | `2-col`, `3-col`, `list`* |
 | `stats-bar` | Big-number metrics strip | `3-up`, `4-up` |
-| `team-grid` | Photo + bio member grid | `2-col`, `3-col`, `4-col` |
-| `testimonials` | Quote + attribution carousel or grid | `carousel`, `grid` |
+| `team-grid` | Photo + bio member grid | `2-col`, `3-col`, `4-col`, `list`* |
+| `testimonials` | Quote + attribution carousel or grid | `carousel`, `grid`, `featured`* |
+
+\* **Layout variants** (template 2026.09.9; `layout: true` in `docs/design/blocks.json`):
+`list` = one item per row, media or icon left, text right (works with `theme: ink`);
+`featured` = the first quote as a full-width pull quote, the rest below;
+`<bg>-centered` = the banner's heading, text and button stacked and centred. They add
+`data-layout` to the section and are styled in `src/styles/block-layouts.css`. The same
+layouts can be set site-wide with `design.json` `layout` presets (see
+`docs/architecture.md`); an explicit layout variant always wins over the preset. A
+template older than 2026.09.9 renders `list`/`featured` as the default grid and both
+centred banners as the flat `color-bg` banner. Preview every cell at
+`/design-specimen?layouts=1`.
 
 ---
 
@@ -227,7 +238,14 @@ No commitment. No jargon.
 ```
 
 `color-bg` (default) uses the brand primary color; `image-bg` uses `image:` from the
-annotation as a hero background.
+annotation as a hero background. `color-bg-centered` / `image-bg-centered` (2026.09.9)
+stack the heading, text and button centred over the same backgrounds.
+
+> **Known issue (pre-existing, not fixed in 2026.09.9):** every `image-bg` banner —
+> including the new `image-bg-centered` — currently renders as the flat colour banner.
+> The background image sits at `-z-20` inside a section that creates no stacking
+> context, so it paints behind the section's own `bg-primary` fill. The image is still
+> downloaded and the markup is unchanged; only the visible result is flat colour.
 
 ---
 

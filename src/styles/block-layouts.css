@@ -1,0 +1,229 @@
+/* block-layouts.css — layout variants + site-wide layout presets (2026.09.9).
+ *
+ * Two ways in, ONE set of rules (every rule below lists both):
+ *   1. A section's layout variant: `<!-- block: service-cards | variant: list -->`
+ *      → the component adds data-layout="list" to the section root
+ *      (block-catalog.ts: variants with `layout: true`).
+ *   2. design.json `layout` → <html data-c5-layout-*> (src/lib/theme/layout-presets.ts,
+ *      layout.tsx), applied to that family's sections that carry NO data-layout.
+ *
+ * Precedence: an explicit layout variant always wins (the preset selector
+ * requires :not([data-layout])); legacy column/background variants carry no
+ * data-layout, so they follow the preset; ink card bands (.u-band-ink:
+ * service-cards / feature-grid with theme: ink) never take a preset. An ink
+ * cta-banner is not an ink band — CtaBanner renders `theme: ink` exactly like
+ * the default banner and emits no .u-band-ink — so it DOES follow the
+ * ctaBanner preset (the :not(.u-band-ink) there is inert, kept for one uniform
+ * selector shape). A layout variant renders the same markup as the block's default
+ * variant (plus pixel-neutral data-c5-slot hooks), so the rules here restructure
+ * from that markup alone and reach preset sections, which have no hooks.
+ *
+ * R1: every selector is gated on [data-layout="…"] or html[data-c5-layout-…="…"]
+ * (block-layouts.test.ts). Existing variants emit neither and layout.tsx emits
+ * no preset attribute for an absent / default / malformed `layout`, so no rule
+ * matches an untouched site.
+ *
+ * A11y: nothing is hidden or reordered. The list rows keep DOM order (media is
+ * already first); the FAQ split keeps heading → questions; the featured quote is
+ * the first testimonial, and every other testimonial stays visible.
+ *
+ * Unlayered on purpose: Tailwind v4 utilities live in @layer utilities, so these
+ * beat the grid-cols-* / flex-row utilities they replace. Imported after
+ * nav-fit.css and before content/design-overrides.css, so a client override
+ * still wins. */
+
+/* ---- cards (service-cards, feature-grid, content-cards) → list ---------
+ * One item per row in a readable measure: media or icon left, text right. */
+[data-block="service-cards"][data-layout="list"] header + div,
+html[data-c5-layout-cards="list"] [data-block="service-cards"]:not([data-layout]):not(.u-band-ink) header + div {
+  grid-template-columns: minmax(0, 1fr);
+  max-width: 56rem;
+  margin-inline: auto;
+  row-gap: 1.25rem;
+}
+[data-block="feature-grid"][data-layout="list"] header + div,
+html[data-c5-layout-cards="list"] [data-block="feature-grid"]:not([data-layout]):not(.u-band-ink) header + div {
+  grid-template-columns: minmax(0, 1fr);
+  max-width: 56rem;
+  margin-inline: auto;
+  row-gap: 1.25rem;
+}
+[data-block="content-cards"][data-layout="list"] header + div,
+html[data-c5-layout-cards="list"] [data-block="content-cards"]:not([data-layout]):not(.u-band-ink) header + div {
+  grid-template-columns: minmax(0, 1fr);
+  max-width: 56rem;
+  margin-inline: auto;
+  row-gap: 1.25rem;
+}
+[data-block="service-cards"][data-layout="list"] header + div > * > div:last-child:has(> .u-icon-square),
+html[data-c5-layout-cards="list"] [data-block="service-cards"]:not([data-layout]):not(.u-band-ink) header + div > * > div:last-child:has(> .u-icon-square) {
+  display: grid;
+  grid-template-columns: 3rem minmax(0, 1fr);
+  column-gap: 1.25rem;
+  align-content: start;
+}
+[data-block="service-cards"][data-layout="list"] header + div > * > div:last-child > .u-icon-square,
+html[data-c5-layout-cards="list"] [data-block="service-cards"]:not([data-layout]):not(.u-band-ink) header + div > * > div:last-child > .u-icon-square {
+  grid-row: 1 / span 3;
+  margin-bottom: 0;
+}
+[data-block="service-cards"][data-layout="list"] header + div > * > div:last-child:has(> .u-icon-square) > :not(.u-icon-square),
+html[data-c5-layout-cards="list"] [data-block="service-cards"]:not([data-layout]):not(.u-band-ink) header + div > * > div:last-child:has(> .u-icon-square) > :not(.u-icon-square) {
+  grid-column: 2;
+}
+@media (min-width: 40rem) {
+  [data-block="service-cards"][data-layout="list"] header + div > *,
+  html[data-c5-layout-cards="list"] [data-block="service-cards"]:not([data-layout]):not(.u-band-ink) header + div > * {
+    flex-direction: row;
+  }
+  [data-block="service-cards"][data-layout="list"] header + div > * > div:first-child:not(:last-child),
+  html[data-c5-layout-cards="list"] [data-block="service-cards"]:not([data-layout]):not(.u-band-ink) header + div > * > div:first-child:not(:last-child) {
+    flex: none;
+    width: 36%;
+    aspect-ratio: auto;
+    min-height: 11rem;
+  }
+  [data-block="content-cards"][data-layout="list"] header + div > * > *,
+  html[data-c5-layout-cards="list"] [data-block="content-cards"]:not([data-layout]):not(.u-band-ink) header + div > * > * {
+    flex-direction: row;
+  }
+  [data-block="content-cards"][data-layout="list"] header + div > * > * > div:first-child:not(:last-child),
+  html[data-c5-layout-cards="list"] [data-block="content-cards"]:not([data-layout]):not(.u-band-ink) header + div > * > * > div:first-child:not(:last-child) {
+    flex: none;
+    width: 36%;
+    aspect-ratio: auto;
+    min-height: 11rem;
+  }
+}
+[data-block="feature-grid"][data-layout="list"] header + div > *,
+html[data-c5-layout-cards="list"] [data-block="feature-grid"]:not([data-layout]):not(.u-band-ink) header + div > * {
+  display: grid;
+  grid-template-columns: auto minmax(0, 1fr);
+  column-gap: 1.25rem;
+  row-gap: 0.375rem;
+  align-content: start;
+}
+[data-block="feature-grid"][data-layout="list"] header + div > * > :first-child,
+html[data-c5-layout-cards="list"] [data-block="feature-grid"]:not([data-layout]):not(.u-band-ink) header + div > * > :first-child {
+  grid-column: 1;
+  grid-row: 1 / span 2;
+}
+[data-block="feature-grid"][data-layout="list"] header + div > * > :not(:first-child),
+html[data-c5-layout-cards="list"] [data-block="feature-grid"]:not([data-layout]):not(.u-band-ink) header + div > * > :not(:first-child) {
+  grid-column: 2;
+}
+
+/* ---- team-grid → list ----------------------------------------------------
+ * One member per row: photo left (keeps its 4:5 crop), name, credentials and
+ * bio right. A member with no photo gets no photo box: the grid's placeholder
+ * only repeats the name (already in the h3), so in a row it would be a blank
+ * tile beside the text. The text column may shrink and wrap long names. */
+[data-block="team-grid"][data-layout="list"] header + div,
+html[data-c5-layout-team="list"] [data-block="team-grid"]:not([data-layout]):not(.u-band-ink) header + div {
+  grid-template-columns: minmax(0, 1fr);
+  max-width: 56rem;
+  margin-inline: auto;
+  row-gap: 1.5rem;
+}
+[data-block="team-grid"][data-layout="list"] header + div > * > *,
+html[data-c5-layout-team="list"] [data-block="team-grid"]:not([data-layout]):not(.u-band-ink) header + div > * > * {
+  flex-direction: row;
+  align-items: flex-start;
+}
+[data-block="team-grid"][data-layout="list"] header + div > * > * > :first-child,
+html[data-c5-layout-team="list"] [data-block="team-grid"]:not([data-layout]):not(.u-band-ink) header + div > * > * > :first-child {
+  width: 6rem;
+}
+[data-block="team-grid"][data-layout="list"] header + div > * > * > :first-child:not(:has(img)),
+html[data-c5-layout-team="list"] [data-block="team-grid"]:not([data-layout]):not(.u-band-ink) header + div > * > * > :first-child:not(:has(img)) {
+  display: none;
+}
+[data-block="team-grid"][data-layout="list"] header + div > * > * > :last-child,
+html[data-c5-layout-team="list"] [data-block="team-grid"]:not([data-layout]):not(.u-band-ink) header + div > * > * > :last-child {
+  min-width: 0;
+  overflow-wrap: break-word;
+}
+@media (min-width: 40rem) {
+  [data-block="team-grid"][data-layout="list"] header + div > * > * > :first-child,
+  html[data-c5-layout-team="list"] [data-block="team-grid"]:not([data-layout]):not(.u-band-ink) header + div > * > * > :first-child {
+    width: 11rem;
+  }
+}
+
+/* ---- testimonials → featured ---------------------------------------------
+ * The first quote as a full-width pull quote; the rest share the rows below
+ * (flex so two or three remaining quotes fill the row). The carousel variant
+ * (div[role=region]) is not a grid and keeps its carousel under the preset. */
+[data-block="testimonials"][data-layout="featured"] > div:not([role]),
+html[data-c5-layout-testimonials="featured"] [data-block="testimonials"]:not([data-layout]):not(.u-band-ink) > div:not([role]) {
+  display: flex;
+  flex-wrap: wrap;
+}
+[data-block="testimonials"][data-layout="featured"] > div:not([role]) > *,
+html[data-c5-layout-testimonials="featured"] [data-block="testimonials"]:not([data-layout]):not(.u-band-ink) > div:not([role]) > * {
+  flex: 1 1 18rem;
+  min-width: 0;
+}
+[data-block="testimonials"][data-layout="featured"] > div:not([role]) > :first-child,
+html[data-c5-layout-testimonials="featured"] [data-block="testimonials"]:not([data-layout]):not(.u-band-ink) > div:not([role]) > :first-child {
+  flex-basis: 100%;
+  padding: 2rem;
+}
+[data-block="testimonials"][data-layout="featured"] > div:not([role]) > :first-child blockquote,
+html[data-c5-layout-testimonials="featured"] [data-block="testimonials"]:not([data-layout]):not(.u-band-ink) > div:not([role]) > :first-child blockquote {
+  font-size: 1.375rem;
+  line-height: 1.45;
+}
+@media (min-width: 48rem) {
+  [data-block="testimonials"][data-layout="featured"] > div:not([role]) > :first-child,
+  html[data-c5-layout-testimonials="featured"] [data-block="testimonials"]:not([data-layout]):not(.u-band-ink) > div:not([role]) > :first-child {
+    padding: 2.5rem 3rem;
+  }
+  [data-block="testimonials"][data-layout="featured"] > div:not([role]) > :first-child blockquote,
+  html[data-c5-layout-testimonials="featured"] [data-block="testimonials"]:not([data-layout]):not(.u-band-ink) > div:not([role]) > :first-child blockquote {
+    font-size: 1.75rem;
+    line-height: 1.4;
+  }
+}
+
+/* ---- cta-banner → centered (color-bg-centered, image-bg-centered) ---------
+ * Heading, body and button stacked and centred — a closing CTA. The
+ * background (flat colour or image + scrim) is unchanged. */
+[data-block="cta-banner"][data-layout="color-bg-centered"] > div > div:last-child,
+[data-block="cta-banner"][data-layout="image-bg-centered"] > div > div:last-child,
+html[data-c5-layout-cta-banner="centered"] [data-block="cta-banner"]:not([data-layout]):not(.u-band-ink) > div > div:last-child {
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  text-align: center;
+}
+[data-block="cta-banner"][data-layout="color-bg-centered"] > div > div:last-child > :first-child,
+[data-block="cta-banner"][data-layout="image-bg-centered"] > div > div:last-child > :first-child,
+html[data-c5-layout-cta-banner="centered"] [data-block="cta-banner"]:not([data-layout]):not(.u-band-ink) > div > div:last-child > :first-child {
+  max-width: 42rem;
+  margin-inline: auto;
+}
+
+/* ---- faq-accordion → split (site-wide preset only; no per-section variant) --
+ * From lg: the heading in a left column, the questions on the right. DOM and
+ * reading order unchanged (heading, then questions). 2fr / 3fr: the heading
+ * column plus the heading one step down (text-4xl → text-3xl, as in the grid
+ * on phones) let a long real heading wrap in ~3 lines, and the questions keep
+ * close to the default FAQ measure (max-w-3xl). */
+@media (min-width: 64rem) {
+  html[data-c5-layout-faq="split"] [data-block="faq-accordion"]:not([data-layout]):not(.u-band-ink) > div {
+    display: grid;
+    grid-template-columns: minmax(0, 2fr) minmax(0, 3fr);
+    column-gap: 4rem;
+    align-items: start;
+    max-width: none;
+  }
+  html[data-c5-layout-faq="split"] [data-block="faq-accordion"]:not([data-layout]):not(.u-band-ink) > div > h2 {
+    text-align: left;
+    font-size: 1.875rem;
+    line-height: 2.25rem;
+  }
+  html[data-c5-layout-faq="split"] [data-block="faq-accordion"]:not([data-layout]):not(.u-band-ink) > div > h2 + * {
+    margin-top: 0;
+  }
+}

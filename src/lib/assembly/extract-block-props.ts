@@ -35,7 +35,10 @@ export type { PricingTier }
 // ---------------------------------------------------------------------------
 
 export type HeroProps = {
-  variant: 'image' | 'video' | 'slider' | 'image-right' | 'image-left' | 'statement'
+  /** Type-only narrowing (2026.09.9): the dead 'image-right' / 'image-left'
+   * values are gone (hero-split is that layout). extractHeroProps still passes
+   * any hero_variant through, and Hero renders an unknown value full-bleed. */
+  variant: 'image' | 'video' | 'slider' | 'statement'
   image?: string
   image_alt?: string
   video?: string
@@ -147,7 +150,9 @@ export function extractContentSplitProps(section: PageSection): ContentSplitProp
 // ---------------------------------------------------------------------------
 
 export type FeatureGridProps = {
-  variant: '3-col' | '4-col'
+  /** 'list' (2026.09.9): one item per row, icon/numeral left — a layout
+   * variant (data-layout="list", src/styles/block-layouts.css). */
+  variant: '3-col' | '4-col' | 'list'
   theme?: 'light' | 'ink'
   heading: string
   intro?: string
@@ -166,7 +171,7 @@ export function extractFeatureGridProps(section: PageSection): FeatureGridProps 
       : undefined
 
   return {
-    variant: (section.variant as '3-col' | '4-col') ?? '3-col',
+    variant: (section.variant as FeatureGridProps['variant']) ?? '3-col',
     theme: section.theme === 'ink' ? 'ink' : undefined,
     heading: section.heading,
     intro,
@@ -179,7 +184,13 @@ export function extractFeatureGridProps(section: PageSection): FeatureGridProps 
 // ---------------------------------------------------------------------------
 
 export type CtaBannerProps = {
+  /** The background. The annotation's `-centered` suffix is split off into
+   * `align` (see extractCtaBannerProps). */
   variant: 'color-bg' | 'image-bg'
+  /** 'centered' (2026.09.9): heading, body and button stacked and centred — a
+   * layout variant (data-layout="<variant>-centered", block-layouts.css).
+   * Absent = today's split row. */
+  align?: 'centered'
   theme?: 'light' | 'ink'
   heading: string
   body?: string
@@ -187,11 +198,33 @@ export type CtaBannerProps = {
   cta_primary?: { label: string; url: string }
 }
 
+/** The annotation values cta-banner accepts: background × alignment. */
+export type CtaBannerAnnotationVariant = CtaBannerProps['variant'] | `${CtaBannerProps['variant']}-centered`
+
+const CTA_CENTERED_SUFFIX = '-centered'
+
+/** The annotation value a CtaBanner's props came from (inverse of the split). */
+export function ctaBannerAnnotationVariant(props: Pick<CtaBannerProps, 'variant' | 'align'>): string {
+  return props.align === 'centered' ? `${props.variant}${CTA_CENTERED_SUFFIX}` : props.variant
+}
+
+/**
+ * `variant: color-bg-centered` / `image-bg-centered` (2026.09.9) split into the
+ * background (`variant`) and `align: 'centered'`. Any other value passes
+ * through as before. A pre-2026.09.9 template has no split: it casts the whole
+ * value, and its CtaBanner only draws the image for exactly `'image-bg'`, so
+ * both centred values render there as the flat colour-bg banner (split row) —
+ * `image-bg-centered` loses its image on an old template.
+ */
 export function extractCtaBannerProps(section: PageSection): CtaBannerProps {
   const img = extractLeadingImage(section.content)
   const { body, cta } = extractTrailingCta(img.body)
+  const raw = section.variant
+  const base = raw?.endsWith(CTA_CENTERED_SUFFIX) ? raw.slice(0, -CTA_CENTERED_SUFFIX.length) : undefined
+  const centered = base === 'color-bg' || base === 'image-bg'
   return {
-    variant: (section.variant as 'color-bg' | 'image-bg') ?? 'color-bg',
+    variant: centered ? base : ((raw as CtaBannerProps['variant']) ?? 'color-bg'),
+    ...(centered ? { align: 'centered' as const } : {}),
     theme: section.theme === 'ink' ? 'ink' : undefined,
     heading: section.heading,
     body: body.trim() || undefined,
@@ -294,7 +327,8 @@ export function extractPageHeaderProps(manifest: PageManifest): PageHeaderProps 
 // ---------------------------------------------------------------------------
 
 export type ServiceCardsProps = {
-  variant: '2-col' | '3-col'
+  /** 'list' (2026.09.9): one card per row, image/icon left, text right. */
+  variant: '2-col' | '3-col' | 'list'
   theme?: 'light' | 'ink'
   heading: string
   intro?: string
@@ -323,7 +357,8 @@ export function extractServiceCardsProps(section: PageSection): ServiceCardsProp
 // ---------------------------------------------------------------------------
 
 export type TeamGridProps = {
-  variant: '2-col' | '3-col' | '4-col'
+  /** 'list' (2026.09.9): one member per row, photo left, credentials + bio right. */
+  variant: '2-col' | '3-col' | '4-col' | 'list'
   heading: string
   intro?: string
   members: Array<{
@@ -351,7 +386,9 @@ export function extractTeamGridProps(section: PageSection): TeamGridProps {
 // ---------------------------------------------------------------------------
 
 export type TestimonialsProps = {
-  variant: 'carousel' | 'grid'
+  /** 'featured' (2026.09.9): the first quote as a large pull quote across the
+   * row, the rest in the grid below. Every testimonial stays visible. */
+  variant: 'carousel' | 'grid' | 'featured'
   heading?: string
   testimonials: Array<{
     quote: string
@@ -619,7 +656,8 @@ export function extractHeroSplitProps(manifest: PageManifest, site?: HeroCtaSite
 // ---------------------------------------------------------------------------
 
 export type ContentCardsProps = {
-  variant: '3-col' | '2-col'
+  /** 'list' (2026.09.9): one card per row, image left, text right. */
+  variant: '3-col' | '2-col' | 'list'
   heading: string
   intro?: string
   cards: Array<{ title: string; excerpt: string; url: string; image?: string; date?: string }>

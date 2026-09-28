@@ -461,7 +461,22 @@ and a mirror + parity test on the platform:
 | Capability marker | `c5-template.json` + `<meta name="c5-capabilities">` | `lib/design/capabilities.ts` |
 | Live fonts | `src/lib/theme/font-{manifest,module}.ts` → `src/app/fonts.generated.ts` (`npm run generate-fonts`) | `lib/content/font-{manifest,module-generator}.ts` + goldens |
 | Style axes | `src/lib/theme/style-axes.ts` + `src/styles/style-axes.css` | `lib/design/style-axes.ts` + `docs/design/style-axes.json` |
-| Specimen | `src/app/design-specimen/page.tsx` | the page picker (`lib/design/pages.ts`) |
+| Specimen | `src/app/design-specimen/page.tsx` (+ `?layouts=1` → `design-specimen/layouts`, via `src/proxy.ts`) | the page picker (`lib/design/pages.ts`) |
+| Block catalog | `src/lib/assembly/block-catalog.ts` → `docs/design/blocks.json` | `lib/content/block-catalog.ts` + `__fixtures__/blocks.template.json` |
+| Layout presets (2026.09.9, capability `layout-presets`) | `src/lib/theme/layout-presets.ts` + `src/styles/block-layouts.css` → `docs/design/layout-presets.json` | Phase 4 platform mirror |
+
+**Layout presets.** `design.json` `layout` (`cards: list`, `ctaBanner: centered`,
+`faq: split`, `team: list`, `testimonials: featured`; `default` each) emits one
+`<html data-c5-layout-*>` attribute per non-default value (layout.tsx). The rules are the
+per-section layout-variant rules in `block-layouts.css`, applied to that family's
+sections with no `data-layout` and no ink card band (`.u-band-ink`; an ink cta-banner
+renders like any banner, so it does follow `ctaBanner`). An explicit layout variant wins; legacy
+column/background variants follow the preset; the testimonials carousel stays a
+carousel. Absent, default or malformed values emit nothing (R1).
+
+**Template version meta (2026.09.9).** Every page also carries
+`<meta name="c5-template-version">`, so the platform can take the effective template
+version as min(draft marker, deployed shell).
 
 After changing a contract, run `npm run design-contracts` and re-copy the JSON / golden
 files into the platform fixtures.

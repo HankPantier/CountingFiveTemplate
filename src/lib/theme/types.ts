@@ -1,5 +1,6 @@
 import type { StyleAxes } from './style-axes'
 import type { LogoSize } from './logo-size'
+import type { LayoutPresets } from './layout-presets'
 
 export type Roundness = 'sharp' | 'soft' | 'pill'
 export type Density = 'tight' | 'balanced' | 'airy'
@@ -29,6 +30,9 @@ export type DesignJson = {
   /** Header/footer logo size (2026.09.8). Absent / 'standard' = today's 32px;
    * 'large' → <html data-c5-logo-size="large"> (src/lib/theme/logo-size.ts). */
   logo?: { size?: LogoSize }
+  /** Site-wide layout presets (2026.09.9). Absent / 'default' = today's
+   * layouts; otherwise <html data-c5-layout-*> (src/lib/theme/layout-presets.ts). */
+  layout?: LayoutPresets
   spacing: {
     xs: string
     sm: string

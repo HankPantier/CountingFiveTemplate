@@ -11,6 +11,12 @@ import {
   extractProcessStepsProps,
   isLongIntroBody,
   isStatFigure,
+  extractServiceCardsProps,
+  extractFeatureGridProps,
+  extractContentCardsProps,
+  extractTeamGridProps,
+  extractTestimonialsProps,
+  ctaBannerAnnotationVariant,
 } from './extract-block-props'
 import { parsePageMd, type PageSection, type PageManifest } from './parse-page-md'
 
@@ -132,6 +138,25 @@ describe('extractCtaBannerProps', () => {
     const props = extractCtaBannerProps(s)
     expect(props.background_asset).toBe('bg.jpg')
     expect(props.body).toBe('Let us talk.')
+  })
+})
+
+describe('layout variants (2026.09.9)', () => {
+  const sec = (blockId: string, variant?: string): PageSection => ({ blockId, heading: 'H', content: '', position: 0, variant })
+  it('list / featured pass straight through as the variant', () => {
+    expect(extractServiceCardsProps(sec('service-cards', 'list')).variant).toBe('list')
+    expect(extractFeatureGridProps(sec('feature-grid', 'list')).variant).toBe('list')
+    expect(extractContentCardsProps(sec('content-cards', 'list')).variant).toBe('list')
+    expect(extractTeamGridProps(sec('team-grid', 'list')).variant).toBe('list')
+    expect(extractTestimonialsProps(sec('testimonials', 'featured')).variant).toBe('featured')
+  })
+  it('cta-banner <bg>-centered splits into the background + align', () => {
+    expect(extractCtaBannerProps(sec('cta-banner', 'image-bg-centered'))).toMatchObject({ variant: 'image-bg', align: 'centered' })
+    expect(extractCtaBannerProps(sec('cta-banner', 'color-bg-centered'))).toMatchObject({ variant: 'color-bg', align: 'centered' })
+    expect(extractCtaBannerProps(sec('cta-banner', 'color-bg'))).not.toHaveProperty('align')
+    expect(extractCtaBannerProps(sec('cta-banner'))).toMatchObject({ variant: 'color-bg' })
+    expect(ctaBannerAnnotationVariant({ variant: 'image-bg', align: 'centered' })).toBe('image-bg-centered')
+    expect(ctaBannerAnnotationVariant({ variant: 'image-bg' })).toBe('image-bg')
   })
 })
 

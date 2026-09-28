@@ -9,7 +9,9 @@ import { HeroSlides } from './HeroSlides'
 import { ACTION_DISPLAY_COLOR } from '@/lib/theme/accent-color'
 
 export type HeroProps = {
-  variant: 'image' | 'video' | 'slider' | 'image-right' | 'image-left' | 'statement'
+  // Type-only narrowing (2026.09.9): unknown values (the dead image-right /
+  // image-left included) still render the full-bleed image hero below.
+  variant: 'image' | 'video' | 'slider' | 'statement'
   image?: string
   image_alt?: string
   video?: string

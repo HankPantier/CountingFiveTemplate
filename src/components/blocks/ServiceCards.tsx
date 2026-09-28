@@ -7,6 +7,7 @@ import Link from 'next/link'
 import { cn } from '@/lib/utils'
 import { resolveImageSrc } from '@/lib/assembly/resolve-image'
 import type { ServiceCardsProps } from '@/lib/assembly/extract-block-props'
+import { layoutSlot } from './layout-slot'
 
 export type { ServiceCardsProps }
 
@@ -20,6 +21,9 @@ export function ServiceCards({ variant, theme, heading, intro, cards }: ServiceC
       : 'sm:grid-cols-2 lg:grid-cols-3'
 
   const isInk = theme === 'ink'
+  // 'list' (2026.09.9): default markup + data-layout + slot hooks; the rows come
+  // from src/styles/block-layouts.css (shared with the site-wide cards preset).
+  const layout = variant === 'list' ? 'list' : undefined
 
   const grid = (
     <>
@@ -34,10 +38,11 @@ export function ServiceCards({ variant, theme, heading, intro, cards }: ServiceC
           />
         )}
       </header>
-      <div className={cn('mt-12 grid gap-6', colsClass)}>
+      <div className={cn('mt-12 grid gap-6', colsClass)} data-c5-slot={layoutSlot(layout, 'items')}>
         {cards.map((card, i) => (
           <div
             key={i}
+            data-c5-slot={layoutSlot(layout, 'item')}
             className={cn(
               'u-card h-full flex flex-col overflow-hidden',
               card.url && 'u-card-interactive',
@@ -51,9 +56,10 @@ export function ServiceCards({ variant, theme, heading, intro, cards }: ServiceC
                 grade="duotone"
                 framed={false}
                 sizes="(max-width: 640px) 100vw, (max-width: 1024px) 50vw, 33vw"
+                slot={layoutSlot(layout, 'media')}
               />
             )}
-            <div className="flex flex-1 flex-col p-6">
+            <div className="flex flex-1 flex-col p-6" data-c5-slot={layoutSlot(layout, 'body')}>
               {card.icon && !card.image && (
                 <div className="u-icon-square mb-4 flex h-12 w-12 items-center justify-center">
                   <Icon name={card.icon} className="h-6 w-6" />
@@ -79,11 +85,11 @@ export function ServiceCards({ variant, theme, heading, intro, cards }: ServiceC
 
   if (isInk) {
     return (
-      <Section fullBleed bg="primary" spacing="spacious" dataBlock="service-cards" className="u-band-ink">
+      <Section fullBleed bg="primary" spacing="spacious" dataBlock="service-cards" dataLayout={layout} className="u-band-ink">
         {grid}
       </Section>
     )
   }
 
-  return <Section dataBlock="service-cards">{grid}</Section>
+  return <Section dataBlock="service-cards" dataLayout={layout}>{grid}</Section>
 }

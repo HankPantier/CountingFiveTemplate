@@ -10,14 +10,19 @@ import {
 } from '@/components/ui/carousel'
 import { cn } from '@/lib/utils'
 import type { TestimonialsProps } from '@/lib/assembly/extract-block-props'
+import { layoutSlot } from './layout-slot'
 
 export type { TestimonialsProps }
 
 export function Testimonials({ variant, heading, testimonials }: TestimonialsProps) {
   if (!testimonials || testimonials.length === 0) return null
+  // 'featured' (2026.09.9): the grid markup + data-layout + slot hooks; the pull
+  // quote comes from src/styles/block-layouts.css (shared with the site-wide
+  // testimonials preset). Every testimonial stays in the DOM and visible.
+  const layout = variant === 'featured' ? 'featured' : undefined
 
   return (
-    <Section bg="surface" dataBlock="testimonials">
+    <Section bg="surface" dataBlock="testimonials" dataLayout={layout}>
       {heading && (
         <header className="mb-10 text-center">
           <h2 className="t-h2 text-foreground">{heading}</h2>
@@ -33,7 +38,7 @@ export function Testimonials({ variant, heading, testimonials }: TestimonialsPro
           <CarouselLayout testimonials={testimonials} />
         </div>
       ) : (
-        <GridLayout testimonials={testimonials} />
+        <GridLayout testimonials={testimonials} layout={layout} />
       )}
     </Section>
   )
@@ -57,12 +62,12 @@ function initials(name: string): string {
     .join('')
 }
 
-function QuoteCard({ quote, name, title, company, rating }: QuoteCardProps) {
+function QuoteCard({ quote, name, title, company, rating, slot }: QuoteCardProps & { slot?: string }) {
   const subline = [title, company].filter(Boolean).join(', ')
   const stars = rating && rating > 0 ? Math.round(rating) : 0
 
   return (
-    <figure className="u-card p-6 h-full flex flex-col">
+    <figure className="u-card p-6 h-full flex flex-col" data-c5-slot={slot}>
       {stars > 0 && (
         <div
           className="mb-4 flex gap-0.5 text-base leading-none"
@@ -124,7 +129,7 @@ function CarouselLayout({ testimonials }: { testimonials: TestimonialsProps['tes
   )
 }
 
-function GridLayout({ testimonials }: { testimonials: TestimonialsProps['testimonials'] }) {
+function GridLayout({ testimonials, layout }: { testimonials: TestimonialsProps['testimonials']; layout?: string }) {
   const colsClass = cn(
     'grid gap-6',
     testimonials.length === 2
@@ -132,9 +137,9 @@ function GridLayout({ testimonials }: { testimonials: TestimonialsProps['testimo
       : 'sm:grid-cols-2 lg:grid-cols-3'
   )
   return (
-    <div className={colsClass}>
+    <div className={colsClass} data-c5-slot={layoutSlot(layout, 'items')}>
       {testimonials.map((t, i) => (
-        <QuoteCard key={i} {...t} />
+        <QuoteCard key={i} {...t} slot={layoutSlot(layout, 'item')} />
       ))}
     </div>
   )

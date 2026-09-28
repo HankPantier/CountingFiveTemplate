@@ -4,6 +4,7 @@ import path from 'node:path'
 import matter from 'gray-matter'
 import { pageUrlToFilename } from '../src/lib/content/get-page'
 import { parsePageMd } from '../src/lib/assembly/parse-page-md'
+import { lintBlockAnnotations } from '../src/lib/assembly/annotation-lint'
 
 type Finding = { severity: 'error' | 'warning'; file: string; message: string }
 
@@ -72,6 +73,12 @@ async function main() {
           file: `pages/${file}`,
           message: `frontmatter invalid: ${err instanceof Error ? err.message : String(err)}`,
         })
+      }
+
+      // Block ids / variants / hero pair vs the block catalog (2026.09.9).
+      // Warnings only: the renderer falls back and the schema stays lenient.
+      for (const message of lintBlockAnnotations(content, data)) {
+        findings.push({ severity: 'warning', file: `pages/${file}`, message })
       }
 
       // Frontmatter: hero_image field (skip remote URLs)

@@ -8,6 +8,7 @@ import { MD_LINK_COMPONENTS } from '@/lib/markdown-components'
 import { cn } from '@/lib/utils'
 import { resolveImageSrc } from '@/lib/assembly/resolve-image'
 import type { TeamGridProps } from '@/lib/assembly/extract-block-props'
+import { layoutSlot } from './layout-slot'
 
 export type { TeamGridProps }
 
@@ -21,9 +22,12 @@ export function TeamGrid({ variant, heading, intro, members }: TeamGridProps) {
       : variant === '2-col'
       ? 'sm:grid-cols-2'
       : 'sm:grid-cols-2 lg:grid-cols-3'
+  // 'list' (2026.09.9): default markup + data-layout + slot hooks; the rows come
+  // from src/styles/block-layouts.css (shared with the site-wide team preset).
+  const layout = variant === 'list' ? 'list' : undefined
 
   return (
-    <Section dataBlock="team-grid">
+    <Section dataBlock="team-grid" dataLayout={layout}>
       <header className="max-w-2xl mx-auto text-center">
         <h2
           className="font-heading text-3xl md:text-4xl font-semibold text-foreground"
@@ -34,11 +38,11 @@ export function TeamGrid({ variant, heading, intro, members }: TeamGridProps) {
           <InlineProse text={intro} className="mt-3 text-foreground/70 leading-relaxed" />
         )}
       </header>
-      <div className={cn('mt-12 grid gap-8', colsClass)}>
+      <div className={cn('mt-12 grid gap-8', colsClass)} data-c5-slot={layoutSlot(layout, 'items')}>
         {members.map((member, i) => (
-          <article key={i} className="h-full" itemScope itemType="https://schema.org/Person">
+          <article key={i} className="h-full" itemScope itemType="https://schema.org/Person" data-c5-slot={layoutSlot(layout, 'item')}>
             <Card className="h-full flex flex-col overflow-hidden">
-              <div className="relative aspect-[4/5] bg-muted shrink-0">
+              <div className="relative aspect-[4/5] bg-muted shrink-0" data-c5-slot={layoutSlot(layout, 'media')}>
                 {member.photo ? (
                   <Image
                     src={resolveImageSrc(member.photo)!}
@@ -53,7 +57,7 @@ export function TeamGrid({ variant, heading, intro, members }: TeamGridProps) {
                   </div>
                 )}
               </div>
-              <CardContent className="p-5 flex-1">
+              <CardContent className="p-5 flex-1" data-c5-slot={layoutSlot(layout, 'body')}>
                 <h3
                   className="font-heading font-semibold text-lg text-foreground"
                   itemProp="name"

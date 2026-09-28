@@ -11,6 +11,10 @@ type SectionProps = {
   className?: string
   as?: 'section' | 'header' | 'footer' | 'div'
   dataBlock?: string
+  /** Layout variant (2026.09.9) → data-layout on the section root, styled by
+   * src/styles/block-layouts.css. Only the new layout variants pass it; every
+   * other section emits no attribute (R1). */
+  dataLayout?: string
 }
 
 const BG_CLASSES: Record<NonNullable<SectionProps['bg']>, string> = {
@@ -40,6 +44,7 @@ export function Section({
   className,
   as: Tag = 'section',
   dataBlock,
+  dataLayout,
 }: SectionProps) {
   const bgClass = BG_CLASSES[bg]
   const padClass = SPACING_CLASSES[spacing]
@@ -48,7 +53,7 @@ export function Section({
 
   if (fullBleed) {
     return (
-      <Tag data-block={dataBlock} className={cn(bgClass, className)}>
+      <Tag data-block={dataBlock} data-layout={dataLayout} className={cn(bgClass, className)}>
         <div data-c5-spacing={spacingHook} className={cn('max-w-7xl mx-auto px-4 sm:px-6 lg:px-8', padClass)}>
           {children}
         </div>
@@ -59,6 +64,7 @@ export function Section({
   return (
     <Tag
       data-block={dataBlock}
+      data-layout={dataLayout}
       data-c5-spacing={spacingHook}
       className={cn('max-w-7xl mx-auto px-4 sm:px-6 lg:px-8', padClass, bgClass, className)}
     >

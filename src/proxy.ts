@@ -1,7 +1,8 @@
 import { NextResponse, type NextRequest } from 'next/server'
 
 /**
- * Agent-readiness proxy (formerly "middleware" before Next 16). Three jobs:
+ * Agent-readiness proxy (formerly "middleware" before Next 16). Three jobs
+ * (plus the design-specimen layouts rewrite, 4. below):
  *
  *   1. Rewrite `<page>.md` URLs to the internal markdown route handler at
  *      `/api/md/[[...slug]]`, so agents that request the raw markdown of a
@@ -23,8 +24,21 @@ import { NextResponse, type NextRequest } from 'next/server'
  * untouched — with an explicit add-back for `/.well-known/agent.json` (which
  * the `.json` extension exclude would otherwise drop).
  */
+/** Internal route behind /design-specimen?layouts=1 (the layout specimen). */
+export const LAYOUT_SPECIMEN_PATH = '/design-specimen/layouts'
+
 export function proxy(req: NextRequest) {
   const { pathname } = req.nextUrl
+
+  // 4. `/design-specimen?layouts=1` → the static layout specimen (2026.09.9).
+  //    A rewrite, not searchParams in the page, so /design-specimen itself
+  //    stays static and byte-identical.
+  if (pathname === '/design-specimen' && req.nextUrl.searchParams.get('layouts') === '1') {
+    const url = req.nextUrl.clone()
+    url.pathname = LAYOUT_SPECIMEN_PATH
+    url.search = ''
+    return NextResponse.rewrite(url)
+  }
 
   if (pathname === '/.well-known/agent.json') {
     const url = req.nextUrl.clone()
