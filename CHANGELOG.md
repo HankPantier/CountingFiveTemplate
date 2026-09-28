@@ -2,6 +2,116 @@
 
 All notable changes to this template are recorded here. The format follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/) and the project loosely follows semver — though as a per-client template, "release" means "checkpoint on `main`" rather than a published package version.
 
+## [2026.09.8] — Opt-in larger logo; a long nav never crushes the logo
+
+Two header fixes. The header and footer logos render at a fixed 32px height,
+which is small for stacked or two-line lockups (Stephen P. Pryor CPA). And a
+desktop nav wider than the bar squeezed the logo, down to 0px on Kinexus: the
+logo link's img has `max-width: 100%`, so it has no minimum width and absorbed
+the whole overflow.
+
+### Added
+- **`design.json` `logo.size`** (`"standard" | "large"`, optional).
+  `"large"` emits `<html data-c5-logo-size="large">`
+  (`src/lib/theme/logo-size.ts`, layout.tsx); absent / `"standard"` /
+  malformed emit nothing, so every site renders exactly as before (R1).
+- **`src/styles/logo-size.css`** (imported after action-edge.css, before the
+  client overrides), every rule gated on the attribute: header logo 40px on
+  phones and 44px from `md` (the bar stays 64px), footer logo 40px (same h-8
+  as the header today, not a shared variable, so it gets its own rule), the
+  text wordmark text-lg → text-xl. The image keeps its aspect ratio;
+  `object-fit: contain` scales a logo that outgrows its box down whole
+  instead of squashing it.
+- Why not a Design Studio style axis: a concept rewrites the whole `style`
+  object (absent axis = default), so an axis would reset the operator's size
+  on every concept apply, and the Studio critic never scores the logo. `logo`
+  is a sibling key the Studio's design.json merge carries through untouched.
+  The platform sets it from the Theme Studio Controls ("Logo size").
+- **Header fit guard, decided before first paint** (`src/lib/nav/nav-fit.ts`):
+  a tiny inline script layout.tsx emits right after `<NavBar>` (the CSP
+  already allows inline scripts) measures the header row (logo at its NATURAL
+  width · desktop nav · actions) while the page is parsed. If it is wider than
+  the bar it sets `<html data-c5-nav-fit="collapse">` and
+  **`src/styles/nav-fit.css`** (from `md` up) hides the desktop nav and shows
+  the menu button. A row that fits sets nothing. It re-decides on window
+  resize, bar resize and logo load; a re-check while collapsed removes the
+  attribute, measures and restores it in the same task, so the expanded state
+  is never painted. It waits for the logo image to load rather than guess its
+  width (next/image boxes every logo at 160×32 until then). Any error leaves
+  the 2026.09.7 page.
+- JavaScript off: `@media (scripting: none)` clips the bar's horizontal
+  overflow, so a too-long row no longer widens the page (2026.09.7 scrolled
+  sideways). No effect when scripting is on.
+- Tests: unit (`logoSizeAttributes` gating, every logo-size.css selector
+  gated, sizes, import order; the fit script executed against a fake DOM;
+  nav-fit.css gating); e2e `logo-size.spec.ts` measured from the rendered
+  boxes: default 32px header and footer; large 44px desktop / 40px phone /
+  40px footer at the logo's own aspect ratio, bar still 64px, no sideways
+  scroll on a phone. Fit guard: fixtures written into the SERVED HTML
+  (page.route) with the JS bundles blocked, so what is measured is the
+  pre-hydration first paint — a Kinexus-like header (287×85 logo, 9 items +
+  CTA) reproduces the 0px logo without the attribute and is collapsed with
+  the logo at its natural 108px (44px tall when large); a Buss-like header
+  (164px logo) collapses at 1024/1180 and is untouched at 1280/1440; resizing
+  re-decides. Content-agnostic.
+
+### Changed
+- **NavBar / MobileNav are unchanged** (byte-identical to 2026.09.7): the fit
+  guard is the inline script + nav-fit.css, so SSR, no-JS and pre-hydration
+  markup are 2026.09.7's. Labels still wrap exactly as before when that is
+  enough to fit: only a row that cannot fit with the logo at its natural width
+  collapses.
+- `hooks.test.ts`: nav-fit.css is the fifth hook stylesheet.
+- `e2e/design-defaults.spec.ts`: `data-c5-nav-fit` (viewport-derived runtime
+  state) is excluded from the design.json/brand.json hook contract.
+- `hooks.test.ts`: logo-size.css is the fourth stylesheet allowed to reference
+  `data-c5` hooks. `template-marker.test.ts`: 2026.09.8.
+- `e2e/design-defaults.spec.ts`: the `<html data-c5-*>` contract includes the
+  `data-c5-logo-size` hook derived from design.json.
+- Docs: architecture.md ("Header logo size and fit"), how-to-new-site.md.
+
+### R1
+- @visual baselines unchanged (8/8). Header screenshots byte-identical to
+  2026.09.7 at 390/768/834/1024/1280/1440 px with the text wordmark, a stacked
+  lockup and the Kinexus logo on the default nav, and with a Buss-like header
+  at 1280/1440 (it fits there).
+- The fit guard only changes a header whose logo is squeezed today (row wider
+  than the bar at the logo's natural width). Measured on the live sites
+  (2026-09-27, logo rendered / natural width):
+  - **768px** (every site's logo is squeezed today → menu button instead):
+    Kinexus 30/108, Buss 0/164, Berg 20/132, Pryor 126/164, bblcpa 0/164,
+    Aurora 0/125, Abramson 68/134, Slachta (text wordmark) wrapped, TruCount
+    (text wordmark) wrapped, Accord 0/120.
+  - **1024px**: Buss 0/164, bblcpa 97/164, Slachta and TruCount (wordmark
+    wrapped) → menu button. Kinexus, Berg, Pryor, Aurora, Abramson, Accord
+    fit → unchanged.
+  - **1280px and wider**: every site fits → unchanged (Buss exactly, 1280 of
+    1280).
+- `logo.size`: no site sets it, so nothing changes until an operator opts in.
+
+### Rollout notes (template 2026.09.7 → 2026.09.8)
+Ship in ONE commit, `c5-template.json` last.
+- **Overwrite (M):** `src/app/globals.css`, `src/app/layout.tsx`,
+  `src/lib/theme/types.ts`,
+  `src/lib/theme/{hooks.test,template-marker.test,action-edge.test}.ts`,
+  `e2e/design-defaults.spec.ts`, `docs/architecture.md`,
+  `docs/how-to-new-site.md`, `CHANGELOG.md`.
+- **Add (A):** `src/styles/logo-size.css`, `src/styles/nav-fit.css`,
+  `src/lib/theme/{logo-size,logo-size.test}.ts`,
+  `src/lib/nav/{nav-fit,nav-fit.test}.ts`,
+  `e2e/logo-size.spec.ts`.
+- **Delete (D):** none.
+- `action-edge.test.ts` is template main 548271e (its theme.css/brand.json
+  parity check runs only on template-default content), merged into this
+  release; repos synced from 17909dc don't have it yet.
+- **Skip:** `package-lock.json` (unchanged), `content/**`.
+- **Write last:** `c5-template.json` = `{"templateVersion": "2026.09.8",
+  "capabilities": ["fonts", "style-axes", "specimen"], "syncedFrom":
+  "<the template main SHA being rolled out>"}`.
+- theme.css is not rewritten by this release; no package.json change.
+- To opt a site in (e.g. Pryor): add `"logo": { "size": "large" }` to its
+  `content/design.json`, or use Theme Studio → Controls → Logo size.
+
 ## [2026.09.7] — CTA buttons keep their shape on primary bands
 
 The call-to-action button (Button `variant="cta"`, raw `--color-action`

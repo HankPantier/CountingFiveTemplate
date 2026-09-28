@@ -1,4 +1,5 @@
 import type { StyleAxes } from './style-axes'
+import type { LogoSize } from './logo-size'
 
 export type Roundness = 'sharp' | 'soft' | 'pill'
 export type Density = 'tight' | 'balanced' | 'airy'
@@ -25,6 +26,9 @@ export type DesignJson = {
   /** Design Studio style axes (T2). Absent / 'default' = today's look; see
    * src/lib/theme/style-axes.ts. layout.tsx maps it to <html data-c5-*>. */
   style?: StyleAxes
+  /** Header/footer logo size (2026.09.8). Absent / 'standard' = today's 32px;
+   * 'large' → <html data-c5-logo-size="large"> (src/lib/theme/logo-size.ts). */
+  logo?: { size?: LogoSize }
   spacing: {
     xs: string
     sm: string

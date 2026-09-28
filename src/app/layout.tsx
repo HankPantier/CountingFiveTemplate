@@ -19,6 +19,8 @@ import { capabilitiesMetaContent } from '@/lib/theme/template-marker'
 import { styleAxisAttributes } from '@/lib/theme/style-axes'
 import { logoToneAttributes } from '@/lib/brand/logo-tone'
 import { actionEdgeAttributes } from '@/lib/theme/action-edge'
+import { logoSizeAttributes } from '@/lib/theme/logo-size'
+import { NAV_FIT_SCRIPT } from '@/lib/nav/nav-fit'
 import { siteConfig } from '../../site.config'
 
 export async function generateMetadata(): Promise<Metadata> {
@@ -115,12 +117,17 @@ export default async function RootLayout({
       // emit an attribute, so untouched sites match no style-axes.css rule.
       {...styleAxisAttributes(design.style)}
       // brand.json logo.tone "light" (white logo): logo plates/filters in
-      // globals.css. Absent for every dark or unset logo.
+      // src/styles/logo-tone.css. Absent for every dark or unset logo.
       {...logoToneAttributes(brand)}
       // brand.json palette whose raw action is under 3:1 on primary: the CTA
-      // buttons on primary bands get an on-primary edge (globals.css). Absent
+      // buttons on primary bands get an on-primary edge (action-edge.css). Absent
       // for every palette that already passes.
       {...actionEdgeAttributes(brand)}
+      // design.json logo.size "large": taller header/footer logo
+      // (src/styles/logo-size.css). Absent for 'standard' / unset — every other
+      // site keeps its 32px logo. (data-c5-nav-fit is NOT set here: the header
+      // fit script adds it at runtime, see NAV_FIT_SCRIPT below.)
+      {...logoSizeAttributes(design)}
       style={fontAliases}
       // next-themes sets the theme class on <html> before hydration, so the
       // server/client class attributes intentionally differ on first paint.
@@ -162,6 +169,11 @@ export default async function RootLayout({
             </a>
             <TopUtilityBar phone={brand.contact.phone} />
             <NavBar brand={brand} nav={nav} />
+            {/* Header fit guard: runs as soon as the header is parsed, before
+                first paint, and collapses a desktop nav too long for the bar
+                (src/lib/nav/nav-fit.ts, nav-fit.css). A static constant — no
+                request or content data is interpolated. */}
+            <script dangerouslySetInnerHTML={{ __html: NAV_FIT_SCRIPT }} />
             {children}
             <Footer />
             {/* <Analytics> is a client component that reads consent from

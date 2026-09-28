@@ -183,6 +183,11 @@ in the onboarding platform once the site is deployed. It reads the live site plu
 re-running `unpack`. After editing `content/design.json` by hand, run
 `npx tsx scripts/generate-theme.ts` and `npm run generate-fonts`.
 
+**Logo size:** a stacked or two-line logo lockup reads small at the default 32px
+header height. Set `"logo": { "size": "large" }` in `content/design.json` (or pick
+"Logo size: Large" in the platform's Theme Studio Controls) for 44px on desktop,
+40px on phones and 40px in the footer. No theme regeneration needed.
+
 ---
 
 ## 7. Deploy to Vercel

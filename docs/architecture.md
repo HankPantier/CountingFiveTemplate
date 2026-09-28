@@ -148,6 +148,25 @@ banner) carries `data-component="..."` on its outer element. Style-axis presets
 (`src/styles/style-axes.css`) and per-client `content/design-overrides.css`
 target these; the logo links also carry the inert `data-c5="logo"` hook.
 
+### Header logo size and fit
+
+- **Size** — `content/design.json` `"logo": { "size": "large" }` emits
+  `<html data-c5-logo-size="large">` (`src/lib/theme/logo-size.ts`) and
+  `src/styles/logo-size.css` raises the header logo from 32px to 40px on phones and
+  44px from `md`, and the footer logo to 40px (the image keeps its aspect ratio;
+  `object-fit: contain` scales a too-wide logo down whole). Absent or `"standard"`
+  emits nothing (today's 32px). It is a sibling of `style`, not a style axis: a
+  Design Studio concept rewrites the whole `style` object, which would reset it,
+  and the Studio never scores the logo. The platform sets it from the Theme Studio
+  Controls ("Logo size").
+- **Fit** — an inline script right after the header (`src/lib/nav/nav-fit.ts`,
+  emitted by layout.tsx) measures the header row (logo at its natural width ·
+  desktop nav · actions) before first paint. If it is wider than the bar it sets
+  `<html data-c5-nav-fit="collapse">` and `src/styles/nav-fit.css` swaps the
+  desktop nav for the menu button from `md` up, instead of letting the flex row
+  squeeze the logo (to 0px on Kinexus). A row that fits (labels may still wrap,
+  as before) is never changed; with JavaScript off the bar clips its overflow.
+
 To target child slots from `content/design-overrides.css`, give them `data-slot="<name>"` attributes (e.g. `<button data-slot="accept">`). Designs then target via `[data-component="..."] [data-slot="..."]`.
 
 ## Caching model (Cache Components)

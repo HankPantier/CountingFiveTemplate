@@ -1,0 +1,30 @@
+/* logo-size.css — design.json logo.size = "large" →
+ * html[data-c5-logo-size="large"] (src/lib/theme/logo-size.ts, layout.tsx).
+ *
+ * NavBar and Footer render the logo image at h-8 (32px). Stacked / two-line
+ * lockups (Pryor) read small at that height. "large" raises the header logo to
+ * 40px on phones and 44px from md (the 64px bar keeps ≥ 10px above and below,
+ * and ≥ 6px around the inverted / light-logo plates), and the footer logo to
+ * 40px. layout.tsx emits the attribute only for "large", so every rule here is
+ * inert on every other site (R1).
+ *
+ * object-fit: contain + left alignment: if a wide logo at the larger height
+ * outgrows its box (a phone header, a narrow footer column) the image is
+ * scaled down whole instead of being squashed horizontally. Width stays auto,
+ * so a logo that fits is drawn at exactly height × aspect ratio. */
+html[data-c5-logo-size="large"] [data-component="navbar"] [data-c5="logo"] img,
+html[data-c5-logo-size="large"] [data-component="footer"] [data-c5="logo"] img {
+  height: 2.5rem;
+  object-fit: contain;
+  object-position: left center;
+}
+@media (min-width: 48rem) {
+  html[data-c5-logo-size="large"] [data-component="navbar"] [data-c5="logo"] img {
+    height: 2.75rem;
+  }
+}
+/* No logo image: the firm-name wordmark steps up from text-lg to text-xl. */
+html[data-c5-logo-size="large"] [data-c5="logo"] > span {
+  font-size: 1.25rem;
+  line-height: 1.75rem;
+}
