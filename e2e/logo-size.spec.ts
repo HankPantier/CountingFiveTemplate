@@ -169,7 +169,7 @@ function rewriteHeader(html: string, f: NavFixture): string {
 
 /** Load / with the fixture header. JS bundles are blocked (the page never
  * hydrates) unless `hydrate: true`; the inline fit script still runs. */
-async function servedFixture(page: Page, f: NavFixture, width: number, opts: { hydrate?: boolean; large?: boolean } = {}) {
+async function servedFixture(page: Page, f: NavFixture, width: number, opts: { hydrate?: boolean; large?: boolean; noJs?: boolean } = {}) {
   await page.setViewportSize({ width, height: 900 })
   await page.route('**/*', async (route) => {
     const req = route.request()
@@ -186,7 +186,8 @@ async function servedFixture(page: Page, f: NavFixture, width: number, opts: { h
   })
   await page.goto('/')
   await page.waitForLoadState('load')
-  await settle(page)
+  // With JavaScript off there are no animation frames to wait for.
+  if (!opts.noJs) await settle(page)
 }
 
 async function headerState(page: Page) {
@@ -225,7 +226,7 @@ test.describe('header fit guard (decided before first paint)', () => {
     expect(s.scrollWidth).toBeGreaterThan(1280)
   })
 
-  for (const width of [1024, 1180, 1280]) {
+  for (const width of [768, 1024, 1180, 1280]) {
     test(`Kinexus fixture at ${width}px, before hydration: nav collapsed, logo natural, no sideways scroll`, async ({ page }) => {
       await servedFixture(page, KINEXUS, width)
       const s = await headerState(page)
@@ -238,6 +239,7 @@ test.describe('header fit guard (decided before first paint)', () => {
   }
 
   for (const [width, collapse] of [
+    [768, true],
     [1024, true],
     [1180, true],
     [1280, false],
@@ -296,4 +298,34 @@ test.describe('header fit guard (decided before first paint)', () => {
     await settle(page)
     expect((await headerState(page)).attr).toBe('collapse')
   })
+})
+
+test.describe('header fit guard with JavaScript off', () => {
+  test.use({ javaScriptEnabled: false })
+
+  for (const [name, f] of [
+    ['Kinexus', KINEXUS],
+    ['Buss', BUSS],
+  ] as const) {
+    for (const width of [768, 1024, 1180, 1280]) {
+      test(`${name} fixture at ${width}px: nothing decides, and the bar clips instead of widening the page`, async ({ page }) => {
+        await servedFixture(page, f, width, { noJs: true })
+        // No script ran: the 2026.09.7 layout (nav shown, no attribute) …
+        const s = await page.evaluate(() => {
+          const bar = document.querySelector('[data-component="navbar"] > div')!
+          return {
+            attr: document.documentElement.getAttribute('data-c5-nav-fit'),
+            navShown: getComputedStyle(bar.querySelector(':scope > nav')!).display !== 'none',
+            overflowX: getComputedStyle(bar).overflowX,
+            scrollWidth: document.documentElement.scrollWidth,
+          }
+        })
+        expect(s.attr).toBeNull()
+        expect(s.navShown).toBe(true)
+        // … but @media (scripting: none) clips the bar, so the page never scrolls sideways.
+        expect(s.overflowX).toBe('clip')
+        expect(s.scrollWidth).toBeLessThanOrEqual(width)
+      })
+    }
+  }
 })
