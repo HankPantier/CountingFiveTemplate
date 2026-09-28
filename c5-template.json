@@ -1,5 +1,5 @@
 {
   "templateVersion": "2026.09.8",
-  "capabilities": ["fonts", "style-axes", "specimen"],
+  "capabilities": ["fonts", "style-axes", "specimen", "layout-presets"],
   "syncedFrom": null
 }

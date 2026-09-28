@@ -7,7 +7,7 @@ import { actionEdgeAttributes } from '../src/lib/theme/action-edge'
 import { logoSizeAttributes } from '../src/lib/theme/logo-size'
 import { LAYOUT_PRESETS, LAYOUT_PRESET_NAMES, layoutPresetAttributes } from '../src/lib/theme/layout-presets'
 import type { BrandJson } from '../src/lib/brand/types'
-import { capabilitiesMetaContent, TEMPLATE_MARKER } from '../src/lib/theme/template-marker'
+import { capabilitiesMetaContent, templateVersionMetaContent, TEMPLATE_MARKER } from '../src/lib/theme/template-marker'
 import { IS_TEMPLATE_DEFAULT, NOT_TEMPLATE_DEFAULT_REASON } from './template-default'
 
 /**
@@ -61,9 +61,12 @@ test('<html> data-c5-* style-axis attributes match design.json style (none by de
 // at any template version.
 const expectedCapabilitiesMeta = capabilitiesMetaContent(TEMPLATE_MARKER)
 for (const path of ['/', '/privacy-policy']) {
-  test(`${path} advertises the template capabilities`, async ({ page }) => {
+  test(`${path} advertises the template capabilities and version`, async ({ page }) => {
     await page.goto(path)
     await expect(page.locator('meta[name="c5-capabilities"]')).toHaveAttribute('content', expectedCapabilitiesMeta)
+    // 2026.09.9: the deployed shell also states its version (platform takes
+    // min(draft marker, shell) as the effective template version).
+    await expect(page.locator('meta[name="c5-template-version"]')).toHaveAttribute('content', templateVersionMetaContent(TEMPLATE_MARKER))
   })
 }
 

@@ -15,7 +15,7 @@ import { getBrandConfig } from '@/lib/brand/get-brand-config'
 import { getNavConfig } from '@/lib/nav/get-nav-config'
 import { getClientCenterConfig } from '@/lib/client-center/get-client-center-config'
 import { getDesignConfig } from '@/lib/theme/get-theme-vars'
-import { capabilitiesMetaContent } from '@/lib/theme/template-marker'
+import { capabilitiesMetaContent, templateVersionMetaContent } from '@/lib/theme/template-marker'
 import { styleAxisAttributes } from '@/lib/theme/style-axes'
 import { logoToneAttributes } from '@/lib/brand/logo-tone'
 import { actionEdgeAttributes } from '@/lib/theme/action-edge'
@@ -35,8 +35,9 @@ export async function generateMetadata(): Promise<Metadata> {
     description:
       brand.firm.tagline ?? `${brand.firm.name} — accounting & advisory services`,
     // Design Studio capability handshake (see src/lib/theme/template-marker.ts).
-    // Pages don't set `other`, so every page inherits it.
-    other: { 'c5-capabilities': capabilitiesMetaContent() },
+    // Pages don't set `other`, so every page inherits it. c5-template-version
+    // (2026.09.9) lets the platform take min(draft marker, deployed shell).
+    other: { 'c5-capabilities': capabilitiesMetaContent(), 'c5-template-version': templateVersionMetaContent() },
   }
 }
 
