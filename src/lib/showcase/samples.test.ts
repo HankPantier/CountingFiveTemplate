@@ -19,3 +19,19 @@ describe('showcase samples', () => {
     expect(m.hero_headline).toContain('*')
   })
 })
+
+describe('layout specimen cells (2026.09.9)', () => {
+  it('one cell per catalogued layout variant, plus one per accepted theme', async () => {
+    const { BLOCK_CATALOG, BLOCK_IDS } = await import('@/lib/assembly/block-catalog')
+    const expected = BLOCK_IDS.flatMap((id) =>
+      (BLOCK_CATALOG[id].variants as readonly { value: string; layout?: true }[])
+        .filter((v) => v.layout)
+        .flatMap((v) => [undefined, ...BLOCK_CATALOG[id].themes].map((t) => [id, v.value, t].filter(Boolean).join(':'))),
+    )
+    const { layoutSpecimenCells } = await import('./samples')
+    const cells = layoutSpecimenCells()
+    expect(cells.map((c) => c.key)).toEqual(expected)
+    expect(cells.map((c) => c.key)).toContain('service-cards:list:ink')
+    for (const c of cells) expect(c.section).toMatchObject({ blockId: c.blockId, variant: c.variant })
+  })
+})

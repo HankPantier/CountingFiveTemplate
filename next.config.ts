@@ -148,6 +148,7 @@ const nextConfig: NextConfig = {
       // never indexed. (robots.txt deliberately does NOT disallow it: a
       // disallowed URL is never fetched, so its noindex would go unseen.)
       { source: '/design-specimen', headers: [{ key: 'X-Robots-Tag', value: 'noindex, nofollow' }] },
+      { source: '/design-specimen/layouts', headers: [{ key: 'X-Robots-Tag', value: 'noindex, nofollow' }] },
     ]
   },
 }
