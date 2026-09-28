@@ -234,6 +234,12 @@ test.describe('a11y: nothing hidden, reading order kept', () => {
     expect(h2!.x + h2!.width).toBeLessThanOrEqual(list!.x)
     expect(Math.abs(h2!.y - list!.y)).toBeLessThan(40)
     expect(await faq.locator('h2 ~ *').count()).toBeGreaterThan(0)
+    // A long real heading (Kinexus/Accord style) wraps in a few lines, not ~6.
+    await faq.locator('h2').evaluate((h) => (h.textContent = 'Frequently asked questions about outsourced accounting and CFO services'))
+    const lines = await faq.locator('h2').evaluate((h) => Math.round(h.getBoundingClientRect().height / parseFloat(getComputedStyle(h).lineHeight)))
+    expect(lines).toBeLessThanOrEqual(3)
+    // …and the questions keep roughly the default FAQ measure (48rem = 768px).
+    expect((await faq.locator('h2 + *').boundingBox())!.width).toBeGreaterThanOrEqual(640)
   })
 })
 

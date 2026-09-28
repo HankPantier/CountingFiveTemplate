@@ -202,17 +202,22 @@ html[data-c5-layout-cta-banner="centered"] [data-block="cta-banner"]:not([data-l
 
 /* ---- faq-accordion → split (site-wide preset only; no per-section variant) --
  * From lg: the heading in a left column, the questions on the right. DOM and
- * reading order unchanged (heading, then questions). */
+ * reading order unchanged (heading, then questions). 2fr / 3fr: the heading
+ * column plus the heading one step down (text-4xl → text-3xl, as in the grid
+ * on phones) let a long real heading wrap in ~3 lines, and the questions keep
+ * close to the default FAQ measure (max-w-3xl). */
 @media (min-width: 64rem) {
   html[data-c5-layout-faq="split"] [data-block="faq-accordion"]:not([data-layout]):not(.u-band-ink) > div {
     display: grid;
-    grid-template-columns: minmax(0, 1fr) minmax(0, 2fr);
+    grid-template-columns: minmax(0, 2fr) minmax(0, 3fr);
     column-gap: 4rem;
     align-items: start;
     max-width: none;
   }
   html[data-c5-layout-faq="split"] [data-block="faq-accordion"]:not([data-layout]):not(.u-band-ink) > div > h2 {
     text-align: left;
+    font-size: 1.875rem;
+    line-height: 2.25rem;
   }
   html[data-c5-layout-faq="split"] [data-block="faq-accordion"]:not([data-layout]):not(.u-band-ink) > div > h2 + * {
     margin-top: 0;
