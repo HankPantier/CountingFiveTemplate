@@ -11,13 +11,15 @@ import { isUrlActive, orderedPrimaryNav } from '@/lib/nav/nav-tree'
 import type { NavJson, NavItem } from '@/lib/nav/types'
 import { useState } from 'react'
 
-export function MobileNav({ nav }: { nav: NavJson }) {
+/** `desktop`: NavBar collapsed its desktop nav (too long for the bar), so the
+ * menu button also shows from md up. */
+export function MobileNav({ nav, desktop = false }: { nav: NavJson; desktop?: boolean }) {
   const pathname = usePathname() ?? '/'
   const [open, setOpen] = useState(false)
   return (
     <Sheet open={open} onOpenChange={setOpen}>
       <SheetTrigger asChild>
-        <Button variant="ghost" size="icon" aria-label="Open menu" className="md:hidden">
+        <Button variant="ghost" size="icon" aria-label="Open menu" className={desktop ? undefined : 'md:hidden'}>
           <Menu className="h-6 w-6" />
         </Button>
       </SheetTrigger>
