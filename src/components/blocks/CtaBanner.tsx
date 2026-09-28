@@ -11,6 +11,21 @@ import { layoutSlot } from './layout-slot'
 
 export type { CtaBannerProps }
 
+/** Section classes for the image banner (see the Section call below). */
+const IMAGE_SECTION_CLASS =
+  'relative overflow-hidden isolate [--color-primary-foreground:var(--color-near-white)]'
+
+/** Scrim over the banner photo: the palette's ink (a deep primary-tinted
+ * near-black, lightness 12% whatever the brand — generate-theme.ts; near-black
+ * on themes that predate the token), translucent so the photo shows through:
+ * ~14% of its light at the top-left where the copy starts, ~30% at the
+ * bottom-right. Being palette-independent in lightness, near-white copy holds
+ * ≥4.5:1 even over a pure-white photo (e2e/cta-banner-image.spec.ts). */
+const SCRIM_INK = 'var(--color-ink, var(--color-near-black))'
+const IMAGE_SCRIM =
+  `linear-gradient(160deg, color-mix(in srgb, ${SCRIM_INK} 86%, transparent) 0%, ` +
+  `color-mix(in srgb, ${SCRIM_INK} 70%, transparent) 100%)`
+
 export function CtaBanner({
   variant,
   align,
@@ -31,7 +46,13 @@ export function CtaBanner({
       fullBleed
       bg="primary"
       spacing="spacious"
-      className="relative overflow-hidden"
+      // image-bg: `isolate` gives the section its own stacking context, so the
+      // photo (-z-20) and scrim (-z-10) paint ABOVE the section's bg-primary
+      // fill instead of behind it (before 2026.09.10 every image banner rendered
+      // as flat colour). The text token is pinned to near-white because the
+      // scrim is always dark, whatever the brand's primary-foreground is.
+      // color-bg keeps its exact pre-2026.09.10 markup (R1).
+      className={bgSrc ? IMAGE_SECTION_CLASS : 'relative overflow-hidden'}
       dataBlock="cta-banner"
       dataLayout={layout}
     >
@@ -44,15 +65,12 @@ export function CtaBanner({
             sizes="100vw"
             className="object-cover -z-20"
           />
-          {/* Directional brand scrim (primary → deep) — mirrors Hero's refined
-              wash so the light copy holds AA contrast while reading on-brand. */}
+          {/* Primary-tinted dark (ink) scrim, deepest at the top-left where
+              the copy starts — see IMAGE_SCRIM. */}
           <div
             aria-hidden="true"
             className="absolute inset-0 -z-10"
-            style={{
-              background:
-                'linear-gradient(160deg, color-mix(in srgb, var(--color-primary) 62%, #000) 0%, color-mix(in srgb, var(--color-near-black) 74%, transparent) 100%)',
-            }}
+            style={{ background: IMAGE_SCRIM }}
           />
         </>
       ) : (
