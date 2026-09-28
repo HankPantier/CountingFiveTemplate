@@ -117,14 +117,16 @@ export default async function RootLayout({
       // emit an attribute, so untouched sites match no style-axes.css rule.
       {...styleAxisAttributes(design.style)}
       // brand.json logo.tone "light" (white logo): logo plates/filters in
-      // globals.css. Absent for every dark or unset logo.
+      // src/styles/logo-tone.css. Absent for every dark or unset logo.
       {...logoToneAttributes(brand)}
       // brand.json palette whose raw action is under 3:1 on primary: the CTA
-      // buttons on primary bands get an on-primary edge (globals.css). Absent
+      // buttons on primary bands get an on-primary edge (action-edge.css). Absent
       // for every palette that already passes.
       {...actionEdgeAttributes(brand)}
-      // design.json logo.size "large": taller header/footer logo (logo-size.css).
-      // Absent for 'standard' / unset — every other site keeps its 32px logo.
+      // design.json logo.size "large": taller header/footer logo
+      // (src/styles/logo-size.css). Absent for 'standard' / unset — every other
+      // site keeps its 32px logo. (data-c5-nav-fit is NOT set here: the header
+      // fit script adds it at runtime, see NAV_FIT_SCRIPT below.)
       {...logoSizeAttributes(design)}
       style={fontAliases}
       // next-themes sets the theme class on <html> before hydration, so the

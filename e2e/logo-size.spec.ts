@@ -138,8 +138,8 @@ test.describe('logo size (design.json logo.size)', () => {
 // them while the page is parsed. Every label is held on one line (w-max, as a
 // NavigationMenuTrigger dropdown item renders).
 type NavFixture = { logo: string; aspect: number; labels: string[] }
-// Kinexus-like: row minimum ≈1430px with the 108px logo (Kinexus measured
-// 1311px without it) — overflows the 1280px bar at every width.
+// Kinexus-like (KINEXUS_NAV above): the row's minimum is ≈1430px with the
+// 108px logo — it overflows the 1280px bar at every width.
 const KINEXUS: NavFixture = { logo: KINEXUS_LOGO, aspect: KINEXUS_ASPECT, labels: KINEXUS_NAV }
 // Buss-like: a 164px logo and a row that fits the 1280px bar with a little to
 // spare but not a 1180px one (Buss: 1280 of 1280 live).
@@ -167,7 +167,8 @@ function rewriteHeader(html: string, f: NavFixture): string {
   return out
 }
 
-/** Load / with the fixture header; `hydrate: false` blocks the JS bundles. */
+/** Load / with the fixture header. JS bundles are blocked (the page never
+ * hydrates) unless `hydrate: true`; the inline fit script still runs. */
 async function servedFixture(page: Page, f: NavFixture, width: number, opts: { hydrate?: boolean; large?: boolean } = {}) {
   await page.setViewportSize({ width, height: 900 })
   await page.route('**/*', async (route) => {
