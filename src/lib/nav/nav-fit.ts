@@ -31,13 +31,14 @@
  */
 export const NAV_FIT_ATTRIBUTE = 'data-c5-nav-fit'
 
-/** Installer body. Parameters: d (document), w (window). */
+/** Installer body. Parameters: d (document), w (window). Returns dispose(). */
 export const NAV_FIT_INSTALL = `
 var A = '${NAV_FIT_ATTRIBUTE}';
 var h = d.documentElement;
 var bar = d.querySelector('[data-component="navbar"] > div');
-if (!bar) return;
+if (!bar) return function () {};
 var frame = 0;
+var stopped = false;
 function measure() {
   var logo = bar.firstElementChild;
   var nav = bar.querySelector(':scope > nav');
@@ -55,15 +56,16 @@ function measure() {
   if (need > bar.clientWidth + 1) h.setAttribute(A, 'collapse');
 }
 function schedule() {
-  if (frame) return;
-  frame = w.requestAnimationFrame(function () { frame = 0; measure(); });
+  if (stopped || frame) return;
+  frame = w.requestAnimationFrame(function () { frame = 0; if (!stopped) measure(); });
 }
 measure();
 var logoImg = bar.firstElementChild && bar.firstElementChild.querySelector('img');
 if (logoImg && !logoImg.complete) logoImg.addEventListener('load', schedule);
 w.addEventListener('resize', schedule);
 if (d.fonts) {
-  if (d.fonts.ready) d.fonts.ready.then(schedule);
+  // Cancelled by dispose(): the promise can settle after teardown.
+  if (d.fonts.ready) d.fonts.ready.then(function () { if (!stopped) schedule(); });
   // Every web-font batch, not only the first: a late swap changes label widths.
   if (d.fonts.addEventListener) d.fonts.addEventListener('loadingdone', schedule);
 }
@@ -74,7 +76,18 @@ if (w.ResizeObserver) {
   ro.observe(bar);
   for (var k = bar.firstElementChild; k; k = k.nextElementSibling) ro.observe(k);
 }
+return function dispose() {
+  stopped = true;
+  if (frame) w.cancelAnimationFrame(frame);
+  frame = 0;
+  if (logoImg) logoImg.removeEventListener('load', schedule);
+  w.removeEventListener('resize', schedule);
+  if (d.fonts && d.fonts.removeEventListener) d.fonts.removeEventListener('loadingdone', schedule);
+  if (ro) ro.disconnect();
+};
 `
 
 /** The inline script. Any failure leaves the page exactly as 2026.09.7. */
-export const NAV_FIT_SCRIPT = `(function(d,w){try{${NAV_FIT_INSTALL}}catch(e){}})(document,window)`
+// A second install (the script evaluated twice, e.g. a cached document
+// re-parsed) disposes the first, so listeners never pile up.
+export const NAV_FIT_SCRIPT = `(function(d,w){try{if(w.__c5NavFit)w.__c5NavFit();w.__c5NavFit=(function(){${NAV_FIT_INSTALL}})();}catch(e){}})(document,window)`

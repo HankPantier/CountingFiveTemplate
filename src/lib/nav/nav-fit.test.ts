@@ -10,7 +10,9 @@ describe('NAV_FIT_SCRIPT', () => {
   })
 
   it('never breaks the page: it is wrapped in try/catch and cannot close its <script>', () => {
-    expect(NAV_FIT_SCRIPT).toMatch(/^\(function\(d,w\)\{try\{[\s\S]*\}catch\(e\)\{\}\}\)\(document,window\)$/)
+    expect(NAV_FIT_SCRIPT).toMatch(
+      /^\(function\(d,w\)\{try\{if\(w\.__c5NavFit\)w\.__c5NavFit\(\);w\.__c5NavFit=\(function\(\)\{[\s\S]*\}\)\(\);\}catch\(e\)\{\}\}\)\(document,window\)$/,
+    )
     expect(NAV_FIT_SCRIPT).not.toMatch(/<\/script/i)
   })
 
