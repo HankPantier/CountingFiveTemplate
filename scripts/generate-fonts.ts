@@ -23,7 +23,7 @@ import { parseFontsCliArgs } from '../src/lib/theme/fonts-cli'
 const OUT = path.join(process.cwd(), 'src', 'app', 'fonts.generated.ts')
 const REL = 'src/app/fonts.generated.ts'
 
-type DesignJson = { typography?: Record<string, string> }
+type DesignJson = { typography?: { headingFont?: string; bodyFont?: string; accentFont?: string; pinnedFonts?: string[] } }
 
 async function syncedSource(designPath: string): Promise<string> {
   const design = JSON.parse(await fs.readFile(designPath, 'utf-8')) as DesignJson

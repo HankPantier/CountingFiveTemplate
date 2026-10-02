@@ -36,8 +36,8 @@ describe('font contracts + goldens', () => {
   it('the default golden is exactly the DEFAULT-kind module (run npm run design-contracts)', () => {
     expect(read(`${FIX}/fonts-default.golden.txt`)).toBe(generateFontsModule().source)
   })
-  it.each(['editorial', 'noitalic'])('the %s golden matches the generator', (name) => {
-    const design = JSON.parse(read(`${FIX}/design-${name}.json`)) as { typography: Record<string, string> }
+  it.each(['editorial', 'noitalic', 'pinned'])('the %s golden matches the generator', (name) => {
+    const design = JSON.parse(read(`${FIX}/design-${name}.json`)) as { typography: { headingFont?: string; bodyFont?: string; accentFont?: string; pinnedFonts?: string[] } }
     expect(read(`${FIX}/fonts-${name}.golden.txt`)).toBe(generateFontsModule(design.typography).source)
   })
   it('docs/design/font-manifest.json matches the manifest (run npm run design-contracts)', () => {
