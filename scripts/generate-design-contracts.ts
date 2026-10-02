@@ -22,9 +22,9 @@ async function main(): Promise<void> {
   await fs.mkdir(path.join(root, 'docs', 'design'), { recursive: true })
   await fs.writeFile(path.join(root, 'docs', 'design', 'font-manifest.json'), fontManifestJson(), 'utf-8')
   await fs.writeFile(path.join(FIX, 'fonts-default.golden.txt'), generateFontsModule().source, 'utf-8')
-  for (const name of ['editorial', 'noitalic']) {
+  for (const name of ['editorial', 'noitalic', 'pinned']) {
     const design = JSON.parse(await fs.readFile(path.join(FIX, `design-${name}.json`), 'utf-8')) as {
-      typography: Record<string, string>
+      typography: { headingFont?: string; bodyFont?: string; accentFont?: string; pinnedFonts?: string[] }
     }
     await fs.writeFile(path.join(FIX, `fonts-${name}.golden.txt`), generateFontsModule(design.typography).source, 'utf-8')
   }
