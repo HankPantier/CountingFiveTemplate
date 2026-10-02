@@ -2,6 +2,36 @@
 
 All notable changes to this template are recorded here. The format follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/) and the project loosely follows semver — though as a per-client template, "release" means "checkpoint on `main`" rather than a published package version.
 
+## [2026.09.12] — Fonts module loads the families a locked design area needs
+
+Build-tooling release: **no visible change** on any site.
+
+### Added
+- **`typography.pinnedFonts`** in `content/design.json` (written by the
+  Revaltus platform when an admin locks a design area in the Design Studio).
+  `generateFontsModule` gives each pinned family a `--font-pin-<slug>`
+  variable: an alias of the role variable when a role already loads that
+  family (its load widened to every role weight), otherwise its own
+  next/font load. Absent or empty → the module is byte-identical to before.
+- `npm run generate-fonts` / `--check` pass `pinnedFonts` through, so a site
+  with locks no longer reports fonts-module drift in CI.
+- New golden `src/lib/theme/__fixtures__/fonts/{design-pinned.json,
+  fonts-pinned.golden.txt}` (also mirrored by the platform).
+
+### Rollout notes (template 2026.09.11 → 2026.09.12)
+Ship in ONE commit, `c5-template.json` last.
+- **Overwrite (M):** `CHANGELOG.md`, `scripts/generate-design-contracts.ts`,
+  `scripts/generate-fonts.ts`, `src/lib/theme/design-contracts.test.ts`,
+  `src/lib/theme/font-module.ts`, `src/lib/theme/template-marker.test.ts`.
+- **Add (A):** `src/lib/theme/__fixtures__/fonts/design-pinned.json`,
+  `src/lib/theme/__fixtures__/fonts/fonts-pinned.golden.txt`.
+- **Delete (D):** none.
+- **Write last:** `c5-template.json` = `{"templateVersion": "2026.09.12",
+  "capabilities": ["fonts", "style-axes", "specimen", "layout-presets"],
+  "syncedFrom": "<the template main SHA being rolled out>"}`.
+- theme.css and `src/app/fonts.generated.ts` are not rewritten; no
+  package.json change.
+
 ## [2026.09.11] — Every surface is stylable; no debug placeholder on live sites
 
 Markup-only release: **no visible change** except on pages that showed the
