@@ -94,14 +94,12 @@ function Stepper({ value, onChange, label }: { value: number; onChange: (v: numb
 
 // Per-service option groups revealed when a service is expanded.
 function ServiceOptions({
-  serviceId,
   groups,
   selected,
   onChange,
   fmt,
   period,
 }: {
-  serviceId: string
   groups: ServiceOptionGroup[]
   selected: Record<string, string[]>
   onChange: (groupId: string, choiceIds: string[]) => void
@@ -231,7 +229,6 @@ export function PricingCalculatorClient({ config }: { config: PricingCalculatorC
                         <div className="overflow-hidden">
                           <div className="px-5 pb-5">
                             <ServiceOptions
-                              serviceId={line.id}
                               groups={line.options ?? []}
                               selected={selection.serviceOptions[line.id] ?? {}}
                               onChange={(groupId, ids) => setServiceOption(line.id, groupId, ids)}

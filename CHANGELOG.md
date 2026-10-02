@@ -2,6 +2,28 @@
 
 All notable changes to this template are recorded here. The format follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/) and the project loosely follows semver — though as a per-client template, "release" means "checkpoint on `main`" rather than a published package version.
 
+## [2026.09.13] — Lint clean-up
+
+Code-hygiene release: **no visible or behavioural change**.
+
+### Fixed
+- `PricingCalculatorClient`: `ServiceOptions` no longer takes the unused
+  `serviceId` prop.
+- `ResourceBrowser`: dropped the unused `PostContentType` type import.
+- `npm run lint` now reports 0 problems.
+
+### Rollout notes (template 2026.09.12 → 2026.09.13)
+Ship in ONE commit, `c5-template.json` last.
+- **Overwrite (M):** `CHANGELOG.md`,
+  `src/components/blocks/PricingCalculatorClient.tsx` (only where the client
+  has the pricing module), `src/components/blocks/ResourceBrowser.tsx`,
+  `src/lib/theme/template-marker.test.ts`.
+- **Add (A) / Delete (D):** none.
+- **Write last:** `c5-template.json` = `{"templateVersion": "2026.09.13",
+  "capabilities": ["fonts", "style-axes", "specimen", "layout-presets"],
+  "syncedFrom": "<the template main SHA being rolled out>"}`.
+- theme.css is not rewritten; no package.json change.
+
 ## [2026.09.12] — Fonts module loads the families a locked design area needs
 
 Build-tooling release: **no visible change** on any site.
