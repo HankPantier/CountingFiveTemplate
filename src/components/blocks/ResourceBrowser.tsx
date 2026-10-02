@@ -14,7 +14,7 @@ import {
   SelectValue,
 } from '@/components/ui/select'
 import { cn } from '@/lib/utils'
-import { CONTENT_TYPE_META, type PostContentType } from '@/lib/content/content-type-meta'
+import { CONTENT_TYPE_META } from '@/lib/content/content-type-meta'
 import {
   collectTags,
   filterPosts,
